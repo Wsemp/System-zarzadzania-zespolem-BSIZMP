@@ -1,0 +1,1 @@
+# System-zarzadzania-zespolem-BSIZMP
