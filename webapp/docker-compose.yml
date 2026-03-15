@@ -1,0 +1,9 @@
+services:
+  backend:
+    build: .
+    container_name: django_webapp
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    restart: unless-stopped
