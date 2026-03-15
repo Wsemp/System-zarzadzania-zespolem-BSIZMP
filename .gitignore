@@ -7,6 +7,10 @@ __pycache__/
 # Environment variables
 .env
 
+# local database
+
+.sqlite3
+
 # IDE
 .idea/
 .vscode/
