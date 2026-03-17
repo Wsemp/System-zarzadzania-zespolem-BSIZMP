@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "oYoknvvWkLg=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\i5 6Gen\\Desktop\\l\\System-zarzadzania-zespolem-BSIZMP\\desktopapp\\desktopapp\\desktopapp.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\i5 6Gen\\.nuget\\packages\\communitytoolkit.mvvm\\8.4.0\\communitytoolkit.mvvm.8.4.0.nupkg.sha512",
+    "C:\\Users\\i5 6Gen\\.nuget\\packages\\newtonsoft.json\\13.0.4\\newtonsoft.json.13.0.4.nupkg.sha512"
+  ],
+  "logs": []
+}
