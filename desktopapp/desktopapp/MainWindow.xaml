@@ -4,9 +4,39 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:desktopapp"
+        xmlns:vm="clr-namespace:desktopapp.ViewModels"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="Task Manager - Panel Administratora" Height="450" Width="800">
+
+    <Window.DataContext>
+        <vm:MainViewModel />
+    </Window.DataContext>
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+            <TextBlock Text="Zarządzanie zadaniami" FontSize="20" FontWeight="Bold" Margin="0,0,20,0"/>
+            <Button Content="Dodaj nowe zadanie" Command="{Binding OpenAddTaskWindowCommand}" Width="130" Margin="0,0,10,0"/>
+        </StackPanel>
+
+        <DataGrid Grid.Row="1" 
+                  ItemsSource="{Binding Tasks}" 
+                  AutoGenerateColumns="False" 
+                  IsReadOnly="True"
+                  HeadersVisibility="Column"
+                  AlternatingRowBackground="#FFF0F0F0">
+
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50" />
+                <DataGridTextColumn Header="Tytuł" Binding="{Binding Title}" Width="*" />
+                <DataGridTextColumn Header="Przypisano do" Binding="{Binding AssignedUser}" Width="150" />
+                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100" />
+            </DataGrid.Columns>
+        </DataGrid>
 
     </Grid>
 </Window>
