@@ -18,17 +18,28 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
-            <TextBlock Text="Zarządzanie zadaniami" FontSize="20" FontWeight="Bold" Margin="0,0,20,0"/>
-            <Button Content="Dodaj nowe zadanie" Command="{Binding OpenAddTaskWindowCommand}" Width="130" Margin="0,0,10,0"/>
+        <StackPanel Grid.Row="0" Margin="0,0,0,10">
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                <TextBlock Text="Zarządzanie zadaniami" FontSize="20" FontWeight="Bold" Margin="0,0,20,0"/>
+                <Button Content="Dodaj nowe zadanie" Command="{Binding OpenAddTaskWindowCommand}" Width="130" Margin="0,0,10,0"/>
+
+                <Button Content="Usuń wybrane" Command="{Binding DeleteTaskCommand}" Background="#FF4444" Foreground="White" Width="100"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Filtruj po użytkowniku:" VerticalAlignment="Center" Margin="0,0,10,0" FontWeight="SemiBold"/>
+                <TextBox Width="200" Text="{Binding SearchUserText, UpdateSourceTrigger=PropertyChanged}" Padding="2"/>
+            </StackPanel>
         </StackPanel>
 
         <DataGrid Grid.Row="1" 
                   ItemsSource="{Binding Tasks}" 
+                  SelectedItem="{Binding SelectedTask}"
                   AutoGenerateColumns="False" 
                   IsReadOnly="True"
                   HeadersVisibility="Column"
-                  AlternatingRowBackground="#FFF0F0F0">
+                  AlternatingRowBackground="#FFF0F0F0"
+                  SelectionMode="Single">
 
             <DataGrid.Columns>
                 <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50" />
