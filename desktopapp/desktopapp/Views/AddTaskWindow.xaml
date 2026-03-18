@@ -1,0 +1,32 @@
+﻿<Window x:Class="desktopapp.Views.AddTaskWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:desktopapp.Views"
+        mc:Ignorable="d"
+        Title="AddTaskWindow" Height="450" Width="800">
+    <Grid Margin="20">
+        <StackPanel>
+            <TextBlock Text="Dodaj nowe zadanie" FontSize="18" FontWeight="Bold" Margin="0,0,0,15"/>
+
+            <TextBlock Text="Tytuł:" />
+            <TextBox Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+
+            <TextBlock Text="Opis:" />
+            <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Height="50" TextWrapping="Wrap" Margin="0,0,0,10" />
+
+            <TextBlock Text="Przypisz do:" />
+            <TextBox Text="{Binding AssignedUser, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+
+            <TextBlock Text="Status:" />
+            <ComboBox SelectedItem="{Binding Status}" Margin="0,0,0,20">
+                <System:String xmlns:System="clr-namespace:System;assembly=mscorlib">Do zrobienia</System:String>
+                <System:String xmlns:System="clr-namespace:System;assembly=mscorlib">W trakcie</System:String>
+                <System:String xmlns:System="clr-namespace:System;assembly=mscorlib">Zakończone</System:String>
+            </ComboBox>
+
+            <Button Content="Zapisz zadanie" Command="{Binding SaveCommand}" Height="35" Background="#0078D7" Foreground="White" FontWeight="Bold" />
+        </StackPanel>
+    </Grid>
+</Window>
