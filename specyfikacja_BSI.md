@@ -95,3 +95,4 @@ Projekt zakłada wdrożenie mechanizmów zabezpieczających dostęp do systemu:
 ---
 
 ## Repozytorium GIT
+https://github.com/Wsemp/System-zarzadzania-zespolem-BSIZMP
