@@ -12,8 +12,8 @@ Zabezpieczenie wieloplatformowego systemu Task Manager poprzez implementację be
 
 | Osoba   | Odpowiedzialność |
 | :------- | :---------------- |
-| Daniel Kozak | aplikacja webowa (Django, integracja bezpieczeństwa) |
-| Wiktor Semp | aplikacja desktopowa (C# + .NET, obsługa uwierzytelniania) |
+| Wiktor Semp | aplikacja webowa (Django, integracja bezpieczeństwa) |
+| Daniel Kozak | aplikacja desktopowa (C# + .NET, obsługa uwierzytelniania) |
 | Emilia Małecka | aplikacja mobilna (Flutter, 2FA i bezpieczeństwo mobilne) |
 
 ---
