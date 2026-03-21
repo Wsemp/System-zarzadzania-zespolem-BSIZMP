@@ -7,8 +7,11 @@ SECRET_KEY = 'django-insecure-&fz@qmbnksttwys+30b=y_!qzxy(_vi!wrthi_kja4suy=s31d
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['system-zarzadzania-zespolem-bsizmp.onrender.com']
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://system-zarzadzania-zespolem-bsizmp.onrender.com"
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
