@@ -7,9 +7,10 @@ SECRET_KEY = 'django-insecure-&fz@qmbnksttwys+30b=y_!qzxy(_vi!wrthi_kja4suy=s31d
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['system-zarzadzania-zespolem-bsizmp.onrender.com']
+ALLOWED_HOSTS = ['*']
 
 CSRF_TRUSTED_ORIGINS = [
+    "http://localhost",
     "https://system-zarzadzania-zespolem-bsizmp.onrender.com"
 ]
 
