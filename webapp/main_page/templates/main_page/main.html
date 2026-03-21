@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Trzy kafelki</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            padding: 40px;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .tile {
+            background: white;
+            padding: 30px;
+            width: 250px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .tile:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        .tile h2 {
+            margin-bottom: 10px;
+        }
+
+        .tile p {
+            color: #666;
+        }
+
+        .tile button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+
+        .tile button:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="tile">
+        <h2>Kafelek 1</h2>
+        <p>Opis pierwszego kafelka</p>
+        <button>Kliknij</button>
+    </div>
+
+    <div class="tile">
+        <h2>Kafelek 2</h2>
+        <p>Opis drugiego kafelka</p>
+        <button>Kliknij</button>
+    </div>
+
+    <div class="tile">
+        <h2>Kafelek 3</h2>
+        <p>Opis trzeciego kafelka</p>
+        <button>Kliknij</button>
+    </div>
+</div>
+
+</body>
+</html>
