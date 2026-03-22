@@ -45,7 +45,17 @@
                 <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50" />
                 <DataGridTextColumn Header="Tytuł" Binding="{Binding Title}" Width="*" />
                 <DataGridTextColumn Header="Przypisano do" Binding="{Binding AssignedUser}" Width="150" />
-                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100" />
+                <DataGridTemplateColumn Header="Status" Width="130">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ComboBox SelectedItem="{Binding Status, UpdateSourceTrigger=PropertyChanged}">
+                                <System:String xmlns:System="clr-namespace:System;assembly=mscorlib">Do zrobienia</System:String>
+                                <System:String xmlns:System="clr-namespace:System;assembly=mscorlib">W trakcie</System:String>
+                                <System:String xmlns:System="clr-namespace:System;assembly=mscorlib">Zakończone</System:String>
+                            </ComboBox>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
 

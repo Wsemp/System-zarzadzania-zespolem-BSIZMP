@@ -1,11 +1,22 @@
-﻿namespace desktopapp.Models
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+
+namespace desktopapp.Models
 {
-    public class TaskModel
+    public partial class TaskModel : ObservableObject
     {
-        public int Id { get; set; }
-        public string Title { get; set; }
-        public string Description { get; set; }
-        public string Status { get; set; } 
-        public string AssignedUser { get; set; }
+        [ObservableProperty]
+        private int _id;
+
+        [ObservableProperty]
+        private string _title;
+
+        [ObservableProperty]
+        private string _description;
+
+        [ObservableProperty]
+        private string _status;
+
+        [ObservableProperty]
+        private string _assignedUser;
     }
 }
