@@ -38,7 +38,17 @@ namespace desktopapp.ViewModels
             else
             {
                 MessageBox.Show("Błędny login, hasło lub brak połączenia z serwerem.", "Błąd logowania");
-            }
+            }   
+        }
+
+        [RelayCommand]
+        public void OpenRegisterWindow()
+        {
+            var registerVm = new RegisterViewModel();
+            var window = new Views.RegisterWindow(registerVm);
+            window.ShowDialog(); 
         }
     }
+
+
 }
