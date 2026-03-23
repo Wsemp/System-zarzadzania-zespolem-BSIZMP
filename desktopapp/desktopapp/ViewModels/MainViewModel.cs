@@ -116,5 +116,25 @@ namespace desktopapp.ViewModels
                 NewProjectDescription = string.Empty;
             }
         }
+
+
+        [ObservableProperty]
+        private string _currentUserName = "admin";
+
+        [ObservableProperty]
+        private string _currentUserEmail = "admin@mojsystem.pl";
+
+        [ObservableProperty]
+        private string _newPassword;
+
+        [RelayCommand]
+        public void SaveProfile()
+        {
+
+            System.Windows.MessageBox.Show($"Zapisano zmiany dla profilu: {CurrentUserName}", "Sukces");
+
+            NewPassword = string.Empty;
+        }
+
     }
 }
