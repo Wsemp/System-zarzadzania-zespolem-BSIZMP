@@ -17,3 +17,6 @@ jobs:
 
       - name: Build obrazu
         run: docker build -t my-django-app .
+
+      - name: Testy Django
+        run: docker run --rm my-django-app python manage.py test
