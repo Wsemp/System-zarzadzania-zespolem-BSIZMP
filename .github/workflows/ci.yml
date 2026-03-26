@@ -12,11 +12,11 @@ jobs:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
-      - name: Checkout kodu
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Build obrazu
+      - name: Image build
         run: docker build -t my-django-app ./webapp
 
-      - name: Testy Django
+      - name: Django test
         run: docker run --rm my-django-app python manage.py test
