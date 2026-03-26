@@ -3,6 +3,10 @@ from django.shortcuts import render, redirect
 
 
 def login_view(request):
+
+    if request.user.is_authenticated:
+        return redirect("/")
+
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
@@ -16,6 +20,7 @@ def login_view(request):
             else:
                 login(request, user)
                 next_url = request.GET.get('next', '/')
+                print("Next url: ", next_url)
                 return redirect(next_url)
         else:
             return render(request, 'admin_login/login.html', {'error': 'Invalid credentials'})
