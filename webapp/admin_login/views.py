@@ -15,7 +15,8 @@ def login_view(request):
 
             else:
                 login(request, user)
-                return redirect('home')
+                next_url = request.GET.get('next', '/')
+                return redirect(next_url)
         else:
             return render(request, 'admin_login/login.html', {'error': 'Invalid credentials'})
 
