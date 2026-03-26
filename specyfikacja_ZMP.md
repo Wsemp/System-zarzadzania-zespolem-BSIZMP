@@ -10,7 +10,7 @@
 
 | OPZ | Funkcjonalność | API | web | mobile | desktop |
 | :--- | :--- | :---: | :---: | :---: | :---: |
-| **SYS-01** | Użytkownik może założyć konto w systemie. | * | ✓ | ✓ | ✓ |
+| **SYS-01** | Użytkownik może założyć konto w systemie. | * |  | ✓ | ✓ |
 | **SYS-02** | Użytkownik może zalogować się do aplikacji. | * | ✓ | ✓ | ✓ |
 | **SYS-03** | Użytkownik może tworzyć nowe zadania. | * | ✓ | ✓ | ✓ |
 | **SYS-04** | Użytkownik może edytować i usuwać zadania. | * | ✓ | ✓ | ✓ |
