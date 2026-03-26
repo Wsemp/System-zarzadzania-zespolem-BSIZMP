@@ -4,7 +4,7 @@ using desktopapp.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq; 
+using System.Linq;
 
 namespace desktopapp.ViewModels
 {
@@ -21,9 +21,19 @@ namespace desktopapp.ViewModels
         [ObservableProperty]
         private string _searchUserText;
 
+        [ObservableProperty]
+        private ObservableCollection<ProjectModel> _projects;
+
+        [ObservableProperty]
+        private string _newProjectName;
+
+        [ObservableProperty]
+        private string _newProjectDescription;
+
         public MainViewModel()
         {
             LoadMockData();
+            LoadMockProjects();
         }
 
         private void LoadMockData()
@@ -37,6 +47,16 @@ namespace desktopapp.ViewModels
             };
 
             Tasks = new ObservableCollection<TaskModel>(_allTasks);
+        }
+
+        private void LoadMockProjects()
+        {
+            Projects = new ObservableCollection<ProjectModel>
+            {
+                new ProjectModel { Id = 1, Name = "Aplikacja Webowa", Description = "Backend w Django i frontend w React" },
+                new ProjectModel { Id = 2, Name = "Aplikacja Mobilna", Description = "Apka we Flutterze dla klientów" },
+                new ProjectModel { Id = 3, Name = "Panel Admina", Description = "Aplikacja WPF w C#" }
+            };
         }
 
         partial void OnSearchUserTextChanged(string value)
@@ -57,8 +77,8 @@ namespace desktopapp.ViewModels
         {
             if (SelectedTask != null)
             {
-                _allTasks.Remove(SelectedTask); 
-                Tasks.Remove(SelectedTask);     
+                _allTasks.Remove(SelectedTask);
+                Tasks.Remove(SelectedTask);
             }
         }
 
@@ -66,7 +86,7 @@ namespace desktopapp.ViewModels
         public void OpenAddTaskWindow()
         {
             var addTaskVm = new AddTaskViewModel();
-        
+
             var window = new Views.AddTaskWindow(addTaskVm);
             window.ShowDialog();
 
@@ -77,5 +97,44 @@ namespace desktopapp.ViewModels
                 Tasks.Insert(0, addTaskVm.CreatedTask);
             }
         }
+
+        [RelayCommand]
+        public void AddProject()
+        {
+            if (!string.IsNullOrWhiteSpace(NewProjectName))
+            {
+                var nowyProjekt = new ProjectModel
+                {
+                    Id = Projects.Count + 1,
+                    Name = this.NewProjectName,
+                    Description = this.NewProjectDescription
+                };
+
+                Projects.Add(nowyProjekt);
+
+                NewProjectName = string.Empty;
+                NewProjectDescription = string.Empty;
+            }
+        }
+
+
+        [ObservableProperty]
+        private string _currentUserName = "admin";
+
+        [ObservableProperty]
+        private string _currentUserEmail = "admin@mojsystem.pl";
+
+        [ObservableProperty]
+        private string _newPassword;
+
+        [RelayCommand]
+        public void SaveProfile()
+        {
+
+            System.Windows.MessageBox.Show($"Zapisano zmiany dla profilu: {CurrentUserName}", "Sukces");
+
+            NewPassword = string.Empty;
+        }
+
     }
 }

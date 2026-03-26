@@ -12,42 +12,107 @@
         <vm:MainViewModel />
     </Window.DataContext>
 
-    <Grid Margin="10">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <Grid>
+        <TabControl Margin="10">
 
-        <StackPanel Grid.Row="0" Margin="0,0,0,10">
-            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                <TextBlock Text="Zarządzanie zadaniami" FontSize="20" FontWeight="Bold" Margin="0,0,20,0"/>
-                <Button Content="Dodaj nowe zadanie" Command="{Binding OpenAddTaskWindowCommand}" Width="130" Margin="0,0,10,0"/>
+            <TabItem Header="Zarządzanie Zadaniami">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
 
-                <Button Content="Usuń wybrane" Command="{Binding DeleteTaskCommand}" Background="#FF4444" Foreground="White" Width="100"/>
-            </StackPanel>
+                    <StackPanel Grid.Row="0" Margin="0,0,0,10">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                            <TextBlock Text="Zarządzanie zadaniami" FontSize="20" FontWeight="Bold" Margin="0,0,20,0"/>
+                            <Button Content="Dodaj nowe zadanie" Command="{Binding OpenAddTaskWindowCommand}" Width="130" Margin="0,0,10,0"/>
+                            <Button Content="Usuń wybrane" Command="{Binding DeleteTaskCommand}" Background="#FF4444" Foreground="White" Width="100"/>
+                        </StackPanel>
 
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="Filtruj po użytkowniku:" VerticalAlignment="Center" Margin="0,0,10,0" FontWeight="SemiBold"/>
-                <TextBox Width="200" Text="{Binding SearchUserText, UpdateSourceTrigger=PropertyChanged}" Padding="2"/>
-            </StackPanel>
-        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Filtruj po użytkowniku:" VerticalAlignment="Center" Margin="0,0,10,0" FontWeight="SemiBold"/>
+                            <TextBox Width="200" Text="{Binding SearchUserText, UpdateSourceTrigger=PropertyChanged}" Padding="2"/>
+                        </StackPanel>
+                    </StackPanel>
 
-        <DataGrid Grid.Row="1" 
-                  ItemsSource="{Binding Tasks}" 
-                  SelectedItem="{Binding SelectedTask}"
-                  AutoGenerateColumns="False" 
-                  IsReadOnly="True"
-                  HeadersVisibility="Column"
-                  AlternatingRowBackground="#FFF0F0F0"
-                  SelectionMode="Single">
+                    <DataGrid Grid.Row="1" 
+                              ItemsSource="{Binding Tasks}" 
+                              SelectedItem="{Binding SelectedTask}"
+                              AutoGenerateColumns="False" 
+                              IsReadOnly="False"
+                              HeadersVisibility="Column"
+                              AlternatingRowBackground="#FFF0F0F0"
+                              SelectionMode="Single">
 
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50" />
-                <DataGridTextColumn Header="Tytuł" Binding="{Binding Title}" Width="*" />
-                <DataGridTextColumn Header="Przypisano do" Binding="{Binding AssignedUser}" Width="150" />
-                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100" />
-            </DataGrid.Columns>
-        </DataGrid>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50" IsReadOnly="True" />
+                            <DataGridTextColumn Header="Tytuł" Binding="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Width="*" />
+                            <DataGridTextColumn Header="Przypisano do" Binding="{Binding AssignedUser, UpdateSourceTrigger=PropertyChanged}" Width="150" />
+                            <DataGridTemplateColumn Header="Status" Width="130">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <ComboBox SelectedItem="{Binding Status, UpdateSourceTrigger=PropertyChanged}">
+                                            <System:String xmlns:System="clr-namespace:System;assembly=mscorlib">Do zrobienia</System:String>
+                                            <System:String xmlns:System="clr-namespace:System;assembly=mscorlib">W trakcie</System:String>
+                                            <System:String xmlns:System="clr-namespace:System;assembly=mscorlib">Zakończone</System:String>
+                                        </ComboBox>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
 
+            <TabItem Header="Zarządzanie Projektami">
+                <Grid Margin="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="1*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <DataGrid Grid.Column="0" ItemsSource="{Binding Projects}" AutoGenerateColumns="False" 
+                              IsReadOnly="True" HeadersVisibility="Column" Margin="0,0,10,0" AlternatingRowBackground="#FFF0F0F0">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="40" />
+                            <DataGridTextColumn Header="Nazwa Projektu" Binding="{Binding Name}" Width="150" />
+                            <DataGridTextColumn Header="Opis" Binding="{Binding Description}" Width="*" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <StackPanel Grid.Column="1" Background="#FFF0F0F0" Margin="10,0,0,0">
+                        <TextBlock Text="Utwórz nowy projekt" FontSize="16" FontWeight="Bold" Margin="10,10,10,15"/>
+
+                        <TextBlock Text="Nazwa projektu:" Margin="10,0,10,5"/>
+                        <TextBox Text="{Binding NewProjectName, UpdateSourceTrigger=PropertyChanged}" Margin="10,0,10,10"/>
+
+                        <TextBlock Text="Opis:" Margin="10,0,10,5"/>
+                        <TextBox Text="{Binding NewProjectDescription, UpdateSourceTrigger=PropertyChanged}" Height="60" TextWrapping="Wrap" Margin="10,0,10,15"/>
+
+                        <Button Content="Dodaj projekt" Command="{Binding AddProjectCommand}" Height="35" Background="#0078D7" Foreground="White" FontWeight="Bold" Margin="10,0,10,10"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Mój Profil i Ustawienia">
+                <StackPanel Margin="40" Width="350" HorizontalAlignment="Left">
+                    <TextBlock Text="Ustawienia Twojego Konta" FontSize="22" FontWeight="Bold" Margin="0,0,0,25" Foreground="#333333"/>
+
+                    <TextBlock Text="Nazwa użytkownika:" Margin="0,0,0,5" FontWeight="SemiBold" Foreground="#555555"/>
+                    <TextBox Text="{Binding CurrentUserName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,15" Padding="6" FontSize="14"/>
+
+                    <TextBlock Text="Adres e-mail:" Margin="0,0,0,5" FontWeight="SemiBold" Foreground="#555555"/>
+                    <TextBox Text="{Binding CurrentUserEmail, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,15" Padding="6" FontSize="14"/>
+
+                    <Separator Margin="0,10,0,20" Background="#DDDDDD" />
+
+                    <TextBlock Text="Zmień hasło:" Margin="0,0,0,5" FontWeight="SemiBold" Foreground="#555555"/>
+                    <TextBox Text="{Binding NewPassword, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,25" Padding="6" FontSize="14" />
+
+                    <Button Content="Zapisz zmiany profilu" Command="{Binding SaveProfileCommand}" Height="40" Background="#4CAF50" Foreground="White" FontWeight="Bold" FontSize="14"/>
+                </StackPanel>
+            </TabItem>
+
+        </TabControl>
     </Grid>
 </Window>
