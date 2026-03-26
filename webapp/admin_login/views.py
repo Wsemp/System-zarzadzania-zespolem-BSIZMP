@@ -12,7 +12,7 @@ def login_view(request):
         password = request.POST.get('password')
 
         user = authenticate(request, username=username, password=password)
-
+        print(user)
         if user is not None:
             if not user.is_staff:
                 return render(request, 'admin_login/login.html', {'error': 'User is not admin!'})
