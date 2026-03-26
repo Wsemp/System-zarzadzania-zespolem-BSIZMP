@@ -11,16 +11,16 @@
 | OPZ | Funkcjonalność | API | web | mobile | desktop |
 | :--- | :--- | :---: | :---: | :---: | :---: |
 | **SYS-01** | Użytkownik może założyć konto w systemie. | * |  | ✓ | ✓ |
-| **SYS-02** | Użytkownik może zalogować się do aplikacji. | * | ✓ | ✓ | ✓ |
-| **SYS-03** | Użytkownik może tworzyć nowe zadania. | * | ✓ | ✓ | ✓ |
-| **SYS-04** | Użytkownik może edytować i usuwać zadania. | * | ✓ | ✓ | ✓ |
-| **SYS-05** | Użytkownik może przypisywać zadania do innych użytkowników. | * | ✓ | ✓ | ✓ |
-| **SYS-06** | Użytkownik może zmieniać status zadania (np. do wykonania, w trakcie, zakończone). | * | ✓ | ✓ | ✓ |
-| **SYS-07** | Użytkownik może przeglądać listę swoich zadań. | * | ✓ | ✓ | ✓ |
+| **SYS-02** | Użytkownik może zalogować się do aplikacji. | * |  | ✓ | ✓ |
+| **SYS-03** | Użytkownik może tworzyć nowe zadania. | * |  | ✓ | ✓ |
+| **SYS-04** | Użytkownik może edytować i usuwać zadania. | * |  | ✓ | ✓ |
+| **SYS-05** | Użytkownik może przypisywać zadania do innych użytkowników. | * |  | ✓ | ✓ |
+| **SYS-06** | Użytkownik może zmieniać status zadania (np. do wykonania, w trakcie, zakończone). | * |  | ✓ | ✓ |
+| **SYS-07** | Użytkownik może przeglądać listę swoich zadań. | * |  | ✓ | ✓ |
 | **SYS-08** | Użytkownik może otrzymywać powiadomienia o zmianach w zadaniach. | * | ✓ | ✓ | ✓ |
 | **SYS-09** | Użytkownik może zaakceptować zaproszenie do projektu od Administratora. | * | | ✓ | ✓ |
 | **SYS-10** | Użytkownik może zarządzać swoim profilem i ustawieniami konta. | * | ✓ | ✓ | ✓ |
-| **SYS-11** | Administrator może zarejestrować się i zalogować w systemie. | * | ✓ | | ✓ |
+| **SYS-11** | Administrator może zalogować się w systemie. | * | ✓ | | ✓ |
 | **SYS-12** | Administrator może dodawać, edytować i usuwać zadania. | * | ✓ | | |
 | **SYS-13** | Administrator może tworzyć nowe projekty. | * | ✓ | | ✓ |
 | **SYS-14** | Administrator może edytować uprawnienia użytkowników przypisanych do projektu. | * | ✓ | | ✓ |
