@@ -1,0 +1,16 @@
+name: Django CI (Docker)
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout kodu
+        uses: actions/checkout@v3
+
+      - name: Build obrazu
+        run: docker build -t my-django-app .
