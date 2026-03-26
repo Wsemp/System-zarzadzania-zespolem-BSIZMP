@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Build obrazu
-        run: docker build -t my-django-app .
+        run: docker build -t my-django-app ./webapp
 
       - name: Testy Django
         run: docker run --rm my-django-app python manage.py test
