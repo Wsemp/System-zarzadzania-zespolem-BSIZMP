@@ -3,6 +3,6 @@ from django.contrib.auth.decorators import login_required
 
 
 @login_required
-def view_users(request):
+def users(request):
     print(request)
     return render(request, 'users/users.html')
