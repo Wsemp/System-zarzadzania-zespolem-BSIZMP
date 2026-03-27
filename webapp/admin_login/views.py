@@ -8,16 +8,20 @@ def login_view(request):
         return redirect("/")
 
     if request.method == 'POST':
+
         username = request.POST.get('username')
         password = request.POST.get('password')
 
         user = authenticate(request, username=username, password=password)
-        print(user)
+
         if user is not None:
             if not user.is_staff:
                 return render(request, 'admin_login/login.html', {'error': 'User is not admin!'})
 
             else:
+
+                # redirect to the previous page
+
                 login(request, user)
                 next_url = request.GET.get('next', '/')
                 print("Next url: ", next_url)
