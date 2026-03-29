@@ -5,6 +5,13 @@
     <title>Title</title>
 </head>
 <body>
-  Users
+
+    <p>Liczba wszystkich uzytkownikow: {{users_count}}</p>
+    <p>Liczba uzytkownikow: {{common_users_count}}</p>
+    <p>Liczba administratorow: {{admin_users_count}}</p>
+
+    {% for user in users %}
+        <p>{{ user.username }}</p>
+    {% endfor %}
 </body>
 </html>
