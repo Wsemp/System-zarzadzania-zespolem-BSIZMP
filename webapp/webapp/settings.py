@@ -24,8 +24,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'admin_login',
     'main_page',
-    'users',
+    # 'users',
+    'users.apps.UserConfig',
     'rest_framework',
+    'tests',
 ]
 
 REST_FRAMEWORK = {
