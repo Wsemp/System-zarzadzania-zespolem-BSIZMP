@@ -1,13 +1,12 @@
 from django.test import TestCase, Client
 from django.contrib.auth.models import User
-from django.urls import reverse
 
 
 class LoginViewTest(TestCase):
 
     def setUp(self):
         self.client = Client()
-        self.url = "/login/"  # albo reverse('login') jeśli masz nazwę URL
+        self.url = "/login/"
 
         self.admin_user = User.objects.create_user(
             username="admin",
@@ -63,4 +62,4 @@ class LoginViewTest(TestCase):
         })
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Invalid credentials")
+        self.assertContains(response, "Please enter a correct username and password")

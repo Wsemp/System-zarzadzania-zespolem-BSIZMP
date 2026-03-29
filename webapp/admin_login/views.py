@@ -1,32 +1,18 @@
 from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect
+from django.contrib.auth.views import LoginView
 
 
-def login_view(request):
+class AdminLoginView(LoginView):
+    template_name = "admin_login/login.html"
+    success_url = "/"  # fallback
+    redirect_authenticated_user = True
 
-    if request.user.is_authenticated:
-        return redirect("/")
+    def form_valid(self, form):
+        user = form.get_user()
 
-    if request.method == 'POST':
+        if not user.is_staff:
+            form.add_error(None, "User is not admin!")
+            return self.form_invalid(form)
 
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-
-        user = authenticate(request, username=username, password=password)
-
-        if user is not None:
-            if not user.is_staff:
-                return render(request, 'admin_login/login.html', {'error': 'User is not admin!'})
-
-            else:
-
-                # redirect to the previous page
-
-                login(request, user)
-                next_url = request.GET.get('next', '/')
-                print("Next url: ", next_url)
-                return redirect(next_url)
-        else:
-            return render(request, 'admin_login/login.html', {'error': 'Invalid credentials'})
-
-    return render(request, 'admin_login/login.html')
+        return super().form_valid(form)
