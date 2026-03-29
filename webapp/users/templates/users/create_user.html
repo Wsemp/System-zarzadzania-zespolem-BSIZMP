@@ -1,0 +1,7 @@
+<h2>Stwórz użytkownika</h2>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Utwórz</button>
+</form>
