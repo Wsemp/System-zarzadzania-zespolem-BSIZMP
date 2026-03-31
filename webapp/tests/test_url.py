@@ -5,8 +5,6 @@ User = get_user_model()
 
 class URLTests(TestCase):
 
-    refresh_token = None
-
     def setUp(self):
         self.client = Client()
         self.user = User.objects.create_user(
@@ -38,7 +36,6 @@ class URLTests(TestCase):
 
         for url in urls:
             response = self.client.get(url)
-            print(response.status_code, url)
             self.assertEqual(response.status_code, 200)
 
     def test_token_flow(self):
@@ -64,9 +61,6 @@ class URLTests(TestCase):
         refresh_response = self.client.post(refresh_url, {"refresh": refresh_token})
         self.assertEqual(refresh_response.status_code, 200)
         new_access = refresh_response.json().get("access")
-
-        print("Refresh:", refresh_token)
-        print("New Access:", new_access)
 
 
     def test_public_urls(self):
