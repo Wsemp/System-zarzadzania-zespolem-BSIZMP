@@ -11,7 +11,9 @@
     <p>Liczba administratorow: {{admin_users_count}}</p>
 
     {% for user in users %}
+        <p>{{ user.id }}</p>
         <p>{{ user.username }}</p>
+        <a href="{% url 'delete_user' user.id %}">Usuń</a>
     {% endfor %}
 </body>
 </html>
