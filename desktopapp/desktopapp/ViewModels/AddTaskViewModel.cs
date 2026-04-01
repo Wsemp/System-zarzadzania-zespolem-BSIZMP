@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using desktopapp.Models;
 using System;
+using System.Collections.ObjectModel; 
 
 namespace desktopapp.ViewModels
 {
@@ -11,6 +12,9 @@ namespace desktopapp.ViewModels
         [ObservableProperty] private string _description;
         [ObservableProperty] private string _status = "Do zrobienia";
         [ObservableProperty] private string _assignedUser;
+
+        [ObservableProperty]
+        private ObservableCollection<string> _availableUsernames;
 
         public Action CloseAction { get; set; }
 
