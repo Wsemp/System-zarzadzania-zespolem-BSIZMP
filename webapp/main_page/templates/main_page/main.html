@@ -61,20 +61,24 @@
 <div class="container">
     <div class="tile">
         <h2>Projekty</h2>
-        <p>Opis pierwszego kafelka</p>
+        <p>Zarzadzaj projektami</p>
         <button>Kliknij</button>
     </div>
 
     <div class="tile">
         <h2>Zadania</h2>
-        <p>Opis drugiego kafelka</p>
+        <p>Zarzadzaj zadaniami</p>
         <button>Kliknij</button>
     </div>
 
     <div class="tile">
         <h2>Użytkownicy</h2>
-        <p>Opis trzeciego kafelka</p>
-        <button>Kliknij</button>
+
+        <button>
+            <p>
+                <a href="{% url 'users_view' %}">Zarzadzaj uzytkownikami</a>
+            </p>
+        </button>
     </div>
 </div>
 
