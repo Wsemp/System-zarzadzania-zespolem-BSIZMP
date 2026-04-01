@@ -17,7 +17,7 @@
             <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Height="50" TextWrapping="Wrap" Margin="0,0,0,10" />
 
             <TextBlock Text="Przypisz do:" />
-            <TextBox Text="{Binding AssignedUser, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+            <ComboBox ItemsSource="{Binding AvailableUsernames}" SelectedItem="{Binding AssignedUser, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
 
             <TextBlock Text="Status:" />
             <ComboBox SelectedItem="{Binding Status}" Margin="0,0,0,20">
