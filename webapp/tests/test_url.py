@@ -9,20 +9,29 @@ class URLTests(TestCase):
         self.client = Client()
         self.user = User.objects.create_user(
             username="test",
-            password="123"
+            password="123",
+            is_staff=True
         )
 
     def test_authenticated_urls(self):
         self.client.login(username="test", password="123")
 
+        dummy_user = User.objects.create_user(
+            username="dummy",
+            password="dummy"
+        )
+
         urls = [
             "/",
             "/users/",
             "/users/create/",
+            f"/users/delete/{dummy_user.id}/",
+            f"/users/update/{dummy_user.id}/",
         ]
 
         for url in urls:
             response = self.client.get(url)
+            # print(response, url)
             self.assertEqual(response.status_code, 200)
 
 
