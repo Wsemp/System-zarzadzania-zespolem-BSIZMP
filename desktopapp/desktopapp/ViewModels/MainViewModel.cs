@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using desktopapp.Models;
+using desktopapp.Services; 
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -30,10 +31,21 @@ namespace desktopapp.ViewModels
         [ObservableProperty]
         private string _newProjectDescription;
 
+        [ObservableProperty]
+        private ObservableCollection<string> _availableUsernames = new ObservableCollection<string>();
+
         public MainViewModel()
         {
             LoadMockData();
             LoadMockProjects();
+            LoadApiUsersAsync(); 
+        }
+
+        private async void LoadApiUsersAsync()
+        {
+            var users = await ApiService.Instance.GetUsersAsync();
+            var usernamesList = users.Select(u => u.Username).ToList();
+            AvailableUsernames = new ObservableCollection<string>(usernamesList);
         }
 
         private void LoadMockData()
@@ -86,6 +98,7 @@ namespace desktopapp.ViewModels
         public void OpenAddTaskWindow()
         {
             var addTaskVm = new AddTaskViewModel();
+            addTaskVm.AvailableUsernames = this.AvailableUsernames; 
 
             var window = new Views.AddTaskWindow(addTaskVm);
             window.ShowDialog();
@@ -130,11 +143,8 @@ namespace desktopapp.ViewModels
         [RelayCommand]
         public void SaveProfile()
         {
-
             System.Windows.MessageBox.Show($"Zapisano zmiany dla profilu: {CurrentUserName}", "Sukces");
-
             NewPassword = string.Empty;
         }
-
     }
 }
