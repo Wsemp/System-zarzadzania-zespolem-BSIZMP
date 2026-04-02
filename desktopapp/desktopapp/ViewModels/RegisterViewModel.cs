@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using desktopapp.Services;
 using System;
 using System.Windows;
 
@@ -15,7 +16,7 @@ namespace desktopapp.ViewModels
         public Action CloseAction { get; set; }
 
         [RelayCommand]
-        public void Register()
+        public async Task RegisterAsync()
         {
             if (string.IsNullOrWhiteSpace(Username) || string.IsNullOrWhiteSpace(Password) || string.IsNullOrWhiteSpace(Email))
             {
@@ -29,10 +30,17 @@ namespace desktopapp.ViewModels
                 return;
             }
 
+            bool isSuccess = await ApiService.Instance.RegisterAsync(Username, Email, Password);
 
-            MessageBox.Show("Konto zostało pomyślnie utworzone! Możesz się zalogować.", "Sukces");
-
-            CloseAction?.Invoke();
+            if (isSuccess)
+            {
+                MessageBox.Show("Konto zostało pomyślnie utworzone! Możesz się zalogować.", "Sukces");
+                CloseAction?.Invoke();
+            }
+            else
+            {
+                MessageBox.Show("Błąd podczas rejestracji! Użytkownik o takiej nazwie może już istnieć.", "Błąd serwera");
+            }
         }
     }
 }
