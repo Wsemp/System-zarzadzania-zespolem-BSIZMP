@@ -28,4 +28,8 @@ jobs:
                     -t my-django-app:latest ./webapp
 
       - name: Django test
-        run: docker run --rm my-django-app python manage.py test
+        run: |
+          docker run -e SECRET_KEY=$SECRET_KEY \
+                     -e DEBUG=$DEBUG \
+                     -e ALLOWED_HOSTS="$ALLOWED_HOSTS" \
+                     my-django-app:latest python manage.py test
