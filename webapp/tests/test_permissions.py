@@ -148,3 +148,61 @@ class TestsProtectedUrl(TestCase):
         )
 
         self.assertEqual(response.status_code, 204)
+
+
+    def test_registration_API(self):
+
+        url = "/api/auth/register/"
+
+        data = {
+            "username": "dummy",
+            "email": "dummyuser@gmail.com",
+            "password": "dummy"
+        }
+
+        response = self.client.post(
+            url,
+            data,
+            format="json"
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertIn("access", response.json())
+        self.assertIn("refresh", response.json())
+
+    def test_login_API(self):
+
+        url_register = "/api/auth/register/"
+
+        data = {
+            "username": "dummy",
+            "email": "dummyuser@gmail.com",
+            "password": "dummy"
+        }
+
+        response = self.client.post(
+            url_register,
+            data,
+            format="json"
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertIn("access", response.json())
+        self.assertIn("refresh", response.json())
+
+        url_login = "/api/auth/login/"
+
+        data = {
+            "username": "dummy",
+            "password": "dummy"
+        }
+
+        response = self.client.post(
+            url_login,
+            data,
+            format="json"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("access", response.json())
+        self.assertIn("refresh", response.json())
