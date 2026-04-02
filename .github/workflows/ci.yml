@@ -18,8 +18,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Image build
-        run: docker build -t my-django-app ./webapp
+
+      - name: Build Docker image
+        run: |
+                  docker build \
+                    --build-arg SECRET_KEY=$SECRET_KEY \
+                    --build-arg DEBUG=$DEBUG \
+                    --build-arg ALLOWED_HOSTS="$ALLOWED_HOSTS" \
+                    -t my-django-app:latest ./webapp
 
       - name: Django test
         run: docker run --rm my-django-app python manage.py test
