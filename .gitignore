@@ -7,6 +7,10 @@ __pycache__/
 # Environment variables
 .env
 
+# staticfiles
+
+webapp/staticfiles
+
 # local database
 
 *.sqlite3
