@@ -14,4 +14,5 @@ def user_created_handler(sender, instance, created, **kwargs):
 
 @receiver(post_delete, sender=User)
 def user_deleted_handler(sender, instance, **kwargs):
-    print(f"User deleted: {instance.username}")
+    pass
+    # print(f"User deleted: {instance.username}")
