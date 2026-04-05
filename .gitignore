@@ -9,7 +9,7 @@ __pycache__/
 
 # migrations
 
-*/*/migrations/
+# */*/migrations/
 
 # staticfiles
 
