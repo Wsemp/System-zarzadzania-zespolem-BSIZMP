@@ -7,6 +7,10 @@ __pycache__/
 # Environment variables
 .env
 
+# migrations
+
+*/*/migrations/
+
 # staticfiles
 
 webapp/staticfiles
