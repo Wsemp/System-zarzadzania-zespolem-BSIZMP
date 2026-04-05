@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'users.apps.UserConfig',
     'rest_framework',
     'tests',
+    'tasks',
 ]
 
 REST_FRAMEWORK = {
