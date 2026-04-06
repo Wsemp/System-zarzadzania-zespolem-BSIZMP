@@ -1,5 +1,6 @@
 from ..models import Task
 from django.db import transaction
+from ..selectors import get_task_byid
 
 @transaction.atomic
 def create_task(
@@ -26,6 +27,13 @@ def create_task(
 
     task.tags.set(tags)
     return task
+
+@transaction.atomic
+def delete_task(*, task_id: int) -> bool:
+    task = get_task_byid(task_id=task_id)
+
+    task.delete()
+    return True
 
 """
 @transaction.atomic

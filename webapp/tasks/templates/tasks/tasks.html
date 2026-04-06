@@ -5,7 +5,9 @@
     <title>Tasks</title>
 </head>
 <body>
+
     {% for task in tasks %}
+        <p>{{ task.id }}</p>
         <p>{{ task.title }}</p>
         <p>{{ task.description }}</p>
         <p>{{ task.status }}</p>
@@ -16,7 +18,10 @@
         <p>{{ task.created_at }}</p>
         <p>{{ task.updated_at }}</p>
 
+        <a href="{% url 'delete_task' task.id %}">Delete</a>
+        {# <a href="{% url 'update_task' task.id %}">Update</a> #}
         <hr>
     {% endfor %}
+
 </body>
 </html>
