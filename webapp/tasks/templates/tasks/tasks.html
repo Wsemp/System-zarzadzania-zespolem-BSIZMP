@@ -2,9 +2,21 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Tasks</title>
 </head>
 <body>
-task
+    {% for task in tasks %}
+        <p>{{ task.title }}</p>
+        <p>{{ task.description }}</p>
+        <p>{{ task.status }}</p>
+        <p>{{ task.assigned_to }}</p>
+        <p>{{ task.created_by }}</p>
+        <p>{{ task.tags.name }}</p>
+        <p>{{ task.is_deleted }}</p>
+        <p>{{ task.created_at }}</p>
+        <p>{{ task.updated_at }}</p>
+
+        <hr>
+    {% endfor %}
 </body>
 </html>

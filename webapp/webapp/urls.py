@@ -8,6 +8,7 @@ urlpatterns = [
     path('login/', include('admin_login.urls')),
     path('', include('main_page.urls')),
     path('users/', include('users.urls')),
+    path('tasks/', include('tasks.urls')),
     path("api/users", include("users.API.CRUD_users.urls")),
     path("api/auth/", include("users.API.register_users.urls")),
     path('api/token', TokenObtainPairView.as_view(), name='token_obtain_pair'),

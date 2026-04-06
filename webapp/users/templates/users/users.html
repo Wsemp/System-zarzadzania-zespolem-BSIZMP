@@ -20,6 +20,7 @@
         <p>{{ user.username }}</p>
         <a href="{% url 'delete_user' user.id %}">Delete</a>
         <a href="{% url 'user_update' user.id %}">Update</a>
+
         {% endfor %}
 </body>
 </html>
