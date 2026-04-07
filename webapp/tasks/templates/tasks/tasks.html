@@ -13,13 +13,17 @@
         <p>{{ task.status }}</p>
         <p>{{ task.assigned_to }}</p>
         <p>{{ task.created_by }}</p>
-        <p>{{ task.tags.name }}</p>
+
+        {% for tag in task.tags.all %}
+            {{ tag.name }}
+        {% endfor %}
+
         <p>{{ task.is_deleted }}</p>
         <p>{{ task.created_at }}</p>
         <p>{{ task.updated_at }}</p>
 
         <a href="{% url 'delete_task' task.id %}">Delete</a>
-        {# <a href="{% url 'update_task' task.id %}">Update</a> #}
+        <a href="{% url 'update_task' task.id %}">Update</a>
         <hr>
     {% endfor %}
 

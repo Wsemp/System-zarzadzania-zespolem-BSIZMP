@@ -1,6 +1,7 @@
 from ..models import Task
 from django.db import transaction
 from ..selectors import get_task_byid
+from django.shortcuts import get_object_or_404
 
 @transaction.atomic
 def create_task(
@@ -35,6 +36,22 @@ def delete_task(*, task_id: int) -> bool:
     task.delete()
     return True
 
+
+@transaction.atomic
+def update_task(*, task_id: int, **data):
+    task = get_task_byid(task_id=task_id)
+
+    tags = data.pop("tags", None)
+
+    for field, value in data.items():
+        setattr(task, field, value)
+
+    task.save()
+
+    if tags is not None:
+        task.tags.set(tags)
+
+    return task
 """
 @transaction.atomic
 def update_user(*, user_id: int, **data) -> User | None:
