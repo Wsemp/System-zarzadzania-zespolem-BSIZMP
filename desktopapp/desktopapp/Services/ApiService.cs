@@ -1,4 +1,5 @@
-﻿using System.Net.Http;
+﻿using System.IO;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -13,8 +14,11 @@ namespace desktopapp.Services
 
         private readonly HttpClient _client;
 
-        
         private readonly string _baseUrl = "https://system-zarzadzania-zespolem-bsizmp.onrender.com/";
+
+        private readonly string _offlineUsersFile = "offline_users_backup.json";
+        private readonly string _offlineCredsFile = "offline_creds_backup.json"; // Nowy plik na dane logowania
+
         public string AccessToken { get; private set; }
 
         private ApiService()
@@ -41,13 +45,41 @@ namespace desktopapp.Services
 
                     _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", AccessToken);
 
+                    // SUKCES ONLINE: Zapisujemy poprawne dane na wypadek awarii neta
+                    var offlineCreds = JsonConvert.SerializeObject(loginData);
+                    File.WriteAllText(_offlineCredsFile, offlineCreds);
+
                     return true;
                 }
                 return false;
             }
             catch
             {
-                return false; 
+                // LOGOWANIE OFFLINE: Sprawdzamy czy zgadza się z ostatnio zapisanymi danymi
+                if (File.Exists(_offlineUsersFile) && File.Exists(_offlineCredsFile))
+                {
+                    try
+                    {
+                        string savedCredsJson = File.ReadAllText(_offlineCredsFile);
+                        dynamic savedCreds = JsonConvert.DeserializeObject(savedCredsJson);
+
+                        if (savedCreds.username == username && savedCreds.password == password)
+                        {
+                            System.Windows.MessageBox.Show("Brak połączenia z serwerem! Wymuszono logowanie awaryjne. Aplikacja działa w Trybie Offline z ograniczonymi funkcjami.", "Tryb Offline");
+                            return true;
+                        }
+                        else
+                        {
+                            System.Windows.MessageBox.Show("Błąd autoryzacji offline. Podano błędny login lub hasło.", "Odmowa dostępu");
+                            return false;
+                        }
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                }
+                return false;
             }
         }
 
@@ -67,11 +99,13 @@ namespace desktopapp.Services
                 return false;
             }
         }
+
         public async Task<System.Collections.Generic.List<Models.UserModel>> GetUsersAsync()
         {
+            var emptyList = new System.Collections.Generic.List<Models.UserModel>();
+
             try
             {
-               
                 var response = await _client.GetAsync(_baseUrl + "api/users/");
 
                 if (response.IsSuccessStatusCode)
@@ -79,21 +113,43 @@ namespace desktopapp.Services
                     var json = await response.Content.ReadAsStringAsync();
                     var parsed = JToken.Parse(json);
 
+                    System.Collections.Generic.List<Models.UserModel> usersList = null;
+
                     if (parsed is JArray array)
                     {
-                        return array.ToObject<System.Collections.Generic.List<Models.UserModel>>();
+                        usersList = array.ToObject<System.Collections.Generic.List<Models.UserModel>>();
                     }
                     else if (parsed is JObject obj && obj["results"] != null)
                     {
-                        return obj["results"].ToObject<System.Collections.Generic.List<Models.UserModel>>();
+                        usersList = obj["results"].ToObject<System.Collections.Generic.List<Models.UserModel>>();
+                    }
+
+                    if (usersList != null && usersList.Count > 0)
+                    {
+                        string backupJson = JsonConvert.SerializeObject(usersList);
+                        File.WriteAllText(_offlineUsersFile, backupJson);
+                        return usersList;
                     }
                 }
-                return new System.Collections.Generic.List<Models.UserModel>();
             }
             catch
             {
-                return new System.Collections.Generic.List<Models.UserModel>();
+                if (File.Exists(_offlineUsersFile))
+                {
+                    try
+                    {
+                        string backupJson = File.ReadAllText(_offlineUsersFile);
+                        var offlineUsers = JsonConvert.DeserializeObject<System.Collections.Generic.List<Models.UserModel>>(backupJson);
+
+                        return offlineUsers;
+                    }
+                    catch
+                    {
+                    }
+                }
             }
+
+            return emptyList;
         }
     }
 }
