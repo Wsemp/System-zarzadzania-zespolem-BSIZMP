@@ -1,12 +1,14 @@
 from ..models import Task
 from django.db import transaction
 from ..selectors import get_task_byid
-from django.shortcuts import get_object_or_404
+from django.contrib.auth.models import User
+
+# from django.shortcuts import get_object_or_404
 
 @transaction.atomic
 def create_task(
     *,
-    created_by,
+    created_by: User,
     title: str,
     description: str,
     status: str,

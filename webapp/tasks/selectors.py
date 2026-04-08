@@ -1,5 +1,5 @@
 from .models import Task
-from django.http import Http404
+# from django.http import Http404
 from django.shortcuts import get_object_or_404
 
 def get_tasks():
