@@ -1,7 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using desktopapp.Models;
-using desktopapp.Services; 
+using desktopapp.Services;
+using desktopapp.Views;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -145,6 +146,24 @@ namespace desktopapp.ViewModels
         {
             System.Windows.MessageBox.Show($"Zapisano zmiany dla profilu: {CurrentUserName}", "Sukces");
             NewPassword = string.Empty;
+        }
+
+        [RelayCommand]
+        public void Logout()
+        {
+            ApiService.Instance.Logout();
+
+            var loginWindow = new LoginView();
+            loginWindow.Show();
+
+            foreach (System.Windows.Window window in System.Windows.Application.Current.Windows)
+            {
+                if (window is MainWindow) 
+                {
+                    window.Close();
+                    break;
+                }
+            }
         }
     }
 }
