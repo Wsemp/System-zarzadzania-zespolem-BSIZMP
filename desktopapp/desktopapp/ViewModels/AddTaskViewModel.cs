@@ -2,16 +2,25 @@
 using CommunityToolkit.Mvvm.Input;
 using desktopapp.Models;
 using System;
-using System.Collections.ObjectModel; 
+using System.Collections.ObjectModel;
 
 namespace desktopapp.ViewModels
 {
     public partial class AddTaskViewModel : ObservableObject
     {
-        [ObservableProperty] private string _title;
-        [ObservableProperty] private string _description;
-        [ObservableProperty] private string _status = "Do zrobienia";
-        [ObservableProperty] private string _assignedUser;
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
+        private string _title;
+
+        [ObservableProperty]
+        private string _description;
+
+        [ObservableProperty]
+        private string _status = "Do zrobienia";
+
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
+        private string _assignedUser;
 
         [ObservableProperty]
         private ObservableCollection<string> _availableUsernames;
@@ -20,7 +29,12 @@ namespace desktopapp.ViewModels
 
         public TaskModel CreatedTask { get; private set; }
 
-        [RelayCommand]
+        private bool CanSave()
+        {
+            return !string.IsNullOrWhiteSpace(Title) && !string.IsNullOrWhiteSpace(AssignedUser);
+        }
+
+        [RelayCommand(CanExecute = nameof(CanSave))]
         public void Save()
         {
             CreatedTask = new TaskModel
