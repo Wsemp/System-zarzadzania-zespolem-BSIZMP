@@ -20,6 +20,9 @@ namespace desktopapp.Services
 
         private readonly string _offlineUsersFile = "offline_users_backup.json";
         private readonly string _offlineCredsFile = "offline_creds_backup.json";
+        private readonly string _offlineTasksFile = "offline_tasks_backup.json";
+
+
 
         public string AccessToken { get; private set; }
 
@@ -166,6 +169,26 @@ namespace desktopapp.Services
             }
 
             return emptyList;
+        }
+
+        public void SaveTasksOffline(System.Collections.Generic.List<Models.TaskModel> tasks)
+        {
+            string json = JsonConvert.SerializeObject(tasks);
+            File.WriteAllText(_offlineTasksFile, json);
+        }
+
+        public System.Collections.Generic.List<Models.TaskModel> GetTasksOffline()
+        {
+            if (File.Exists(_offlineTasksFile))
+            {
+                try
+                {
+                    string json = File.ReadAllText(_offlineTasksFile);
+                    return JsonConvert.DeserializeObject<System.Collections.Generic.List<Models.TaskModel>>(json) ?? new System.Collections.Generic.List<Models.TaskModel>();
+                }
+                catch { }
+            }
+            return new System.Collections.Generic.List<Models.TaskModel>();
         }
     }
 }
