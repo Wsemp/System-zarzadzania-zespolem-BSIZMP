@@ -1,13 +1,16 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using Newtonsoft.Json;
 
 namespace desktopapp.Models
 {
-    public partial class UserModel : ObservableObject
+    public class UserModel
     {
-        [ObservableProperty]
-        private string _username;
+        [JsonProperty("id")]
+        public int Id { get; set; }
 
-        [ObservableProperty]
-        private string _email;
+        [JsonProperty("username")]
+        public string Username { get; set; }
+
+        [JsonProperty("email")]
+        public string Email { get; set; }
     }
 }

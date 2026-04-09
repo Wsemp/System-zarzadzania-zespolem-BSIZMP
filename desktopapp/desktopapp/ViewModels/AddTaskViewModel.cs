@@ -29,6 +29,8 @@ namespace desktopapp.ViewModels
 
         public TaskModel CreatedTask { get; private set; }
 
+        public System.Collections.Generic.List<UserModel> ApiUsers { get; set; }
+
         private bool CanSave()
         {
             return !string.IsNullOrWhiteSpace(Title) && !string.IsNullOrWhiteSpace(AssignedUser);
@@ -37,12 +39,15 @@ namespace desktopapp.ViewModels
         [RelayCommand(CanExecute = nameof(CanSave))]
         public void Save()
         {
+            var selectedUser = ApiUsers?.Find(u => u.Username == this.AssignedUser);
+
             CreatedTask = new TaskModel
             {
                 Title = this.Title,
                 Description = this.Description,
                 Status = this.Status,
-                AssignedUser = this.AssignedUser
+                AssignedUser = this.AssignedUser, 
+                AssignedToId = selectedUser?.Id   
             };
 
             CloseAction?.Invoke();

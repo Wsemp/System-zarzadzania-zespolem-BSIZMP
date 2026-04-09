@@ -8,8 +8,12 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
+
+
 namespace desktopapp.ViewModels
 {
+
+    
     public partial class MainViewModel : ObservableObject
     {
         private List<TaskModel> _allTasks = new List<TaskModel>();
@@ -35,6 +39,8 @@ namespace desktopapp.ViewModels
         [ObservableProperty]
         private ObservableCollection<string> _availableUsernames = new ObservableCollection<string>();
 
+        private List<UserModel> _apiUsers = new List<UserModel>();
+
         public MainViewModel()
         {
             LoadTasks();
@@ -44,8 +50,8 @@ namespace desktopapp.ViewModels
 
         private async void LoadApiUsersAsync()
         {
-            var users = await ApiService.Instance.GetUsersAsync();
-            var usernamesList = users.Select(u => u.Username).ToList();
+            _apiUsers = await ApiService.Instance.GetUsersAsync();
+            var usernamesList = _apiUsers.Select(u => u.Username).ToList();
             AvailableUsernames = new ObservableCollection<string>(usernamesList);
         }
 
@@ -87,6 +93,8 @@ namespace desktopapp.ViewModels
                 Tasks.Remove(SelectedTask);
 
                 ApiService.Instance.SaveTasksOffline(_allTasks);
+
+                Services.NotificationService.Instance.Show("Zadanie zostało usunięte!");
             }
         }
 
@@ -95,6 +103,7 @@ namespace desktopapp.ViewModels
         {
             var addTaskVm = new AddTaskViewModel();
             addTaskVm.AvailableUsernames = this.AvailableUsernames;
+            addTaskVm.ApiUsers = this._apiUsers;
 
             var window = new Views.AddTaskWindow(addTaskVm);
             window.ShowDialog();
@@ -107,6 +116,8 @@ namespace desktopapp.ViewModels
                 Tasks.Insert(0, addTaskVm.CreatedTask);
 
                 ApiService.Instance.SaveTasksOffline(_allTasks);
+
+                Services.NotificationService.Instance.Show("Nowe zadanie dodane pomyślnie!");
             }
         }
 
@@ -163,5 +174,6 @@ namespace desktopapp.ViewModels
                 }
             }
         }
+        public Services.NotificationService Notifier => Services.NotificationService.Instance;
     }
 }
