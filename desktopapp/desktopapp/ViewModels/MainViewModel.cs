@@ -43,7 +43,7 @@ namespace desktopapp.ViewModels
 
         public MainViewModel()
         {
-            LoadTasks();
+            LoadTasksAsync();
             LoadMockProjects();
             LoadApiUsersAsync(); 
         }
@@ -55,9 +55,9 @@ namespace desktopapp.ViewModels
             AvailableUsernames = new ObservableCollection<string>(usernamesList);
         }
 
-        private void LoadTasks()
+        private async void LoadTasksAsync()
         {
-            _allTasks = ApiService.Instance.GetTasksOffline();
+            _allTasks = await ApiService.Instance.GetTasksAsync();
             Tasks = new ObservableCollection<TaskModel>(_allTasks);
         }
 
@@ -99,7 +99,8 @@ namespace desktopapp.ViewModels
         }
 
         [RelayCommand]
-        public void OpenAddTaskWindow()
+
+        public async void OpenAddTaskWindow()
         {
             var addTaskVm = new AddTaskViewModel();
             addTaskVm.AvailableUsernames = this.AvailableUsernames;
@@ -110,14 +111,18 @@ namespace desktopapp.ViewModels
 
             if (addTaskVm.CreatedTask != null)
             {
-                addTaskVm.CreatedTask.Id = _allTasks.Any() ? _allTasks.Max(t => t.Id) + 1 : 1;
+                bool isSuccess = await ApiService.Instance.CreateTaskAsync(addTaskVm.CreatedTask);
 
-                _allTasks.Insert(0, addTaskVm.CreatedTask);
-                Tasks.Insert(0, addTaskVm.CreatedTask);
+                if (isSuccess)
+                {
+                    LoadTasksAsync();
 
-                ApiService.Instance.SaveTasksOffline(_allTasks);
-
-                Services.NotificationService.Instance.Show("Nowe zadanie dodane pomyślnie!");
+                    Services.NotificationService.Instance.Show("Nowe zadanie dodane pomyślnie!");
+                }
+                else
+                {
+                    Services.NotificationService.Instance.Show("Błąd zapisu na serwerze!");
+                }
             }
         }
 

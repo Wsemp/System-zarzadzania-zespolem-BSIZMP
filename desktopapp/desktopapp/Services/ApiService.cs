@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Security.Cryptography;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 
 namespace desktopapp.Services
 {
@@ -15,14 +16,11 @@ namespace desktopapp.Services
         public static ApiService Instance => _instance ??= new ApiService();
 
         private readonly HttpClient _client;
-
         private readonly string _baseUrl = "https://system-zarzadzania-zespolem-bsizmp.onrender.com/";
 
         private readonly string _offlineUsersFile = "offline_users_backup.json";
         private readonly string _offlineCredsFile = "offline_creds_backup.json";
         private readonly string _offlineTasksFile = "offline_tasks_backup.json";
-
-
 
         public string AccessToken { get; private set; }
 
@@ -48,7 +46,7 @@ namespace desktopapp.Services
 
             try
             {
-                var response = await _client.PostAsync(_baseUrl + "api/auth/login/", content);
+                var response = await _client.PostAsync(_baseUrl.TrimEnd('/') + "/api/auth/login/", content);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -72,22 +70,9 @@ namespace desktopapp.Services
                     {
                         string savedCredsJson = File.ReadAllText(_offlineCredsFile);
                         dynamic savedCreds = JsonConvert.DeserializeObject(savedCredsJson);
-
-                        if (savedCreds.username == username && savedCreds.passwordHash == ComputeHash(password))
-                        {
-                            System.Windows.MessageBox.Show("Brak połączenia z serwerem! Wymuszono logowanie awaryjne ", "Tryb Offline");
-                            return true;
-                        }
-                        else
-                        {
-                            System.Windows.MessageBox.Show("Błąd autoryzacji offline. Podano błędny login lub hasło.", "Odmowa dostępu");
-                            return false;
-                        }
+                        if (savedCreds.username == username && savedCreds.passwordHash == ComputeHash(password)) return true;
                     }
-                    catch
-                    {
-                        return false;
-                    }
+                    catch { }
                 }
                 return false;
             }
@@ -97,10 +82,7 @@ namespace desktopapp.Services
         {
             AccessToken = null;
             _client.DefaultRequestHeaders.Authorization = null;
-            if (File.Exists(_offlineCredsFile))
-            {
-                File.Delete(_offlineCredsFile);
-            }
+            if (File.Exists(_offlineCredsFile)) File.Delete(_offlineCredsFile);
         }
 
         public async Task<bool> RegisterAsync(string username, string email, string password)
@@ -108,87 +90,102 @@ namespace desktopapp.Services
             var registerData = new { username = username, email = email, password = password };
             var json = JsonConvert.SerializeObject(registerData);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-
             try
             {
-                var response = await _client.PostAsync(_baseUrl + "api/auth/register/", content);
+                var response = await _client.PostAsync(_baseUrl.TrimEnd('/') + "/api/auth/register/", content);
                 return response.IsSuccessStatusCode;
             }
-            catch
-            {
-                return false;
-            }
+            catch { return false; }
         }
 
-        public async Task<System.Collections.Generic.List<Models.UserModel>> GetUsersAsync()
+        public async Task<List<Models.UserModel>> GetUsersAsync()
         {
-            var emptyList = new System.Collections.Generic.List<Models.UserModel>();
-
             try
             {
-                var response = await _client.GetAsync(_baseUrl + "api/users/");
-
+                var response = await _client.GetAsync(_baseUrl.TrimEnd('/') + "/api/users/");
                 if (response.IsSuccessStatusCode)
                 {
                     var json = await response.Content.ReadAsStringAsync();
                     var parsed = JToken.Parse(json);
+                    List<Models.UserModel> usersList = null;
+                    if (parsed is JArray array) usersList = array.ToObject<List<Models.UserModel>>();
+                    else if (parsed is JObject obj && obj["results"] != null) usersList = obj["results"].ToObject<List<Models.UserModel>>();
 
-                    System.Collections.Generic.List<Models.UserModel> usersList = null;
-
-                    if (parsed is JArray array)
+                    if (usersList != null)
                     {
-                        usersList = array.ToObject<System.Collections.Generic.List<Models.UserModel>>();
-                    }
-                    else if (parsed is JObject obj && obj["results"] != null)
-                    {
-                        usersList = obj["results"].ToObject<System.Collections.Generic.List<Models.UserModel>>();
-                    }
-
-                    if (usersList != null && usersList.Count > 0)
-                    {
-                        string backupJson = JsonConvert.SerializeObject(usersList);
-                        File.WriteAllText(_offlineUsersFile, backupJson);
+                        File.WriteAllText(_offlineUsersFile, JsonConvert.SerializeObject(usersList));
                         return usersList;
                     }
                 }
             }
-            catch
+            catch { }
+            return new List<Models.UserModel>();
+        }
+
+        public async Task<List<Models.TaskModel>> GetTasksAsync()
+        {
+            try
             {
-                if (File.Exists(_offlineUsersFile))
+                var response = await _client.GetAsync(_baseUrl.TrimEnd('/') + "/api/tasks/");
+                if (response.IsSuccessStatusCode)
                 {
-                    try
-                    {
-                        string backupJson = File.ReadAllText(_offlineUsersFile);
-                        var offlineUsers = JsonConvert.DeserializeObject<System.Collections.Generic.List<Models.UserModel>>(backupJson);
-                        return offlineUsers;
-                    }
-                    catch
-                    {
-                    }
+                    string json = await response.Content.ReadAsStringAsync();
+                    var tasks = JsonConvert.DeserializeObject<List<Models.TaskModel>>(json);
+                    if (tasks != null) SaveTasksOffline(tasks);
+                    return tasks ?? new List<Models.TaskModel>();
                 }
             }
-
-            return emptyList;
+            catch { }
+            return GetTasksOffline();
         }
 
-        public void SaveTasksOffline(System.Collections.Generic.List<Models.TaskModel> tasks)
+        public async Task<bool> CreateTaskAsync(Models.TaskModel newTask)
         {
-            string json = JsonConvert.SerializeObject(tasks);
-            File.WriteAllText(_offlineTasksFile, json);
+            try
+            {
+                if (string.IsNullOrEmpty(AccessToken))
+                {
+                    System.Windows.MessageBox.Show("Błąd: Nie jesteś zalogowany! Zaloguj się ponownie.");
+                    return false;
+                }
+
+                int originalId = newTask.Id;
+                newTask.Id = 0;
+
+                string json = JsonConvert.SerializeObject(newTask, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                string url = _baseUrl.TrimEnd('/') + "/api/tasks/";
+
+                var response = await _client.PostAsync(url, content);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    string errorBody = await response.Content.ReadAsStringAsync();
+                    System.Windows.MessageBox.Show($"Serwer odrzucił zadanie.\nKod: {response.StatusCode}\nSzczegóły: {errorBody}");
+                    newTask.Id = originalId;
+                    return false;
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Błąd połączenia: {ex.Message}");
+                return false;
+            }
         }
 
-        public System.Collections.Generic.List<Models.TaskModel> GetTasksOffline()
+        public void SaveTasksOffline(List<Models.TaskModel> tasks)
+        {
+            try { File.WriteAllText(_offlineTasksFile, JsonConvert.SerializeObject(tasks)); } catch { }
+        }
+
+        public List<Models.TaskModel> GetTasksOffline()
         {
             if (File.Exists(_offlineTasksFile))
             {
-                try
-                {
-                    string json = File.ReadAllText(_offlineTasksFile);
-                    return JsonConvert.DeserializeObject<System.Collections.Generic.List<Models.TaskModel>>(json) ?? new System.Collections.Generic.List<Models.TaskModel>();
-                }
-                catch { }
+                try { return JsonConvert.DeserializeObject<List<Models.TaskModel>>(File.ReadAllText(_offlineTasksFile)); } catch { }
             }
-            return new System.Collections.Generic.List<Models.TaskModel>();
+            return new List<Models.TaskModel>();
         }
     }
 }

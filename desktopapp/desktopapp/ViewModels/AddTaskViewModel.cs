@@ -37,17 +37,27 @@ namespace desktopapp.ViewModels
         }
 
         [RelayCommand(CanExecute = nameof(CanSave))]
+
         public void Save()
         {
             var selectedUser = ApiUsers?.Find(u => u.Username == this.AssignedUser);
+
+            string statusKey = Status switch
+            {
+                "Do zrobienia" => "todo",
+                "W trakcie" => "in_progress",
+                "Zakończone" => "done",
+                _ => "todo"
+            };
 
             CreatedTask = new TaskModel
             {
                 Title = this.Title,
                 Description = this.Description,
-                Status = this.Status,
-                AssignedUser = this.AssignedUser, 
-                AssignedToId = selectedUser?.Id   
+                Status = statusKey,
+                AssignedUser = this.AssignedUser,
+                AssignedToId = selectedUser?.Id,
+                TagIds = new System.Collections.Generic.List<int>()
             };
 
             CloseAction?.Invoke();
