@@ -37,7 +37,7 @@ namespace desktopapp.ViewModels
 
         public MainViewModel()
         {
-            LoadMockData();
+            LoadTasks();
             LoadMockProjects();
             LoadApiUsersAsync(); 
         }
@@ -49,16 +49,9 @@ namespace desktopapp.ViewModels
             AvailableUsernames = new ObservableCollection<string>(usernamesList);
         }
 
-        private void LoadMockData()
+        private void LoadTasks()
         {
-            _allTasks = new List<TaskModel>
-            {
-                new TaskModel { Id = 1, Title = "Zaprojektować bazę danych", Description = "Baza w MySQL", Status = "W trakcie", AssignedUser = "Kuba" },
-                new TaskModel { Id = 2, Title = "Zrobić API logowania", Description = "Endpoint /api/login", Status = "Do zrobienia", AssignedUser = "Kuba" },
-                new TaskModel { Id = 3, Title = "Widok listy zadań WPF", Description = "Tabela w Desktopie", Status = "Zakończone", AssignedUser = "Michał" },
-                new TaskModel { Id = 4, Title = "Makiety w Figmie", Description = "Kolory i przyciski", Status = "Do zrobienia", AssignedUser = "Kasia" }
-            };
-
+            _allTasks = ApiService.Instance.GetTasksOffline();
             Tasks = new ObservableCollection<TaskModel>(_allTasks);
         }
 
@@ -92,6 +85,8 @@ namespace desktopapp.ViewModels
             {
                 _allTasks.Remove(SelectedTask);
                 Tasks.Remove(SelectedTask);
+
+                ApiService.Instance.SaveTasksOffline(_allTasks);
             }
         }
 
@@ -99,16 +94,19 @@ namespace desktopapp.ViewModels
         public void OpenAddTaskWindow()
         {
             var addTaskVm = new AddTaskViewModel();
-            addTaskVm.AvailableUsernames = this.AvailableUsernames; 
+            addTaskVm.AvailableUsernames = this.AvailableUsernames;
 
             var window = new Views.AddTaskWindow(addTaskVm);
             window.ShowDialog();
 
             if (addTaskVm.CreatedTask != null)
             {
-                addTaskVm.CreatedTask.Id = _allTasks.Count + 1;
+                addTaskVm.CreatedTask.Id = _allTasks.Any() ? _allTasks.Max(t => t.Id) + 1 : 1;
+
                 _allTasks.Insert(0, addTaskVm.CreatedTask);
                 Tasks.Insert(0, addTaskVm.CreatedTask);
+
+                ApiService.Instance.SaveTasksOffline(_allTasks);
             }
         }
 
