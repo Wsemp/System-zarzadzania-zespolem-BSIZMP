@@ -111,17 +111,25 @@ namespace desktopapp.ViewModels
 
             if (addTaskVm.CreatedTask != null)
             {
+
                 bool isSuccess = await ApiService.Instance.CreateTaskAsync(addTaskVm.CreatedTask);
 
                 if (isSuccess)
                 {
-                    LoadTasksAsync();
 
-                    Services.NotificationService.Instance.Show("Nowe zadanie dodane pomyślnie!");
+                    LoadTasksAsync(); 
+                    Services.NotificationService.Instance.Show("Zadanie zapisane w chmurze!");
                 }
                 else
                 {
-                    Services.NotificationService.Instance.Show("Błąd zapisu na serwerze!");
+                    addTaskVm.CreatedTask.Id = _allTasks.Any() ? _allTasks.Max(t => t.Id) + 1 : 1;
+
+                    _allTasks.Insert(0, addTaskVm.CreatedTask);
+                    Tasks = new System.Collections.ObjectModel.ObservableCollection<TaskModel>(_allTasks);
+
+                    ApiService.Instance.SaveTasksOffline(_allTasks);
+
+                    Services.NotificationService.Instance.Show("Brak sieci. Zadanie zapisano lokalnie!");
                 }
             }
         }

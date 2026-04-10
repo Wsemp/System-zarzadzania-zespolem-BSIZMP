@@ -18,15 +18,29 @@ namespace desktopapp.Services
         private readonly HttpClient _client;
         private readonly string _baseUrl = "https://system-zarzadzania-zespolem-bsizmp.onrender.com/";
 
-        private readonly string _offlineUsersFile = "offline_users_backup.json";
-        private readonly string _offlineCredsFile = "offline_creds_backup.json";
-        private readonly string _offlineTasksFile = "offline_tasks_backup.json";
+        private readonly string _offlineUsersFile;
+        private readonly string _offlineCredsFile;
+        private readonly string _offlineTasksFile;
 
         public string AccessToken { get; private set; }
 
         private ApiService()
         {
             _client = new HttpClient();
+
+            string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+
+
+            string myAppFolder = Path.Combine(desktopPath, "BSI_TEST_OFFLINE");
+
+            if (!Directory.Exists(myAppFolder))
+            {
+                Directory.CreateDirectory(myAppFolder);
+            }
+
+            _offlineUsersFile = Path.Combine(myAppFolder, "offline_users_backup.json");
+            _offlineCredsFile = Path.Combine(myAppFolder, "offline_creds_backup.json");
+            _offlineTasksFile = Path.Combine(myAppFolder, "offline_tasks_backup.json");
         }
 
         private string ComputeHash(string input)
@@ -118,7 +132,17 @@ namespace desktopapp.Services
                     }
                 }
             }
-            catch { }
+            catch
+            {
+                if (File.Exists(_offlineUsersFile))
+                {
+                    try
+                    {
+                        return JsonConvert.DeserializeObject<List<Models.UserModel>>(File.ReadAllText(_offlineUsersFile));
+                    }
+                    catch { }
+                }
+            }
             return new List<Models.UserModel>();
         }
 
@@ -169,7 +193,7 @@ namespace desktopapp.Services
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"Błąd połączenia: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Błąd połączenia: {ex.Message}");
                 return false;
             }
         }

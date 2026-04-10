@@ -51,7 +51,7 @@
                             <DataGridTemplateColumn Header="Status" Width="130">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <ComboBox SelectedItem="{Binding Status, UpdateSourceTrigger=PropertyChanged}">
+                                        <ComboBox SelectedItem="{Binding DisplayStatus, UpdateSourceTrigger=PropertyChanged}">
                                             <System:String xmlns:System="clr-namespace:System;assembly=mscorlib">Do zrobienia</System:String>
                                             <System:String xmlns:System="clr-namespace:System;assembly=mscorlib">W trakcie</System:String>
                                             <System:String xmlns:System="clr-namespace:System;assembly=mscorlib">Zakończone</System:String>
