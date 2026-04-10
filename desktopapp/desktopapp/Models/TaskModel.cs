@@ -1,22 +1,28 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using Newtonsoft.Json;
 
 namespace desktopapp.Models
 {
-    public partial class TaskModel : ObservableObject
+    public class TaskModel
     {
-        [ObservableProperty]
-        private int _id;
+        [JsonProperty("tag_ids")]
+        public System.Collections.Generic.List<int> TagIds { get; set; } = new System.Collections.Generic.List<int>();
 
-        [ObservableProperty]
-        private string _title;
+        [JsonProperty("id")]
+        public int Id { get; set; }
 
-        [ObservableProperty]
-        private string _description;
+        [JsonProperty("title")]
+        public string Title { get; set; }
 
-        [ObservableProperty]
-        private string _status;
+        [JsonProperty("description")]
+        public string Description { get; set; }
 
-        [ObservableProperty]
-        private string _assignedUser;
+        [JsonProperty("status")]
+        public string Status { get; set; }
+
+        [JsonProperty("assigned_to")]
+        public int? AssignedToId { get; set; }
+
+        [JsonIgnore]
+        public string AssignedUser { get; set; }
     }
 }

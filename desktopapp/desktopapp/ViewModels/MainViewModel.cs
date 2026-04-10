@@ -1,14 +1,19 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using desktopapp.Models;
-using desktopapp.Services; 
+using desktopapp.Services;
+using desktopapp.Views;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
+
+
 namespace desktopapp.ViewModels
 {
+
+    
     public partial class MainViewModel : ObservableObject
     {
         private List<TaskModel> _allTasks = new List<TaskModel>();
@@ -34,30 +39,25 @@ namespace desktopapp.ViewModels
         [ObservableProperty]
         private ObservableCollection<string> _availableUsernames = new ObservableCollection<string>();
 
+        private List<UserModel> _apiUsers = new List<UserModel>();
+
         public MainViewModel()
         {
-            LoadMockData();
+            LoadTasksAsync();
             LoadMockProjects();
             LoadApiUsersAsync(); 
         }
 
         private async void LoadApiUsersAsync()
         {
-            var users = await ApiService.Instance.GetUsersAsync();
-            var usernamesList = users.Select(u => u.Username).ToList();
+            _apiUsers = await ApiService.Instance.GetUsersAsync();
+            var usernamesList = _apiUsers.Select(u => u.Username).ToList();
             AvailableUsernames = new ObservableCollection<string>(usernamesList);
         }
 
-        private void LoadMockData()
+        private async void LoadTasksAsync()
         {
-            _allTasks = new List<TaskModel>
-            {
-                new TaskModel { Id = 1, Title = "Zaprojektować bazę danych", Description = "Baza w MySQL", Status = "W trakcie", AssignedUser = "Kuba" },
-                new TaskModel { Id = 2, Title = "Zrobić API logowania", Description = "Endpoint /api/login", Status = "Do zrobienia", AssignedUser = "Kuba" },
-                new TaskModel { Id = 3, Title = "Widok listy zadań WPF", Description = "Tabela w Desktopie", Status = "Zakończone", AssignedUser = "Michał" },
-                new TaskModel { Id = 4, Title = "Makiety w Figmie", Description = "Kolory i przyciski", Status = "Do zrobienia", AssignedUser = "Kasia" }
-            };
-
+            _allTasks = await ApiService.Instance.GetTasksAsync();
             Tasks = new ObservableCollection<TaskModel>(_allTasks);
         }
 
@@ -91,23 +91,38 @@ namespace desktopapp.ViewModels
             {
                 _allTasks.Remove(SelectedTask);
                 Tasks.Remove(SelectedTask);
+
+                ApiService.Instance.SaveTasksOffline(_allTasks);
+
+                Services.NotificationService.Instance.Show("Zadanie zostało usunięte!");
             }
         }
 
         [RelayCommand]
-        public void OpenAddTaskWindow()
+
+        public async void OpenAddTaskWindow()
         {
             var addTaskVm = new AddTaskViewModel();
-            addTaskVm.AvailableUsernames = this.AvailableUsernames; 
+            addTaskVm.AvailableUsernames = this.AvailableUsernames;
+            addTaskVm.ApiUsers = this._apiUsers;
 
             var window = new Views.AddTaskWindow(addTaskVm);
             window.ShowDialog();
 
             if (addTaskVm.CreatedTask != null)
             {
-                addTaskVm.CreatedTask.Id = _allTasks.Count + 1;
-                _allTasks.Insert(0, addTaskVm.CreatedTask);
-                Tasks.Insert(0, addTaskVm.CreatedTask);
+                bool isSuccess = await ApiService.Instance.CreateTaskAsync(addTaskVm.CreatedTask);
+
+                if (isSuccess)
+                {
+                    LoadTasksAsync();
+
+                    Services.NotificationService.Instance.Show("Nowe zadanie dodane pomyślnie!");
+                }
+                else
+                {
+                    Services.NotificationService.Instance.Show("Błąd zapisu na serwerze!");
+                }
             }
         }
 
@@ -146,5 +161,24 @@ namespace desktopapp.ViewModels
             System.Windows.MessageBox.Show($"Zapisano zmiany dla profilu: {CurrentUserName}", "Sukces");
             NewPassword = string.Empty;
         }
+
+        [RelayCommand]
+        public void Logout()
+        {
+            ApiService.Instance.Logout();
+
+            var loginWindow = new LoginView();
+            loginWindow.Show();
+
+            foreach (System.Windows.Window window in System.Windows.Application.Current.Windows)
+            {
+                if (window is MainWindow) 
+                {
+                    window.Close();
+                    break;
+                }
+            }
+        }
+        public Services.NotificationService Notifier => Services.NotificationService.Instance;
     }
 }

@@ -114,5 +114,30 @@
             </TabItem>
 
         </TabControl>
+        
+        <Border Background="#323232" 
+                CornerRadius="8" 
+                Padding="20,10" 
+                Margin="20" 
+                HorizontalAlignment="Center" 
+                VerticalAlignment="Bottom"
+                Panel.ZIndex="1000">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Notifier.IsVisible}" Value="True">
+                            <Setter Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+
+            <TextBlock Text="{Binding Notifier.Message}" 
+                       Foreground="White" 
+                       FontWeight="SemiBold" 
+                       FontSize="14"/>
+        </Border>
+
     </Grid>
 </Window>

@@ -26,5 +26,14 @@ namespace desktopapp.Views
         {
             
         }
+
+        private void MyPasswordBox_PasswordChanged(object sender, System.Windows.RoutedEventArgs e)
+        {
+            
+            if (this.DataContext is ViewModels.LoginViewModel vm)
+            {
+                vm.Password = MyPasswordBox.Password;
+            }
+        }
     }
 }
