@@ -18,19 +18,16 @@ namespace desktopapp.Services
         private readonly HttpClient _client;
         private readonly string _baseUrl = "https://system-zarzadzania-zespolem-bsizmp.onrender.com/";
 
-        // Zmienne na ścieżki
         private readonly string _offlineUsersFile;
         private readonly string _offlineCredsFile;
         private readonly string _offlineTasksFile;
 
         public string AccessToken { get; private set; }
 
-        // --- TYLKO JEDEN KONSTRUKTOR ---
         private ApiService()
         {
             _client = new HttpClient();
 
-            // Wymuszamy zapis na Pulpit
             string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 
 
@@ -137,7 +134,6 @@ namespace desktopapp.Services
             }
             catch
             {
-                // TUTAJ BYŁ MÓJ BŁĄD - TERAZ APKA CZYTA PLIK OFFLINE!
                 if (File.Exists(_offlineUsersFile))
                 {
                     try
