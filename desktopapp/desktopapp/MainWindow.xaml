@@ -42,12 +42,12 @@
                               IsReadOnly="False"
                               HeadersVisibility="Column"
                               AlternatingRowBackground="#FFF0F0F0"
-                              SelectionMode="Single">
+                              SelectionMode="Single" SelectionChanged="DataGrid_SelectionChanged">
 
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50" IsReadOnly="True" />
                             <DataGridTextColumn Header="Tytuł" Binding="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Width="*" />
-                            <DataGridTextColumn Header="Przypisano do" Binding="{Binding AssignedUser, UpdateSourceTrigger=PropertyChanged}" Width="150" />
+                            <DataGridTextColumn Header="Przypisano do" Binding="{Binding AssignedUser}" Width="150" IsReadOnly="True" />
                             <DataGridTemplateColumn Header="Status" Width="130">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>

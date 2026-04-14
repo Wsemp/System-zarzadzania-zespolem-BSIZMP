@@ -7,13 +7,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-
-
+using System.Threading.Tasks; // Dodane, żeby Task.WhenAll zadziałało
 
 namespace desktopapp.ViewModels
 {
-
-    
     public partial class MainViewModel : ObservableObject
     {
         private List<TaskModel> _allTasks = new List<TaskModel>();
@@ -43,21 +40,63 @@ namespace desktopapp.ViewModels
 
         public MainViewModel()
         {
-            LoadTasksAsync();
             LoadMockProjects();
-            LoadApiUsersAsync(); 
+            // Zmienione: Wywołujemy jedną metodę inicjalizacyjną, która zachowuje kolejność
+            _ = InitializeDataAsync();
         }
 
-        private async void LoadApiUsersAsync()
+        private async Task InitializeDataAsync()
         {
-            _apiUsers = await ApiService.Instance.GetUsersAsync();
-            var usernamesList = _apiUsers.Select(u => u.Username).ToList();
-            AvailableUsernames = new ObservableCollection<string>(usernamesList);
+            // 1. NAJPIERW pobierz użytkowników
+            await LoadApiUsersAsync();
+            // 2. DOPIERO POTEM pobierz zadania i przypisz imiona (teraz to zadziała, bo _apiUsers jest pełne)
+            await LoadTasksAsync();
         }
 
-        private async void LoadTasksAsync()
+        // Zmienione na async Task, żeby można było na to "poczekać"
+        private async Task LoadApiUsersAsync()
+        {
+            try
+            {
+                _apiUsers = await ApiService.Instance.GetUsersAsync();
+
+                if (_apiUsers != null && _apiUsers.Any())
+                {
+                    var usernamesList = _apiUsers.Select(u => u.Username).ToList();
+                    AvailableUsernames = new ObservableCollection<string>(usernamesList);
+                }
+                else
+                {
+                    AvailableUsernames = new ObservableCollection<string> { "Brak danych (Tryb Offline)" };
+                }
+            }
+            catch
+            {
+                AvailableUsernames = new ObservableCollection<string> { "Brak danych (Tryb Offline)" };
+            }
+        }
+
+        // Zmienione na async Task
+        private async Task LoadTasksAsync()
         {
             _allTasks = await ApiService.Instance.GetTasksAsync();
+
+            // --- KLUCZOWE: TŁUMACZENIE ID NA IMIONA DLA TABELI ---
+            if (_apiUsers != null && _apiUsers.Any())
+            {
+                foreach (var task in _allTasks)
+                {
+                    if (task.AssignedToId.HasValue)
+                    {
+                        var user = _apiUsers.FirstOrDefault(u => u.Id == task.AssignedToId.Value);
+                        if (user != null)
+                        {
+                            task.AssignedUser = user.Username;
+                        }
+                    }
+                }
+            }
+
             Tasks = new ObservableCollection<TaskModel>(_allTasks);
         }
 
@@ -79,7 +118,7 @@ namespace desktopapp.ViewModels
             }
             else
             {
-                var filtered = _allTasks.Where(t => t.AssignedUser.Contains(value, StringComparison.OrdinalIgnoreCase));
+                var filtered = _allTasks.Where(t => t.AssignedUser != null && t.AssignedUser.Contains(value, StringComparison.OrdinalIgnoreCase));
                 Tasks = new ObservableCollection<TaskModel>(filtered);
             }
         }
@@ -99,7 +138,6 @@ namespace desktopapp.ViewModels
         }
 
         [RelayCommand]
-
         public async void OpenAddTaskWindow()
         {
             var addTaskVm = new AddTaskViewModel();
@@ -111,13 +149,12 @@ namespace desktopapp.ViewModels
 
             if (addTaskVm.CreatedTask != null)
             {
-
                 bool isSuccess = await ApiService.Instance.CreateTaskAsync(addTaskVm.CreatedTask);
 
                 if (isSuccess)
                 {
-
-                    LoadTasksAsync(); 
+                    // Ważne: to odświeży listę i ZNOWU przetłumaczy ID na imiona!
+                    await LoadTasksAsync();
                     Services.NotificationService.Instance.Show("Zadanie zapisane w chmurze!");
                 }
                 else
@@ -153,7 +190,6 @@ namespace desktopapp.ViewModels
             }
         }
 
-
         [ObservableProperty]
         private string _currentUserName = "admin";
 
@@ -180,13 +216,14 @@ namespace desktopapp.ViewModels
 
             foreach (System.Windows.Window window in System.Windows.Application.Current.Windows)
             {
-                if (window is MainWindow) 
+                if (window is MainWindow)
                 {
                     window.Close();
                     break;
                 }
             }
         }
+
         public Services.NotificationService Notifier => Services.NotificationService.Instance;
     }
 }
