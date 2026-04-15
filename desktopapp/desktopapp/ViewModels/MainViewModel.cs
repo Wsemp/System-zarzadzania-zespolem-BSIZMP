@@ -253,10 +253,34 @@ namespace desktopapp.ViewModels
         private string _newPassword;
 
         [RelayCommand]
-        public void SaveProfile()
+        public async void SaveProfile()
         {
-            System.Windows.MessageBox.Show($"Zapisano zmiany dla profilu: {CurrentUserName}", "Sukces");
-            NewPassword = string.Empty;
+            if (string.IsNullOrWhiteSpace(NewPassword))
+            {
+                Services.NotificationService.Instance.Show("Wpisz nowe hasło, aby zapisać zmiany!");
+                return;
+            }
+
+            var currentUser = _apiUsers.FirstOrDefault(u => u.Username == CurrentUserName);
+
+            if (currentUser != null)
+            {
+                bool isSuccess = await ApiService.Instance.UpdateProfileAsync(currentUser.Id, NewPassword);
+
+                if (isSuccess)
+                {
+                    Services.NotificationService.Instance.Show("Hasło zostało pomyślnie zmienione w chmurze!");
+                    NewPassword = string.Empty;
+                }
+                else
+                {
+                    Services.NotificationService.Instance.Show("Błąd: Serwer odrzucił zmianę hasła.");
+                }
+            }
+            else
+            {
+                Services.NotificationService.Instance.Show("Błąd: Nie odnaleziono Twojego profilu w pobranej bazie.");
+            }
         }
 
         [RelayCommand]

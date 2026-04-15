@@ -198,6 +198,43 @@ namespace desktopapp.Services
             }
         }
 
+
+        public async Task<bool> UpdateProfileAsync(int userId, string newPassword)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(AccessToken)) return false;
+
+
+                var updateData = new { password = newPassword };
+                string json = JsonConvert.SerializeObject(updateData);
+                var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+                string url = _baseUrl.TrimEnd('/') + $"/api/users/{userId}/";
+
+                var request = new HttpRequestMessage(new HttpMethod("PATCH"), url) { Content = content };
+                var response = await _client.SendAsync(request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return true;
+                }
+                else
+                {
+                    string errorBody = await response.Content.ReadAsStringAsync();
+                    System.Diagnostics.Debug.WriteLine($"Błąd aktualizacji profilu: {response.StatusCode} - {errorBody}");
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Błąd połączenia: {ex.Message}");
+                return false;
+            }
+        }
+
+
+
         public void SaveTasksOffline(List<Models.TaskModel> tasks)
         {
             try { File.WriteAllText(_offlineTasksFile, JsonConvert.SerializeObject(tasks)); } catch { }
