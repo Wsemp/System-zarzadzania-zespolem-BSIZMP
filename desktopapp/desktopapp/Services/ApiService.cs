@@ -245,5 +245,35 @@ namespace desktopapp.Services
                 return false;
             }
         }
+
+        public async Task<bool> UpdateTaskAsync(Models.TaskModel updatedTask)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(AccessToken)) return false;
+
+                string json = JsonConvert.SerializeObject(updatedTask, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+                var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+                string url = _baseUrl.TrimEnd('/') + $"/api/tasks/{updatedTask.Id}/";
+                var response = await _client.PutAsync(url, content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return true;
+                }
+                else
+                {
+                    string errorBody = await response.Content.ReadAsStringAsync();
+                    System.Diagnostics.Debug.WriteLine($"Błąd edycji: {response.StatusCode} - {errorBody}");
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Błąd połączenia: {ex.Message}");
+                return false;
+            }
+        }
     }
 }

@@ -185,6 +185,46 @@ namespace desktopapp.ViewModels
         }
 
         [RelayCommand]
+        public async void EditTask()
+        {
+            if (SelectedTask == null)
+            {
+                Services.NotificationService.Instance.Show("Wybierz zadanie z listy, aby je edytować!");
+                return;
+            }
+
+            var editTaskVm = new AddTaskViewModel();
+            editTaskVm.AvailableUsernames = this.AvailableUsernames;
+            editTaskVm.ApiUsers = this._apiUsers;
+
+            editTaskVm.Title = SelectedTask.Title;
+            editTaskVm.Description = SelectedTask.Description;
+            editTaskVm.AssignedUser = SelectedTask.AssignedUser;
+            editTaskVm.Status = SelectedTask.DisplayStatus;
+
+            var window = new Views.AddTaskWindow(editTaskVm);
+            window.ShowDialog();
+
+            if (editTaskVm.CreatedTask != null)
+            {
+                editTaskVm.CreatedTask.Id = SelectedTask.Id;
+
+
+                bool isSuccess = await ApiService.Instance.UpdateTaskAsync(editTaskVm.CreatedTask);
+
+                if (isSuccess)
+                {
+                    await LoadTasksAsync();
+                    Services.NotificationService.Instance.Show("Zadanie zaktualizowane pomyślnie!");
+                }
+                else
+                {
+                    Services.NotificationService.Instance.Show("Błąd aktualizacji na serwerze!");
+                }
+            }
+        }
+
+        [RelayCommand]
         public void AddProject()
         {
             if (!string.IsNullOrWhiteSpace(NewProjectName))
