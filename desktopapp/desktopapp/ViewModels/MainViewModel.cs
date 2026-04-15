@@ -124,16 +124,29 @@ namespace desktopapp.ViewModels
         }
 
         [RelayCommand]
-        public void DeleteTask()
+        public async void DeleteTask()
         {
             if (SelectedTask != null)
             {
-                _allTasks.Remove(SelectedTask);
-                Tasks.Remove(SelectedTask);
+                var taskToDelete = SelectedTask;
 
-                ApiService.Instance.SaveTasksOffline(_allTasks);
+                bool isSuccess = await ApiService.Instance.DeleteTaskAsync(taskToDelete.Id);
 
-                Services.NotificationService.Instance.Show("Zadanie zostało usunięte!");
+                if (isSuccess)
+                {
+                    _allTasks.Remove(taskToDelete);
+                    Tasks.Remove(taskToDelete);
+
+
+                    ApiService.Instance.SaveTasksOffline(_allTasks);
+
+                    Services.NotificationService.Instance.Show("Zadanie usunięto z chmury!");
+                }
+                else
+                {
+
+                    Services.NotificationService.Instance.Show("Błąd: Nie udało się usunąć zadania z serwera.");
+                }
             }
         }
 
@@ -153,7 +166,7 @@ namespace desktopapp.ViewModels
 
                 if (isSuccess)
                 {
-                    // Ważne: to odświeży listę i ZNOWU przetłumaczy ID na imiona!
+
                     await LoadTasksAsync();
                     Services.NotificationService.Instance.Show("Zadanie zapisane w chmurze!");
                 }

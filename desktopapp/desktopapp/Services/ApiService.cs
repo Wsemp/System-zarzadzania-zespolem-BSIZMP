@@ -211,5 +211,39 @@ namespace desktopapp.Services
             }
             return new List<Models.TaskModel>();
         }
+
+        public async Task<bool> DeleteTaskAsync(int taskId)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(AccessToken))
+                {
+                    System.Windows.MessageBox.Show("Błąd: Nie jesteś zalogowany!");
+                    return false;
+                }
+
+                string url = _baseUrl.TrimEnd('/') + $"/api/tasks/{taskId}/";
+
+
+                var response = await _client.DeleteAsync(url);
+
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return true;
+                }
+                else
+                {
+                    string errorBody = await response.Content.ReadAsStringAsync();
+                    System.Diagnostics.Debug.WriteLine($"Błąd usuwania zadania: {response.StatusCode} - {errorBody}");
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Błąd połączenia: {ex.Message}");
+                return false;
+            }
+        }
     }
 }
