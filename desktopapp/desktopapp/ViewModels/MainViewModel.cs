@@ -7,13 +7,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-
-
+using System.Threading.Tasks; // Dodane, żeby Task.WhenAll zadziałało
 
 namespace desktopapp.ViewModels
 {
-
-    
     public partial class MainViewModel : ObservableObject
     {
         private List<TaskModel> _allTasks = new List<TaskModel>();
@@ -43,21 +40,63 @@ namespace desktopapp.ViewModels
 
         public MainViewModel()
         {
-            LoadTasksAsync();
             LoadMockProjects();
-            LoadApiUsersAsync(); 
+            // Zmienione: Wywołujemy jedną metodę inicjalizacyjną, która zachowuje kolejność
+            _ = InitializeDataAsync();
         }
 
-        private async void LoadApiUsersAsync()
+        private async Task InitializeDataAsync()
         {
-            _apiUsers = await ApiService.Instance.GetUsersAsync();
-            var usernamesList = _apiUsers.Select(u => u.Username).ToList();
-            AvailableUsernames = new ObservableCollection<string>(usernamesList);
+            // 1. NAJPIERW pobierz użytkowników
+            await LoadApiUsersAsync();
+            // 2. DOPIERO POTEM pobierz zadania i przypisz imiona (teraz to zadziała, bo _apiUsers jest pełne)
+            await LoadTasksAsync();
         }
 
-        private async void LoadTasksAsync()
+        // Zmienione na async Task, żeby można było na to "poczekać"
+        private async Task LoadApiUsersAsync()
+        {
+            try
+            {
+                _apiUsers = await ApiService.Instance.GetUsersAsync();
+
+                if (_apiUsers != null && _apiUsers.Any())
+                {
+                    var usernamesList = _apiUsers.Select(u => u.Username).ToList();
+                    AvailableUsernames = new ObservableCollection<string>(usernamesList);
+                }
+                else
+                {
+                    AvailableUsernames = new ObservableCollection<string> { "Brak danych (Tryb Offline)" };
+                }
+            }
+            catch
+            {
+                AvailableUsernames = new ObservableCollection<string> { "Brak danych (Tryb Offline)" };
+            }
+        }
+
+        // Zmienione na async Task
+        private async Task LoadTasksAsync()
         {
             _allTasks = await ApiService.Instance.GetTasksAsync();
+
+            // --- KLUCZOWE: TŁUMACZENIE ID NA IMIONA DLA TABELI ---
+            if (_apiUsers != null && _apiUsers.Any())
+            {
+                foreach (var task in _allTasks)
+                {
+                    if (task.AssignedToId.HasValue)
+                    {
+                        var user = _apiUsers.FirstOrDefault(u => u.Id == task.AssignedToId.Value);
+                        if (user != null)
+                        {
+                            task.AssignedUser = user.Username;
+                        }
+                    }
+                }
+            }
+
             Tasks = new ObservableCollection<TaskModel>(_allTasks);
         }
 
@@ -79,27 +118,39 @@ namespace desktopapp.ViewModels
             }
             else
             {
-                var filtered = _allTasks.Where(t => t.AssignedUser.Contains(value, StringComparison.OrdinalIgnoreCase));
+                var filtered = _allTasks.Where(t => t.AssignedUser != null && t.AssignedUser.Contains(value, StringComparison.OrdinalIgnoreCase));
                 Tasks = new ObservableCollection<TaskModel>(filtered);
             }
         }
 
         [RelayCommand]
-        public void DeleteTask()
+        public async void DeleteTask()
         {
             if (SelectedTask != null)
             {
-                _allTasks.Remove(SelectedTask);
-                Tasks.Remove(SelectedTask);
+                var taskToDelete = SelectedTask;
 
-                ApiService.Instance.SaveTasksOffline(_allTasks);
+                bool isSuccess = await ApiService.Instance.DeleteTaskAsync(taskToDelete.Id);
 
-                Services.NotificationService.Instance.Show("Zadanie zostało usunięte!");
+                if (isSuccess)
+                {
+                    _allTasks.Remove(taskToDelete);
+                    Tasks.Remove(taskToDelete);
+
+
+                    ApiService.Instance.SaveTasksOffline(_allTasks);
+
+                    Services.NotificationService.Instance.Show("Zadanie usunięto z chmury!");
+                }
+                else
+                {
+
+                    Services.NotificationService.Instance.Show("Błąd: Nie udało się usunąć zadania z serwera.");
+                }
             }
         }
 
         [RelayCommand]
-
         public async void OpenAddTaskWindow()
         {
             var addTaskVm = new AddTaskViewModel();
@@ -115,13 +166,60 @@ namespace desktopapp.ViewModels
 
                 if (isSuccess)
                 {
-                    LoadTasksAsync();
 
-                    Services.NotificationService.Instance.Show("Nowe zadanie dodane pomyślnie!");
+                    await LoadTasksAsync();
+                    Services.NotificationService.Instance.Show("Zadanie zapisane w chmurze!");
                 }
                 else
                 {
-                    Services.NotificationService.Instance.Show("Błąd zapisu na serwerze!");
+                    addTaskVm.CreatedTask.Id = _allTasks.Any() ? _allTasks.Max(t => t.Id) + 1 : 1;
+
+                    _allTasks.Insert(0, addTaskVm.CreatedTask);
+                    Tasks = new System.Collections.ObjectModel.ObservableCollection<TaskModel>(_allTasks);
+
+                    ApiService.Instance.SaveTasksOffline(_allTasks);
+
+                    Services.NotificationService.Instance.Show("Brak sieci. Zadanie zapisano lokalnie!");
+                }
+            }
+        }
+
+        [RelayCommand]
+        public async void EditTask()
+        {
+            if (SelectedTask == null)
+            {
+                Services.NotificationService.Instance.Show("Wybierz zadanie z listy, aby je edytować!");
+                return;
+            }
+
+            var editTaskVm = new AddTaskViewModel();
+            editTaskVm.AvailableUsernames = this.AvailableUsernames;
+            editTaskVm.ApiUsers = this._apiUsers;
+
+            editTaskVm.Title = SelectedTask.Title;
+            editTaskVm.Description = SelectedTask.Description;
+            editTaskVm.AssignedUser = SelectedTask.AssignedUser;
+            editTaskVm.Status = SelectedTask.DisplayStatus;
+
+            var window = new Views.AddTaskWindow(editTaskVm);
+            window.ShowDialog();
+
+            if (editTaskVm.CreatedTask != null)
+            {
+                editTaskVm.CreatedTask.Id = SelectedTask.Id;
+
+
+                bool isSuccess = await ApiService.Instance.UpdateTaskAsync(editTaskVm.CreatedTask);
+
+                if (isSuccess)
+                {
+                    await LoadTasksAsync();
+                    Services.NotificationService.Instance.Show("Zadanie zaktualizowane pomyślnie!");
+                }
+                else
+                {
+                    Services.NotificationService.Instance.Show("Błąd aktualizacji na serwerze!");
                 }
             }
         }
@@ -145,7 +243,6 @@ namespace desktopapp.ViewModels
             }
         }
 
-
         [ObservableProperty]
         private string _currentUserName = "admin";
 
@@ -156,10 +253,34 @@ namespace desktopapp.ViewModels
         private string _newPassword;
 
         [RelayCommand]
-        public void SaveProfile()
+        public async void SaveProfile()
         {
-            System.Windows.MessageBox.Show($"Zapisano zmiany dla profilu: {CurrentUserName}", "Sukces");
-            NewPassword = string.Empty;
+            if (string.IsNullOrWhiteSpace(NewPassword))
+            {
+                Services.NotificationService.Instance.Show("Wpisz nowe hasło, aby zapisać zmiany!");
+                return;
+            }
+
+            var currentUser = _apiUsers.FirstOrDefault(u => u.Username == CurrentUserName);
+
+            if (currentUser != null)
+            {
+                bool isSuccess = await ApiService.Instance.UpdateProfileAsync(currentUser.Id, NewPassword);
+
+                if (isSuccess)
+                {
+                    Services.NotificationService.Instance.Show("Hasło zostało pomyślnie zmienione w chmurze!");
+                    NewPassword = string.Empty;
+                }
+                else
+                {
+                    Services.NotificationService.Instance.Show("Błąd: Serwer odrzucił zmianę hasła.");
+                }
+            }
+            else
+            {
+                Services.NotificationService.Instance.Show("Błąd: Nie odnaleziono Twojego profilu w pobranej bazie.");
+            }
         }
 
         [RelayCommand]
@@ -172,13 +293,14 @@ namespace desktopapp.ViewModels
 
             foreach (System.Windows.Window window in System.Windows.Application.Current.Windows)
             {
-                if (window is MainWindow) 
+                if (window is MainWindow)
                 {
                     window.Close();
                     break;
                 }
             }
         }
+
         public Services.NotificationService Notifier => Services.NotificationService.Instance;
     }
 }

@@ -24,5 +24,30 @@ namespace desktopapp.Models
 
         [JsonIgnore]
         public string AssignedUser { get; set; }
+
+        [JsonIgnore]
+        public string DisplayStatus
+        {
+            get
+            {
+                return Status switch
+                {
+                    "todo" => "Do zrobienia",
+                    "in_progress" => "W trakcie",
+                    "done" => "Zakończone",
+                    _ => Status
+                };
+            }
+            set
+            {
+                Status = value switch
+                {
+                    "Do zrobienia" => "todo",
+                    "W trakcie" => "in_progress",
+                    "Zakończone" => "done",
+                    _ => value
+                };
+            }
+        }
     }
 }

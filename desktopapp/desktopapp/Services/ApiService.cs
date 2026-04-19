@@ -18,15 +18,29 @@ namespace desktopapp.Services
         private readonly HttpClient _client;
         private readonly string _baseUrl = "https://system-zarzadzania-zespolem-bsizmp.onrender.com/";
 
-        private readonly string _offlineUsersFile = "offline_users_backup.json";
-        private readonly string _offlineCredsFile = "offline_creds_backup.json";
-        private readonly string _offlineTasksFile = "offline_tasks_backup.json";
+        private readonly string _offlineUsersFile;
+        private readonly string _offlineCredsFile;
+        private readonly string _offlineTasksFile;
 
         public string AccessToken { get; private set; }
 
         private ApiService()
         {
             _client = new HttpClient();
+
+            string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+
+
+            string myAppFolder = Path.Combine(desktopPath, "BSI_TEST_OFFLINE");
+
+            if (!Directory.Exists(myAppFolder))
+            {
+                Directory.CreateDirectory(myAppFolder);
+            }
+
+            _offlineUsersFile = Path.Combine(myAppFolder, "offline_users_backup.json");
+            _offlineCredsFile = Path.Combine(myAppFolder, "offline_creds_backup.json");
+            _offlineTasksFile = Path.Combine(myAppFolder, "offline_tasks_backup.json");
         }
 
         private string ComputeHash(string input)
@@ -118,7 +132,17 @@ namespace desktopapp.Services
                     }
                 }
             }
-            catch { }
+            catch
+            {
+                if (File.Exists(_offlineUsersFile))
+                {
+                    try
+                    {
+                        return JsonConvert.DeserializeObject<List<Models.UserModel>>(File.ReadAllText(_offlineUsersFile));
+                    }
+                    catch { }
+                }
+            }
             return new List<Models.UserModel>();
         }
 
@@ -169,10 +193,47 @@ namespace desktopapp.Services
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"Błąd połączenia: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Błąd połączenia: {ex.Message}");
                 return false;
             }
         }
+
+
+        public async Task<bool> UpdateProfileAsync(int userId, string newPassword)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(AccessToken)) return false;
+
+
+                var updateData = new { password = newPassword };
+                string json = JsonConvert.SerializeObject(updateData);
+                var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+                string url = _baseUrl.TrimEnd('/') + $"/api/users/{userId}/";
+
+                var request = new HttpRequestMessage(new HttpMethod("PATCH"), url) { Content = content };
+                var response = await _client.SendAsync(request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return true;
+                }
+                else
+                {
+                    string errorBody = await response.Content.ReadAsStringAsync();
+                    System.Diagnostics.Debug.WriteLine($"Błąd aktualizacji profilu: {response.StatusCode} - {errorBody}");
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Błąd połączenia: {ex.Message}");
+                return false;
+            }
+        }
+
+
 
         public void SaveTasksOffline(List<Models.TaskModel> tasks)
         {
@@ -186,6 +247,70 @@ namespace desktopapp.Services
                 try { return JsonConvert.DeserializeObject<List<Models.TaskModel>>(File.ReadAllText(_offlineTasksFile)); } catch { }
             }
             return new List<Models.TaskModel>();
+        }
+
+        public async Task<bool> DeleteTaskAsync(int taskId)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(AccessToken))
+                {
+                    System.Windows.MessageBox.Show("Błąd: Nie jesteś zalogowany!");
+                    return false;
+                }
+
+                string url = _baseUrl.TrimEnd('/') + $"/api/tasks/{taskId}/";
+
+
+                var response = await _client.DeleteAsync(url);
+
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return true;
+                }
+                else
+                {
+                    string errorBody = await response.Content.ReadAsStringAsync();
+                    System.Diagnostics.Debug.WriteLine($"Błąd usuwania zadania: {response.StatusCode} - {errorBody}");
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Błąd połączenia: {ex.Message}");
+                return false;
+            }
+        }
+
+        public async Task<bool> UpdateTaskAsync(Models.TaskModel updatedTask)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(AccessToken)) return false;
+
+                string json = JsonConvert.SerializeObject(updatedTask, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+                var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+                string url = _baseUrl.TrimEnd('/') + $"/api/tasks/{updatedTask.Id}/";
+                var response = await _client.PutAsync(url, content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return true;
+                }
+                else
+                {
+                    string errorBody = await response.Content.ReadAsStringAsync();
+                    System.Diagnostics.Debug.WriteLine($"Błąd edycji: {response.StatusCode} - {errorBody}");
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Błąd połączenia: {ex.Message}");
+                return false;
+            }
         }
     }
 }
