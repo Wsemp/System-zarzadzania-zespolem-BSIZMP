@@ -5,7 +5,12 @@
     <title>Tasks</title>
 </head>
 <body>
-
+    <button>
+        <a href="{% url 'main_view' %}">Previous</a>
+    </button>
+    <button>
+        <a href="{% url 'create_task' %}">Create task</a>
+    </button>
     {% for task in tasks %}
         <p>{{ task.id }}</p>
         <p>{{ task.title }}</p>

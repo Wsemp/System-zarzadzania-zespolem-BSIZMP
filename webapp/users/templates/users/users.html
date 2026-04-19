@@ -6,9 +6,10 @@
 </head>
 <body>
         <button>
-            <p>
+            <a href="{% url 'main_view' %}">Previous</a>
+        </button>
+        <button>
                 <a href="{% url 'user_create' %}">Utworz uzytkownika</a>
-            </p>
         </button>
 
     <p>Liczba wszystkich uzytkownikow: {{users_count}}</p>
