@@ -51,6 +51,27 @@ namespace desktopapp.ViewModels
             await LoadApiUsersAsync();
             // 2. DOPIERO POTEM pobierz zadania i przypisz imiona (teraz to zadziała, bo _apiUsers jest pełne)
             await LoadTasksAsync();
+            LoadUserProfile();
+        }
+
+        private void LoadUserProfile()
+        {
+            // 1. Pobieramy nazwę z ApiService
+            CurrentUserName = ApiService.Instance.LoggedInUsername ?? "Nieznany użytkownik";
+
+            // 2. Skoro mamy już pobraną listę użytkowników z serwera, szukamy tam siebie, żeby wziąć maila!
+            if (_apiUsers != null)
+            {
+                var me = _apiUsers.FirstOrDefault(u => u.Username == CurrentUserName);
+                if (me != null)
+                {
+                    CurrentUserEmail = me.Email; // Prawdziwy email z bazy
+                }
+                else
+                {
+                    CurrentUserEmail = "Brak emaila w bazie";
+                }
+            }
         }
 
         // Zmienione na async Task, żeby można było na to "poczekać"
@@ -244,10 +265,10 @@ namespace desktopapp.ViewModels
         }
 
         [ObservableProperty]
-        private string _currentUserName = "admin";
+        private string _currentUserName;
 
         [ObservableProperty]
-        private string _currentUserEmail = "admin@mojsystem.pl";
+        private string _currentUserEmail;
 
         [ObservableProperty]
         private string _newPassword;
