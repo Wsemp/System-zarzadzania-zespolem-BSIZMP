@@ -23,6 +23,8 @@ namespace desktopapp.Services
         private readonly string _offlineTasksFile;
 
         public string AccessToken { get; private set; }
+        
+        public string LoggedInUsername { get; private set; }
 
         private ApiService()
         {
@@ -71,6 +73,7 @@ namespace desktopapp.Services
 
                     var secureCreds = new { username = username, passwordHash = ComputeHash(password) };
                     File.WriteAllText(_offlineCredsFile, JsonConvert.SerializeObject(secureCreds));
+                    LoggedInUsername = username;
 
                     return true;
                 }
@@ -85,6 +88,7 @@ namespace desktopapp.Services
                         string savedCredsJson = File.ReadAllText(_offlineCredsFile);
                         dynamic savedCreds = JsonConvert.DeserializeObject(savedCredsJson);
                         if (savedCreds.username == username && savedCreds.passwordHash == ComputeHash(password)) return true;
+                        LoggedInUsername = username;
                     }
                     catch { }
                 }
