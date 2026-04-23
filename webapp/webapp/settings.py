@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     # 'users',
     'users.apps.UserConfig',
     'rest_framework',
+    'rest_framework_simplejwt.token_blacklist',
     'tests',
     'tasks',
 ]

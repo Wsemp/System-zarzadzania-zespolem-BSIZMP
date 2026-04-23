@@ -2,7 +2,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.views import LoginView
 from django.contrib.auth import logout
-from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
 class AdminLoginView(LoginView):
