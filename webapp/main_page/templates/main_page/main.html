@@ -58,6 +58,11 @@
 </head>
 <body>
 
+<form method="post" action="{% url 'logout' %}">
+    {% csrf_token %}
+    <button type="submit">Logout</button>
+</form>
+
 <div class="container">
     <div class="tile">
         <h2>Projekty</h2>
