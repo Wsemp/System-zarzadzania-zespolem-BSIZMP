@@ -21,5 +21,9 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         if "password" in validated_data:
             password = validated_data.pop("password")
             instance.set_password(password)
+<<<<<<< HEAD
 
+=======
+            
+>>>>>>> origin/main
         return super().update(instance, validated_data)
