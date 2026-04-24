@@ -226,7 +226,8 @@ namespace desktopapp.Services
                 else
                 {
                     string errorBody = await response.Content.ReadAsStringAsync();
-                    System.Diagnostics.Debug.WriteLine($"Błąd aktualizacji profilu: {response.StatusCode} - {errorBody}");
+                    // ZMIEŃ TĘ LINIJKĘ, żeby wyświetlić błąd na ekranie:
+                    System.Windows.MessageBox.Show($"Szpieg Błędów od Wiktora:\nKod: {response.StatusCode}\nSzczegóły: {errorBody}");
                     return false;
                 }
             }
