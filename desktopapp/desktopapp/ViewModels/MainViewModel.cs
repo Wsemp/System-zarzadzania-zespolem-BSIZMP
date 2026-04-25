@@ -11,8 +11,13 @@ using System.Threading.Tasks; // Dodane, żeby Task.WhenAll zadziałało
 
 namespace desktopapp.ViewModels
 {
+    
+    
+    
     public partial class MainViewModel : ObservableObject
     {
+        
+        
         private List<TaskModel> _allTasks = new List<TaskModel>();
 
         [ObservableProperty]
@@ -32,40 +37,49 @@ namespace desktopapp.ViewModels
 
         [ObservableProperty]
         private string _newProjectDescription;
+        
+        [ObservableProperty]
+        private ProjectModel _selectedProjectFilter;
+
+        partial void OnSelectedProjectFilterChanged(ProjectModel value)
+        {
+            ApplyFilters(); 
+        }
 
         [ObservableProperty]
         private ObservableCollection<string> _availableUsernames = new ObservableCollection<string>();
 
         private List<UserModel> _apiUsers = new List<UserModel>();
+        
+        
 
         public MainViewModel()
         {
             LoadMockProjects();
-            // Zmienione: Wywołujemy jedną metodę inicjalizacyjną, która zachowuje kolejność
             _ = InitializeDataAsync();
+            StartAutoRefresh();
         }
 
         private async Task InitializeDataAsync()
         {
-            // 1. NAJPIERW pobierz użytkowników
+
             await LoadApiUsersAsync();
-            // 2. DOPIERO POTEM pobierz zadania i przypisz imiona (teraz to zadziała, bo _apiUsers jest pełne)
             await LoadTasksAsync();
             LoadUserProfile();
         }
 
         private void LoadUserProfile()
         {
-            // 1. Pobieramy nazwę z ApiService
+
             CurrentUserName = ApiService.Instance.LoggedInUsername ?? "Nieznany użytkownik";
 
-            // 2. Skoro mamy już pobraną listę użytkowników z serwera, szukamy tam siebie, żeby wziąć maila!
+
             if (_apiUsers != null)
             {
                 var me = _apiUsers.FirstOrDefault(u => u.Username == CurrentUserName);
                 if (me != null)
                 {
-                    CurrentUserEmail = me.Email; // Prawdziwy email z bazy
+                    CurrentUserEmail = me.Email;
                 }
                 else
                 {
@@ -73,8 +87,60 @@ namespace desktopapp.ViewModels
                 }
             }
         }
+        private async Task RefreshTasksSilentlyAsync()
+        {
+            try
+            {
+                var newTasks = await ApiService.Instance.GetTasksAsync();
+                
+                if (newTasks != null)
+                {
+                    var random = new Random();
+                    
+                    foreach (var task in newTasks)
+                    {
+                        task.ProjectId = random.Next(1, 4); 
 
-        // Zmienione na async Task, żeby można było na to "poczekać"
+                        if (_apiUsers != null && task.AssignedToId.HasValue)
+                        {
+                            var user = _apiUsers.FirstOrDefault(u => u.Id == task.AssignedToId.Value);
+                            if (user != null)
+                            {
+                                task.AssignedUser = user.Username;
+                            }
+                        }
+                    }
+
+                   
+                    int? selectedId = SelectedTask?.Id;
+
+                    
+                    _allTasks = newTasks;
+                    ApplyFilters();
+
+                    
+                    if (selectedId.HasValue)
+                    {
+                        SelectedTask = Tasks.FirstOrDefault(t => t.Id == selectedId.Value);
+                    }
+                }
+            }
+            catch
+            {
+                
+            }
+        }
+        
+        private System.Windows.Threading.DispatcherTimer _refreshTimer;
+
+        private void StartAutoRefresh()
+        {
+            _refreshTimer = new System.Windows.Threading.DispatcherTimer();
+            _refreshTimer.Interval = TimeSpan.FromSeconds(10); // Odświeża co 10 sekund
+            _refreshTimer.Tick += async (s, e) => await RefreshTasksSilentlyAsync();
+            _refreshTimer.Start();
+        }
+        
         private async Task LoadApiUsersAsync()
         {
             try
@@ -96,17 +162,18 @@ namespace desktopapp.ViewModels
                 AvailableUsernames = new ObservableCollection<string> { "Brak danych (Tryb Offline)" };
             }
         }
-
-        // Zmienione na async Task
+        
         private async Task LoadTasksAsync()
         {
             _allTasks = await ApiService.Instance.GetTasksAsync();
+            var random = new Random();
 
-            // --- KLUCZOWE: TŁUMACZENIE ID NA IMIONA DLA TABELI ---
             if (_apiUsers != null && _apiUsers.Any())
             {
                 foreach (var task in _allTasks)
                 {
+                    task.ProjectId = random.Next(1, 4); 
+
                     if (task.AssignedToId.HasValue)
                     {
                         var user = _apiUsers.FirstOrDefault(u => u.Id == task.AssignedToId.Value);
@@ -118,30 +185,43 @@ namespace desktopapp.ViewModels
                 }
             }
 
-            Tasks = new ObservableCollection<TaskModel>(_allTasks);
+            ApplyFilters(); 
         }
 
         private void LoadMockProjects()
         {
             Projects = new ObservableCollection<ProjectModel>
             {
+                new ProjectModel { Id = 0, Name = "--- Wszystkie projekty ---", Description = "Pokazuje wszystko" }, 
                 new ProjectModel { Id = 1, Name = "Aplikacja Webowa", Description = "Backend w Django i frontend w React" },
                 new ProjectModel { Id = 2, Name = "Aplikacja Mobilna", Description = "Apka we Flutterze dla klientów" },
                 new ProjectModel { Id = 3, Name = "Panel Admina", Description = "Aplikacja WPF w C#" }
             };
+            SelectedProjectFilter = Projects[0];
         }
 
         partial void OnSearchUserTextChanged(string value)
         {
-            if (string.IsNullOrWhiteSpace(value))
+            ApplyFilters(); 
+        }
+
+        private void ApplyFilters()
+        {
+            if (_allTasks == null) return;
+
+            var filtered = _allTasks.AsEnumerable();
+            
+            if (SelectedProjectFilter != null && SelectedProjectFilter.Id != 0)
             {
-                Tasks = new ObservableCollection<TaskModel>(_allTasks);
+                filtered = filtered.Where(t => t.ProjectId == SelectedProjectFilter.Id);
             }
-            else
+            
+            if (!string.IsNullOrWhiteSpace(SearchUserText))
             {
-                var filtered = _allTasks.Where(t => t.AssignedUser != null && t.AssignedUser.Contains(value, StringComparison.OrdinalIgnoreCase));
-                Tasks = new ObservableCollection<TaskModel>(filtered);
+                filtered = filtered.Where(t => t.AssignedUser != null && t.AssignedUser.Contains(SearchUserText, StringComparison.OrdinalIgnoreCase));
             }
+
+            Tasks = new ObservableCollection<TaskModel>(filtered);
         }
 
         [RelayCommand]
@@ -177,6 +257,13 @@ namespace desktopapp.ViewModels
             var addTaskVm = new AddTaskViewModel();
             addTaskVm.AvailableUsernames = this.AvailableUsernames;
             addTaskVm.ApiUsers = this._apiUsers;
+            
+            addTaskVm.AvailableProjects = new ObservableCollection<ProjectModel>(Projects.Where(p => p.Id != 0));
+            
+            if (SelectedProjectFilter != null && SelectedProjectFilter.Id != 0)
+            {
+                addTaskVm.SelectedProject = addTaskVm.AvailableProjects.FirstOrDefault(p => p.Id == SelectedProjectFilter.Id);
+            }
 
             var window = new Views.AddTaskWindow(addTaskVm);
             window.ShowDialog();
@@ -187,19 +274,17 @@ namespace desktopapp.ViewModels
 
                 if (isSuccess)
                 {
-
                     await LoadTasksAsync();
+                    
+                    ApplyFilters(); 
                     Services.NotificationService.Instance.Show("Zadanie zapisane w chmurze!");
                 }
                 else
                 {
                     addTaskVm.CreatedTask.Id = _allTasks.Any() ? _allTasks.Max(t => t.Id) + 1 : 1;
-
                     _allTasks.Insert(0, addTaskVm.CreatedTask);
-                    Tasks = new System.Collections.ObjectModel.ObservableCollection<TaskModel>(_allTasks);
-
+                    ApplyFilters(); 
                     ApiService.Instance.SaveTasksOffline(_allTasks);
-
                     Services.NotificationService.Instance.Show("Brak sieci. Zadanie zapisano lokalnie!");
                 }
             }
@@ -222,6 +307,9 @@ namespace desktopapp.ViewModels
             editTaskVm.Description = SelectedTask.Description;
             editTaskVm.AssignedUser = SelectedTask.AssignedUser;
             editTaskVm.Status = SelectedTask.DisplayStatus;
+            
+            editTaskVm.AvailableProjects = new ObservableCollection<ProjectModel>(Projects.Where(p => p.Id != 0));
+            editTaskVm.SelectedProject = editTaskVm.AvailableProjects.FirstOrDefault(p => p.Id == SelectedTask.ProjectId);
 
             var window = new Views.AddTaskWindow(editTaskVm);
             window.ShowDialog();
@@ -230,12 +318,12 @@ namespace desktopapp.ViewModels
             {
                 editTaskVm.CreatedTask.Id = SelectedTask.Id;
 
-
                 bool isSuccess = await ApiService.Instance.UpdateTaskAsync(editTaskVm.CreatedTask);
 
                 if (isSuccess)
                 {
                     await LoadTasksAsync();
+                    ApplyFilters();
                     Services.NotificationService.Instance.Show("Zadanie zaktualizowane pomyślnie!");
                 }
                 else
@@ -244,7 +332,7 @@ namespace desktopapp.ViewModels
                 }
             }
         }
-
+        
         [RelayCommand]
         public void AddProject()
         {
@@ -321,6 +409,8 @@ namespace desktopapp.ViewModels
                 }
             }
         }
+        
+        
 
         public Services.NotificationService Notifier => Services.NotificationService.Instance;
     }
