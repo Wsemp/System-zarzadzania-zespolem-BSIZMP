@@ -1,10 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block content %}
         <button>
             <a href="{% url 'main_view' %}">Previous</a>
         </button>
@@ -22,6 +18,5 @@
         <a href="{% url 'delete_user' user.id %}">Delete</a>
         <a href="{% url 'user_update' user.id %}">Update</a>
 
-        {% endfor %}
-</body>
-</html>
+    {% endfor %}
+{% endblock %}
