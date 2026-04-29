@@ -1,94 +1,31 @@
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <title>Dashboard</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f6f9;
-            margin: 0;
-            padding: 40px;
-        }
+{% extends "base.html" %}
 
-        .container {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
+{% block content %}
+<div style="box-shadow: 0 4px 10px rgba(0,0,0,0.2); padding: 35px;">
+    <div style="display: flex; justify-content: space-evenly; align-items: center;">
+        <div class="card text-white bg-primary mb-3" style="max-width: 18rem;">
+          <div class="card-header">Zarządzaj projektami</div>
+          <div class="card-body">
+            <h5 class="card-title">Projekty</h5>
+            <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+          </div>
+        </div>
 
-        .tile {
-            background: white;
-            padding: 30px;
-            width: 250px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            text-align: center;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
+        <div class="card text-white bg-primary mb-3" style="max-width: 18rem;">
+          <div class="card-header">Zarządzaj zadaniami</div>
+          <div class="card-body">
+            <h5 class="card-title">Zadania</h5>
+            <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+          </div>
+        </div>
 
-        .tile:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-        }
-
-        .tile h2 {
-            margin-bottom: 10px;
-        }
-
-        .tile p {
-            color: #666;
-        }
-
-        .tile button {
-            margin-top: 15px;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            background: #4CAF50;
-            color: white;
-            cursor: pointer;
-        }
-
-        .tile button:hover {
-            background: #45a049;
-        }
-    </style>
-</head>
-<body>
-
-<form method="post" action="{% url 'logout' %}">
-    {% csrf_token %}
-    <button type="submit">Logout</button>
-</form>
-
-<div class="container">
-    <div class="tile">
-        <h2>Projekty</h2>
-        <p>Zarzadzaj projektami</p>
-        <button>Kliknij</button>
-    </div>
-
-    <div class="tile">
-        <h2>Zadania</h2>
-        <button>
-            <p>
-                <a href="{% url 'tasks_view' %}">Zarzadzaj zadaniami</a>
-            </p>
-        </button>
-    </div>
-
-    <div class="tile">
-        <h2>Użytkownicy</h2>
-
-        <button>
-            <p>
-                <a href="{% url 'users_view' %}">Zarzadzaj uzytkownikami</a>
-            </p>
-        </button>
+        <div class="card text-white bg-primary mb-3" style="max-width: 18rem;">
+          <div class="card-header">Zarządzaj użytkownikami</div>
+          <div class="card-body">
+            <h5 class="card-title">Użytkownicy</h5>
+            <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+          </div>
+        </div>
     </div>
 </div>
-
-</body>
-</html>
+{% endblock %}
