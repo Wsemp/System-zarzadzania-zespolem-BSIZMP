@@ -19,6 +19,12 @@
             <TextBlock Text="Przypisz do:" />
             <ComboBox ItemsSource="{Binding AvailableUsernames}" SelectedItem="{Binding AssignedUser, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
 
+            <TextBlock Text="Projekt:" />
+            <ComboBox ItemsSource="{Binding AvailableProjects}" 
+                      DisplayMemberPath="Name" 
+                      SelectedItem="{Binding SelectedProject}" 
+                      Margin="0,0,0,10"/>
+            
             <TextBlock Text="Status:" />
             <ComboBox SelectedItem="{Binding Status}" Margin="0,0,0,20">
                 <System:String xmlns:System="clr-namespace:System;assembly=mscorlib">Do zrobienia</System:String>

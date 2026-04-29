@@ -54,47 +54,61 @@ namespace desktopapp.Services
             }
         }
 
-        public async Task<bool> LoginAsync(string username, string password)
-        {
-            var loginData = new { username = username, password = password };
-            var json = JsonConvert.SerializeObject(loginData);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
+       public async Task<bool> LoginAsync(string username, string password)
+{
+    var loginData = new { username = username, password = password };
+    var json = JsonConvert.SerializeObject(loginData);
+    var content = new StringContent(json, Encoding.UTF8, "application/json");
 
+    try
+    {
+        var response = await _client.PostAsync(_baseUrl.TrimEnd('/') + "/api/auth/login/", content);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var responseString = await response.Content.ReadAsStringAsync();
+            var tokenData = JObject.Parse(responseString);
+            AccessToken = tokenData["access"]?.ToString();
+            _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", AccessToken);
+
+            var secureCreds = new { username = username, passwordHash = ComputeHash(password) };
+            File.WriteAllText(_offlineCredsFile, JsonConvert.SerializeObject(secureCreds));
+            LoggedInUsername = username;
+
+            return true;
+        }
+        else
+        {
+
+            string errorBody = await response.Content.ReadAsStringAsync();
+            System.Diagnostics.Debug.WriteLine($"Błąd HTTP logowania: {response.StatusCode}\n{errorBody}");
+            System.Windows.MessageBox.Show($"Serwer odrzucił logowanie.\nKod: {response.StatusCode}\nSzczegóły: {errorBody}", "Szpieg Błędów");
+            return false;
+        }
+    }
+    catch (Exception ex)
+    {
+        System.Diagnostics.Debug.WriteLine($"BŁĄD POŁĄCZENIA: {ex.Message}");
+        System.Windows.MessageBox.Show($"Brak połączenia z serwerem. Próbuję zalogować w trybie offline...\nPowód: {ex.Message}", "Błąd Sieci");
+
+        if (File.Exists(_offlineUsersFile) && File.Exists(_offlineCredsFile))
+        {
             try
             {
-                var response = await _client.PostAsync(_baseUrl.TrimEnd('/') + "/api/auth/login/", content);
-
-                if (response.IsSuccessStatusCode)
+                string savedCredsJson = File.ReadAllText(_offlineCredsFile);
+                dynamic savedCreds = JsonConvert.DeserializeObject(savedCredsJson);
+                
+                if (savedCreds.username == username && savedCreds.passwordHash == ComputeHash(password))
                 {
-                    var responseString = await response.Content.ReadAsStringAsync();
-                    var tokenData = JObject.Parse(responseString);
-                    AccessToken = tokenData["access"]?.ToString();
-                    _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", AccessToken);
-
-                    var secureCreds = new { username = username, passwordHash = ComputeHash(password) };
-                    File.WriteAllText(_offlineCredsFile, JsonConvert.SerializeObject(secureCreds));
-                    LoggedInUsername = username;
-
+                    LoggedInUsername = username; 
                     return true;
                 }
-                return false;
             }
-            catch
-            {
-                if (File.Exists(_offlineUsersFile) && File.Exists(_offlineCredsFile))
-                {
-                    try
-                    {
-                        string savedCredsJson = File.ReadAllText(_offlineCredsFile);
-                        dynamic savedCreds = JsonConvert.DeserializeObject(savedCredsJson);
-                        if (savedCreds.username == username && savedCreds.passwordHash == ComputeHash(password)) return true;
-                        LoggedInUsername = username;
-                    }
-                    catch { }
-                }
-                return false;
-            }
+            catch { }
         }
+        return false;
+    }
+}
 
         public void Logout()
         {
@@ -226,7 +240,6 @@ namespace desktopapp.Services
                 else
                 {
                     string errorBody = await response.Content.ReadAsStringAsync();
-                    // ZMIEŃ TĘ LINIJKĘ, żeby wyświetlić błąd na ekranie:
                     System.Windows.MessageBox.Show($"Szpieg Błędów od Wiktora:\nKod: {response.StatusCode}\nSzczegóły: {errorBody}");
                     return false;
                 }

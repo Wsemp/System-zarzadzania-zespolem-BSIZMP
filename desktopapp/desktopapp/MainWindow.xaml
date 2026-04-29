@@ -24,7 +24,7 @@
 
                     <StackPanel Grid.Row="0" Margin="0,0,0,10">
                         <Grid Margin="0,0,0,10">
-                            <!-- Lewa strona (akcje zadań) -->
+
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
                                 <TextBlock Text="Zarządzanie zadaniami" FontSize="20" FontWeight="Bold" Margin="0,0,20,0" VerticalAlignment="Center"/>
                                 <Button Content="Dodaj nowe zadanie" Command="{Binding OpenAddTaskWindowCommand}" Width="130" Margin="0,0,10,0" Click="Button_Click" VerticalAlignment="Center"/>
@@ -43,32 +43,26 @@
                             <TextBlock Text="Filtruj po użytkowniku:" VerticalAlignment="Center" Margin="0,0,10,0" FontWeight="SemiBold"/>
                             <TextBox Width="200" Text="{Binding SearchUserText, UpdateSourceTrigger=PropertyChanged}" Padding="2"/>
                         </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <TextBlock Text="Wybierz projekt:" VerticalAlignment="Center" Margin="0,0,10,0" FontWeight="SemiBold"/>
+                            <ComboBox Width="200" ItemsSource="{Binding Projects}" DisplayMemberPath="Name" SelectedItem="{Binding SelectedProjectFilter}" />
+                        </StackPanel>
                     </StackPanel>
 
                     <DataGrid Grid.Row="1" 
                               ItemsSource="{Binding Tasks}" 
                               SelectedItem="{Binding SelectedTask}"
                               AutoGenerateColumns="False" 
-                              IsReadOnly="False"
+                              IsReadOnly="True"
                               HeadersVisibility="Column"
                               AlternatingRowBackground="#FFF0F0F0"
                               SelectionMode="Single" SelectionChanged="DataGrid_SelectionChanged">
 
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50" IsReadOnly="True" />
-                            <DataGridTextColumn Header="Tytuł" Binding="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Width="*" />
+                            <DataGridTextColumn Header="Tytuł" Binding="{Binding Title}" Width="*" />
                             <DataGridTextColumn Header="Przypisano do" Binding="{Binding AssignedUser}" Width="150" IsReadOnly="True" />
-                            <DataGridTemplateColumn Header="Status" Width="130">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <ComboBox SelectedItem="{Binding DisplayStatus, UpdateSourceTrigger=PropertyChanged}">
-                                            <System:String xmlns:System="clr-namespace:System;assembly=mscorlib">Do zrobienia</System:String>
-                                            <System:String xmlns:System="clr-namespace:System;assembly=mscorlib">W trakcie</System:String>
-                                            <System:String xmlns:System="clr-namespace:System;assembly=mscorlib">Zakończone</System:String>
-                                        </ComboBox>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="Status" Binding="{Binding DisplayStatus}" Width="130" />
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>

@@ -9,6 +9,12 @@ namespace desktopapp.ViewModels
     public partial class AddTaskViewModel : ObservableObject
     {
         [ObservableProperty]
+        private ObservableCollection<ProjectModel> _availableProjects;
+
+        [ObservableProperty]
+        private ProjectModel _selectedProject;
+        
+        [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
         private string _title;
 
@@ -37,7 +43,6 @@ namespace desktopapp.ViewModels
         }
 
         [RelayCommand(CanExecute = nameof(CanSave))]
-
         public void Save()
         {
             var selectedUser = ApiUsers?.Find(u => u.Username == this.AssignedUser);
@@ -57,7 +62,8 @@ namespace desktopapp.ViewModels
                 Status = statusKey,
                 AssignedUser = this.AssignedUser,
                 AssignedToId = selectedUser?.Id,
-                TagIds = new System.Collections.Generic.List<int>()
+                TagIds = new System.Collections.Generic.List<int>(),
+                ProjectId = SelectedProject?.Id 
             };
 
             CloseAction?.Invoke();

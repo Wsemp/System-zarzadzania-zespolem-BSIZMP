@@ -4,6 +4,9 @@ namespace desktopapp.Models
 {
     public class TaskModel
     {
+        [JsonProperty("project_id")]
+        public int? ProjectId { get; set; }
+        
         [JsonProperty("tag_ids")]
         public System.Collections.Generic.List<int> TagIds { get; set; } = new System.Collections.Generic.List<int>();
 
