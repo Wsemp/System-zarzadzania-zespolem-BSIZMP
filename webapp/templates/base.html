@@ -16,16 +16,17 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4">
         <div class="container">
             <a class="navbar-brand" href="{% url 'main_view' %}">Taskomat</a>
-            <div style="display: flex; flex-direction: row; justify-content: space-evenly; width:800px; font-weight: bold; color: #0d6efd;">
-                <div>Projekty</div>
-                <div>
-                    <a href="{% url 'tasks_view' %}">Zadania</a>
-                </div>
-                <div>
-                    <a href="{% url 'users_view' %}">Użytkownicy</a>
-                </div>
-            </div>
+
             {% if user.is_authenticated %}
+                <div style="display: flex; flex-direction: row; justify-content: space-evenly; width:800px; font-weight: bold; color: #0d6efd;">
+                    <div>Projekty</div>
+                    <div>
+                        <a href="{% url 'tasks_view' %}">Zadania</a>
+                    </div>
+                    <div>
+                        <a href="{% url 'users_view' %}">Użytkownicy</a>
+                    </div>
+                </div>
                 <form method="post" action="{% url 'logout' %}">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-primary">Logout</button>
