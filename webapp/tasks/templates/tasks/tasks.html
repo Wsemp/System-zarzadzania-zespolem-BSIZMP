@@ -1,30 +1,40 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <button>
-        <a href="{% url 'main_view' %}">Previous</a>
-    </button>
-    <button>
-        <a href="{% url 'create_task' %}">Create task</a>
-    </button>
-    {% for task in tasks %}
-        <p>{{ task.id }}</p>
-        <p>{{ task.title }}</p>
-        <p>{{ task.description }}</p>
-        <p>{{ task.status }}</p>
-        <p>{{ task.assigned_to }}</p>
-        <p>{{ task.created_by }}</p>
 
-        {% for tag in task.tags.all %}
-            {{ tag.name }}
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Title</th>
+          <th scope="col">Description</th>
+          <th scope="col">Status</th>
+          <th scope="col">Assigned to</th>
+          <th scope="col">Created by</th>
+          <th scope="col">Created at</th>
+          <th scope="col">Updated at</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for task in tasks %}
+            <tr>
+              <th scope="row">{{ task.id }}</th>
+              <td>{{ task.title }}</td>
+              <td>{{ task.description }}</td>
+              <td>{{ task.status }}</td>
+              <td>{{ task.assigned_to }}</td>
+              <td>{{ task.created_by }}</td>
+              <td>{{ task.created_at }}</td>
+              <td>{{ task.updated_at }}</td>
+              <td><a href="{% url 'delete_task' task.id %}">Delete</a></td>
+              <td><a href="{% url 'update_task' task.id %}">Update</a></td>
+            </tr>
         {% endfor %}
+      </tbody>
+    </table>
 
-        <p>{{ task.is_deleted }}</p>
-        <p>{{ task.created_at }}</p>
-        <p>{{ task.updated_at }}</p>
+    <button type="button" class="btn btn-link">
+        <a href="{% url 'create_task' %}">Utwórz zadanie</a>
+    </button>
 
-        <a href="{% url 'delete_task' task.id %}">Delete</a>
-        <a href="{% url 'update_task' task.id %}">Update</a>
-        <hr>
-    {% endfor %}
 {% endblock %}
