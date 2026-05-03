@@ -14,7 +14,8 @@ def create_task(
     status: str,
     assigned_to,
     tags,
-    due_date
+    due_date,
+    project
 ) -> Task:
 
     task = Task.objects.create(
@@ -26,6 +27,7 @@ def create_task(
         # tags=None,
         due_date=due_date,
         is_deleted=False,
+        project=project
     )
 
     task.tags.set(tags)
