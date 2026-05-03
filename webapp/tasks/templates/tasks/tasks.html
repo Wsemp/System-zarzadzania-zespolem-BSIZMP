@@ -2,17 +2,17 @@
 
 {% block content %}
 
-    <table class="table">
+    <table class="table table-hover">
       <thead>
         <tr>
           <th scope="col">#</th>
           <th scope="col">Title</th>
-          <th scope="col">Description</th>
           <th scope="col">Status</th>
           <th scope="col">Assigned to</th>
           <th scope="col">Created by</th>
           <th scope="col">Created at</th>
           <th scope="col">Updated at</th>
+          <th scope="col">Due date</th>
         </tr>
       </thead>
       <tbody>
@@ -20,12 +20,12 @@
             <tr>
               <th scope="row">{{ task.id }}</th>
               <td>{{ task.title }}</td>
-              <td>{{ task.description }}</td>
               <td>{{ task.status }}</td>
               <td>{{ task.assigned_to }}</td>
               <td>{{ task.created_by }}</td>
               <td>{{ task.created_at }}</td>
               <td>{{ task.updated_at }}</td>
+              <td>{{ task.due_date }}</td>
               <td><a href="{% url 'delete_task' task.id %}">Delete</a></td>
               <td><a href="{% url 'update_task' task.id %}">Update</a></td>
             </tr>
