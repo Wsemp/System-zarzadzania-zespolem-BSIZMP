@@ -33,6 +33,8 @@ class TestTaskServices(TestCase):
             owner=self.user
         )
 
+        project.members.add(self.assigned_user,)
+
         task = create_task(
             created_by=self.user,
             title="Test task",

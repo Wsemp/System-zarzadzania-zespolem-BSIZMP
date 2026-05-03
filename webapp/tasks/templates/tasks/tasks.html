@@ -17,7 +17,9 @@
       </thead>
       <tbody>
         {% for task in tasks %}
-            <tr>
+
+            <tr class="{% if task.overdue %}table-danger{% elif task.done %}table-success{% endif %}">
+
               <th scope="row">{{ task.id }}</th>
               <td>{{ task.title }}</td>
               <td>{{ task.status }}</td>

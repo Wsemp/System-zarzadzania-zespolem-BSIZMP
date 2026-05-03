@@ -12,7 +12,7 @@ class Task(models.Model):
 
     class Status(models.TextChoices):
         TODO = 'todo', 'To do'
-        IN_PROGRESS = 'in_progress', 'In progress'
+        IN_PROGRESS = 'In progress', 'In progress'
         DONE = 'done', 'Done'
 
     title = models.CharField(max_length=255)
@@ -47,6 +47,19 @@ class Task(models.Model):
         on_delete=models.CASCADE,
         related_name="tasks",
     )
+
+    @property
+    def overdue(self):
+        from django.utils import timezone
+        return (
+                self.due_date is not None
+                and self.due_date < timezone.now()
+                and self.status != self.Status.DONE
+        )
+
+    @property
+    def done(self):
+        return self.status == self.Status.DONE
 
     def __str__(self):
         return self.title

@@ -32,7 +32,9 @@ def create_user_view(request):
     if request.method == "POST":
         form = UserCreateForm(request.POST)
         if form.is_valid():
-            create_user(**form.cleaned_data)
+            data = form.cleaned_data.copy()
+            data.pop("password2", None)
+            create_user(**data)
             return redirect("/users/")
     else:
         form = UserCreateForm()

@@ -26,7 +26,6 @@ def create_task_view(request):
 
         if form.is_valid():
             logged_user = request.user
-            print(form.cleaned_data["tags"])
             create_task(created_by=logged_user, **form.cleaned_data)
             return redirect("/tasks/")
     else:
