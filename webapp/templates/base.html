@@ -26,6 +26,9 @@
                     <div>
                         <a href="{% url 'users_view' %}">Użytkownicy</a>
                     </div>
+                    <div>
+                        <a href="{% url 'api-docs' %}">API</a>
+                    </div>
                 </div>
                 <form method="post" action="{% url 'logout' %}">
                     {% csrf_token %}
