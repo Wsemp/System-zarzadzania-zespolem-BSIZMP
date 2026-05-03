@@ -47,6 +47,7 @@ class TaskSerializer(serializers.HyperlinkedModelSerializer):
             'due_date',
             'created_at',
             'updated_at',
+            'project',
         ]
 
     def create(self, validated_data):
