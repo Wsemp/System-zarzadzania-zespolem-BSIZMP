@@ -91,13 +91,26 @@
 
             <TabItem Header="Zarządzanie Projektami">
                 <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="2*"/>
                         <ColumnDefinition Width="1*"/>
                     </Grid.ColumnDefinitions>
 
-                    <DataGrid Grid.Column="0" ItemsSource="{Binding Projects}" AutoGenerateColumns="False" 
-                              IsReadOnly="True" HeadersVisibility="Column" Margin="0,0,10,0" AlternatingRowBackground="#FFF0F0F0">
+                    <!-- Nowe Przyciski Akcji nad tabelą Projektów -->
+                    <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Margin="0,0,0,10">
+                        <TextBlock Text="Lista projektów" FontSize="20" FontWeight="Bold" Margin="0,0,20,0" VerticalAlignment="Center"/>
+                        <Button Content="Edytuj wybrany" Command="{Binding PrepareEditProjectCommand}" Width="120" Margin="0,0,10,0" Background="#FFA500" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <Button Content="Usuń wybrany" Command="{Binding DeleteProjectCommand}" Background="#FF4444" Foreground="White" Width="100" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Dodano SelectedItem do bindowania klikniętego wiersza -->
+                    <DataGrid Grid.Row="1" Grid.Column="0" ItemsSource="{Binding Projects}" SelectedItem="{Binding SelectedProject}" AutoGenerateColumns="False" 
+                              IsReadOnly="True" HeadersVisibility="Column" Margin="0,0,10,0" AlternatingRowBackground="#FFF0F0F0" SelectionMode="Single">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="40" />
                             <DataGridTextColumn Header="Nazwa Projektu" Binding="{Binding Name}" Width="150" />
@@ -105,8 +118,9 @@
                         </DataGrid.Columns>
                     </DataGrid>
 
-                    <StackPanel Grid.Column="1" Background="#FFF0F0F0" Margin="10,0,0,0">
-                        <TextBlock Text="Utwórz nowy projekt" FontSize="16" FontWeight="Bold" Margin="10,10,10,15"/>
+                    <!-- Boczny panel jako elastyczny formularz -->
+                    <StackPanel Grid.Row="1" Grid.Column="1" Background="#FFF0F0F0" Margin="10,0,0,15" VerticalAlignment="Top">
+                        <TextBlock Text="{Binding ProjectFormTitle}" FontSize="16" FontWeight="Bold" Margin="10,10,10,15"/>
 
                         <TextBlock Text="Nazwa projektu:" Margin="10,0,10,5"/>
                         <TextBox Text="{Binding NewProjectName, UpdateSourceTrigger=PropertyChanged}" Margin="10,0,10,10"/>
@@ -114,7 +128,21 @@
                         <TextBlock Text="Opis:" Margin="10,0,10,5"/>
                         <TextBox Text="{Binding NewProjectDescription, UpdateSourceTrigger=PropertyChanged}" Height="60" TextWrapping="Wrap" Margin="10,0,10,15"/>
 
-                        <Button Content="Dodaj projekt" Command="{Binding AddProjectCommand}" Height="35" Background="#0078D7" Foreground="White" FontWeight="Bold" Margin="10,0,10,10"/>
+                        <Button Content="{Binding ProjectButtonText}" Command="{Binding AddProjectCommand}" Height="35" Background="#0078D7" Foreground="White" FontWeight="Bold" Margin="10,0,10,5"/>
+                        
+                        <!-- Przycisk "Anuluj", który ukrywa się, gdy jesteśmy w trybie tworzenia -->
+                        <Button Content="Anuluj edycję" Command="{Binding CancelEditProjectCommand}" Height="30" Background="#999999" Foreground="White" FontWeight="Bold" Margin="10,0,10,0">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ProjectButtonText}" Value="Dodaj projekt">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
                     </StackPanel>
                 </Grid>
             </TabItem>

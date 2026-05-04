@@ -34,6 +34,17 @@ namespace desktopapp.ViewModels
         private string _newProjectDescription;
         
         [ObservableProperty]
+        private ProjectModel _selectedProject;
+
+        [ObservableProperty]
+        private string _projectFormTitle = "Utwórz nowy projekt";
+
+        [ObservableProperty]
+        private string _projectButtonText = "Dodaj projekt";
+
+        private int? _editingProjectId = null;
+        
+        [ObservableProperty]
         private ProjectModel _selectedProjectFilter;
 
         partial void OnSelectedProjectFilterChanged(ProjectModel value)
@@ -339,6 +350,32 @@ namespace desktopapp.ViewModels
         }
         
         [RelayCommand]
+        public void PrepareEditProject()
+        {
+            if (SelectedProject == null || SelectedProject.Id == 0)
+            {
+                Services.NotificationService.Instance.Show("Wybierz projekt z tabeli (nie można edytować 'Wszystkich')!");
+                return;
+            }
+
+            NewProjectName = SelectedProject.Name;
+            NewProjectDescription = SelectedProject.Description;
+            ProjectFormTitle = $"Edytujesz: {SelectedProject.Name}";
+            ProjectButtonText = "Zapisz zmiany";
+            _editingProjectId = SelectedProject.Id;
+        }
+
+        [RelayCommand]
+        public void CancelEditProject()
+        {
+            NewProjectName = string.Empty;
+            NewProjectDescription = string.Empty;
+            ProjectFormTitle = "Utwórz nowy projekt";
+            ProjectButtonText = "Dodaj projekt";
+            _editingProjectId = null;
+        }
+
+        [RelayCommand]
         public async void AddProject()
         {
             if (string.IsNullOrWhiteSpace(NewProjectName))
@@ -347,25 +384,70 @@ namespace desktopapp.ViewModels
                 return;
             }
 
-            var nowyProjekt = new ProjectModel
+            if (_editingProjectId.HasValue) // --- TRYB EDYCJI ---
             {
-                Name = this.NewProjectName,
-                Description = this.NewProjectDescription ?? ""
-            };
+                var projectToUpdate = new ProjectModel
+                {
+                    Id = _editingProjectId.Value,
+                    Name = NewProjectName,
+                    Description = NewProjectDescription ?? ""
+                };
 
-            bool isSuccess = await ApiService.Instance.CreateProjectAsync(nowyProjekt);
+                bool isSuccess = await ApiService.Instance.UpdateProjectAsync(projectToUpdate);
+                if (isSuccess)
+                {
+                    Services.NotificationService.Instance.Show("Zaktualizowano projekt!");
+                    CancelEditProject(); 
+                    await LoadProjectsFromApiAsync(); 
+                }
+                else
+                {
+                    Services.NotificationService.Instance.Show("Błąd aktualizacji projektu na serwerze.");
+                }
+            }
+            else // --- TRYB TWORZENIA NOWEGO ---
+            {
+                var nowyProjekt = new ProjectModel
+                {
+                    Name = this.NewProjectName,
+                    Description = this.NewProjectDescription ?? ""
+                };
 
+                bool isSuccess = await ApiService.Instance.CreateProjectAsync(nowyProjekt);
+                if (isSuccess)
+                {
+                    Services.NotificationService.Instance.Show("Utworzono nowy projekt!");
+                    CancelEditProject(); // Czyści okienka po sukcesie
+                    await LoadProjectsFromApiAsync(); 
+                }
+                else
+                {
+                    Services.NotificationService.Instance.Show("Błąd! Nie udało się utworzyć projektu.");
+                }
+            }
+        }
+
+        [RelayCommand]
+        public async void DeleteProject()
+        {
+            if (SelectedProject == null || SelectedProject.Id == 0)
+            {
+                Services.NotificationService.Instance.Show("Wybierz projekt do usunięcia!");
+                return;
+            }
+
+            bool isSuccess = await ApiService.Instance.DeleteProjectAsync(SelectedProject.Id);
             if (isSuccess)
             {
-                Services.NotificationService.Instance.Show("Utworzono nowy projekt!");
-                NewProjectName = string.Empty;
-                NewProjectDescription = string.Empty;
+                Services.NotificationService.Instance.Show("Usunięto projekt z chmury!");
+                if (_editingProjectId == SelectedProject.Id) CancelEditProject();
                 
-                await LoadProjectsFromApiAsync(); 
+                await LoadProjectsFromApiAsync();
+                await LoadTasksAsync(); // Odświeżamy też zadania, bo usunięcie projektu mogło usunąć kaskadowo zadania w nim zawarte!
             }
             else
             {
-                Services.NotificationService.Instance.Show("Błąd! Nie udało się utworzyć projektu.");
+                Services.NotificationService.Instance.Show("Błąd: Serwer odrzucił usunięcie (może projekt ma przypisane zadania i baza blokuje usunięcie?).");
             }
         }
 
