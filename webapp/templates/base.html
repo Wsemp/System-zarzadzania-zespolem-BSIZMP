@@ -19,7 +19,9 @@
 
             {% if user.is_authenticated %}
                 <div style="display: flex; flex-direction: row; justify-content: space-evenly; width:800px; font-weight: bold; color: #0d6efd;">
-                    <div>Projekty</div>
+                    <div>
+                        <a href="{% url 'projects_view' %}">Projekty</a>
+                    </div>
                     <div>
                         <a href="{% url 'tasks_view' %}">Zadania</a>
                     </div>

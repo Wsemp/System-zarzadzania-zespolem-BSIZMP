@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+        {% for project in projects %}
+            <p>{{ project.name }}</p>
+            <p>{{ project.owner }}</p>
+            <p>{{ project.members }}</p>
+            <p>{{ project.created_at }}</p>
+            <p>{{ project.updated_at }}</p>
+            <hr>
+        {% endfor %}
+{% endblock %}
