@@ -32,7 +32,7 @@
                                 <Button Content="Usuń wybrane" Command="{Binding DeleteTaskCommand}" Background="#FF4444" Foreground="White" Width="100" VerticalAlignment="Center"/>
                             </StackPanel>
 
-                            <!-- Prawa strona (Wyloguj) -->
+                  
                             <Button Content="Wyloguj się" Command="{Binding LogoutCommand}" Background="#555555" Foreground="White" Width="100" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                         </Grid>
                         
@@ -57,8 +57,7 @@
                               HeadersVisibility="Column"
                               AlternatingRowBackground="#FFF0F0F0"
                               SelectionMode="Single" SelectionChanged="DataGrid_SelectionChanged">
-
-                        <!-- === DODANE STYLE DLA KOLOROWANIA KOMÓREK === -->
+                        
                         <DataGrid.Resources>
                             <Style TargetType="DataGridCell" x:Key="StatusCellStyle">
                                 <Setter Property="Padding" Value="5"/>
@@ -76,13 +75,11 @@
                                 </Style.Triggers>
                             </Style>
                         </DataGrid.Resources>
-                        <!-- ============================================ -->
 
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50" IsReadOnly="True" />
                             <DataGridTextColumn Header="Tytuł" Binding="{Binding Title}" Width="*" />
                             <DataGridTextColumn Header="Przypisano do" Binding="{Binding AssignedUser}" Width="150" IsReadOnly="True" />
-                            <!-- Podpięty styl do kolumny ze Statusem -->
                             <DataGridTextColumn Header="Status" Binding="{Binding DisplayStatus}" Width="130" CellStyle="{StaticResource StatusCellStyle}" />
                         </DataGrid.Columns>
                     </DataGrid>
@@ -100,15 +97,13 @@
                         <ColumnDefinition Width="2*"/>
                         <ColumnDefinition Width="1*"/>
                     </Grid.ColumnDefinitions>
-
-                    <!-- Nowe Przyciski Akcji nad tabelą Projektów -->
+                    
                     <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Margin="0,0,0,10">
                         <TextBlock Text="Lista projektów" FontSize="20" FontWeight="Bold" Margin="0,0,20,0" VerticalAlignment="Center"/>
                         <Button Content="Edytuj wybrany" Command="{Binding PrepareEditProjectCommand}" Width="120" Margin="0,0,10,0" Background="#FFA500" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/>
                         <Button Content="Usuń wybrany" Command="{Binding DeleteProjectCommand}" Background="#FF4444" Foreground="White" Width="100" VerticalAlignment="Center"/>
                     </StackPanel>
-
-                    <!-- Dodano SelectedItem do bindowania klikniętego wiersza -->
+                    
                     <DataGrid Grid.Row="1" Grid.Column="0" ItemsSource="{Binding Projects}" SelectedItem="{Binding SelectedProject}" AutoGenerateColumns="False" 
                               IsReadOnly="True" HeadersVisibility="Column" Margin="0,0,10,0" AlternatingRowBackground="#FFF0F0F0" SelectionMode="Single">
                         <DataGrid.Columns>
@@ -118,7 +113,7 @@
                         </DataGrid.Columns>
                     </DataGrid>
 
-                    <!-- Boczny panel jako elastyczny formularz -->
+
                     <StackPanel Grid.Row="1" Grid.Column="1" Background="#FFF0F0F0" Margin="10,0,0,15" VerticalAlignment="Top">
                         <TextBlock Text="{Binding ProjectFormTitle}" FontSize="16" FontWeight="Bold" Margin="10,10,10,15"/>
 
@@ -130,7 +125,6 @@
 
                         <Button Content="{Binding ProjectButtonText}" Command="{Binding AddProjectCommand}" Height="35" Background="#0078D7" Foreground="White" FontWeight="Bold" Margin="10,0,10,5"/>
                         
-                        <!-- Przycisk "Anuluj", który ukrywa się, gdy jesteśmy w trybie tworzenia -->
                         <Button Content="Anuluj edycję" Command="{Binding CancelEditProjectCommand}" Height="30" Background="#999999" Foreground="White" FontWeight="Bold" Margin="10,0,10,0">
                             <Button.Style>
                                 <Style TargetType="Button">

@@ -182,7 +182,7 @@ namespace desktopapp.ViewModels
             
             var tempList = new ObservableCollection<ProjectModel>();
             
-            // "Wszystkie projekty" ląduje zawsze na pozycji 0
+
             tempList.Add(new ProjectModel { Id = 0, Name = "--- Wszystkie projekty ---", Description = "Pokazuje wszystko" });
             
             foreach (var p in apiProjects)
@@ -191,11 +191,7 @@ namespace desktopapp.ViewModels
             }
 
             Projects = tempList;
-
-            // KRYTYCZNA ZMIANA:
-            // Wcześniej mieliśmy: if (SelectedProjectFilter == null)
-            // Zmień to tak, aby ZAWSZE ustawiało wartość domyślną po odświeżeniu, jeśli jej brak, 
-            // a jeśli była jakaś wybrana (np. jesteś w trakcie przeglądania Projektu X), żeby do niego wróciła!
+            
             
             if (SelectedProjectFilter == null)
             {
@@ -203,7 +199,7 @@ namespace desktopapp.ViewModels
             }
             else
             {
-                // Znajdź projekt na nowej liście o tym samym ID, co ten wybrany poprzednio
+                
                 var staryWybor = Projects.FirstOrDefault(p => p.Id == SelectedProjectFilter.Id);
                 SelectedProjectFilter = staryWybor ?? Projects.First();
             }
@@ -220,10 +216,10 @@ namespace desktopapp.ViewModels
 
             var filtered = _allTasks.AsEnumerable();
             
-            // Zmieniliśmy tutaj, aby pominąć nulla bezpiecznie
+           
             if (SelectedProjectFilter != null) 
             {
-                if (SelectedProjectFilter.Id != 0) // Jeśli to NIE jest 0 ("Wszystkie")
+                if (SelectedProjectFilter.Id != 0) 
                 {
                     filtered = filtered.Where(t => t.ProjectId == SelectedProjectFilter.Id);
                 }
@@ -234,7 +230,7 @@ namespace desktopapp.ViewModels
                 filtered = filtered.Where(t => t.AssignedUser != null && t.AssignedUser.Contains(SearchUserText, StringComparison.OrdinalIgnoreCase));
             }
 
-            // Na koniec upewnijmy się, że UI na pewno dostało informację o nowej liście
+       
             Tasks = new ObservableCollection<TaskModel>(filtered.ToList());
         }
 
@@ -384,7 +380,7 @@ namespace desktopapp.ViewModels
                 return;
             }
 
-            if (_editingProjectId.HasValue) // --- TRYB EDYCJI ---
+            if (_editingProjectId.HasValue) 
             {
                 var projectToUpdate = new ProjectModel
                 {
@@ -405,7 +401,7 @@ namespace desktopapp.ViewModels
                     Services.NotificationService.Instance.Show("Błąd aktualizacji projektu na serwerze.");
                 }
             }
-            else // --- TRYB TWORZENIA NOWEGO ---
+            else 
             {
                 var nowyProjekt = new ProjectModel
                 {
@@ -417,7 +413,7 @@ namespace desktopapp.ViewModels
                 if (isSuccess)
                 {
                     Services.NotificationService.Instance.Show("Utworzono nowy projekt!");
-                    CancelEditProject(); // Czyści okienka po sukcesie
+                    CancelEditProject(); 
                     await LoadProjectsFromApiAsync(); 
                 }
                 else
@@ -443,7 +439,7 @@ namespace desktopapp.ViewModels
                 if (_editingProjectId == SelectedProject.Id) CancelEditProject();
                 
                 await LoadProjectsFromApiAsync();
-                await LoadTasksAsync(); // Odświeżamy też zadania, bo usunięcie projektu mogło usunąć kaskadowo zadania w nim zawarte!
+                await LoadTasksAsync(); 
             }
             else
             {

@@ -174,22 +174,22 @@ namespace desktopapp.Services
                     string json = await response.Content.ReadAsStringAsync();
                     var tasks = new List<Models.TaskModel>();
                     
-                    // Zamieniamy tekst na strukturę z której możemy czytać "ręcznie"
+
                     var jArray = JArray.Parse(json);
                     
                     foreach (var item in jArray)
                     {
                         var task = item.ToObject<Models.TaskModel>();
                         
-                        // MAGIA: Wyciągamy cyferkę ID z hiperlinku Wiktora (np. ".../api/projects/3/")
+
                         string projectUrl = item["project"]?.ToString();
                         if (!string.IsNullOrWhiteSpace(projectUrl))
                         {
-                            // Rozbijamy link po ukośnikach i bierzemy ostatni element
+
                             var parts = projectUrl.TrimEnd('/').Split('/');
                             if (parts.Length > 0 && int.TryParse(parts.Last(), out int pId))
                             {
-                                task.ProjectId = pId; // Ustawiamy poprawne liczbowe ID!
+                                task.ProjectId = pId; 
                             }
                         }
                         
@@ -221,12 +221,12 @@ namespace desktopapp.Services
                 
                 var jObject = JObject.Parse(json);
                 
-                // --- NAPRAWA: Zamiast cyfry, budujemy pełny link URL dla Django ---
+
                 if (newTask.ProjectId != null && newTask.ProjectId > 0)
                 {
                     jObject["project"] = $"{_baseUrl.TrimEnd('/')}/api/projects/{newTask.ProjectId}/";
                 }
-                // -------------------------------------------------------------------
+
 
                 var content = new StringContent(jObject.ToString(), Encoding.UTF8, "application/json");
                 string url = _baseUrl.TrimEnd('/') + "/api/tasks/";
@@ -337,12 +337,12 @@ namespace desktopapp.Services
                 
                 var jObject = JObject.Parse(json);
                 
-                // --- NAPRAWA: Zamiast cyfry, budujemy pełny link URL dla Django ---
+
                 if (updatedTask.ProjectId != null && updatedTask.ProjectId > 0)
                 {
                     jObject["project"] = $"{_baseUrl.TrimEnd('/')}/api/projects/{updatedTask.ProjectId}/";
                 }
-                // -------------------------------------------------------------------
+
 
                 var content = new StringContent(jObject.ToString(), System.Text.Encoding.UTF8, "application/json");
 
@@ -400,8 +400,7 @@ namespace desktopapp.Services
             try
             {
                 if (string.IsNullOrEmpty(AccessToken)) return false;
-
-                // TŁUMACZYMY NA MAŁE LITERY DLA DJANGO
+                
                 var payload = new
                 {
                     name = newProject.Name,
@@ -415,7 +414,6 @@ namespace desktopapp.Services
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    // Pokaże nam dokładnie, na co pluje się backend
                     string errorBody = await response.Content.ReadAsStringAsync();
                     System.Windows.MessageBox.Show($"Serwer odrzucił projekt.\nKod: {response.StatusCode}\nSzczegóły: {errorBody}");
                     return false;
