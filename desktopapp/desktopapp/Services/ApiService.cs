@@ -21,6 +21,7 @@ namespace desktopapp.Services
         private readonly string _offlineUsersFile;
         private readonly string _offlineCredsFile;
         private readonly string _offlineTasksFile;
+        private readonly string _offlineProjectsFile;
 
         public string AccessToken { get; private set; }
         
@@ -32,7 +33,6 @@ namespace desktopapp.Services
 
             string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 
-
             string myAppFolder = Path.Combine(desktopPath, "BSI_TEST_OFFLINE");
 
             if (!Directory.Exists(myAppFolder))
@@ -43,6 +43,7 @@ namespace desktopapp.Services
             _offlineUsersFile = Path.Combine(myAppFolder, "offline_users_backup.json");
             _offlineCredsFile = Path.Combine(myAppFolder, "offline_creds_backup.json");
             _offlineTasksFile = Path.Combine(myAppFolder, "offline_tasks_backup.json");
+            _offlineProjectsFile = Path.Combine(myAppFolder, "offline_projects_backup.json"); // NOWE
         }
 
         private string ComputeHash(string input)
@@ -54,61 +55,60 @@ namespace desktopapp.Services
             }
         }
 
-       public async Task<bool> LoginAsync(string username, string password)
-{
-    var loginData = new { username = username, password = password };
-    var json = JsonConvert.SerializeObject(loginData);
-    var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-    try
-    {
-        var response = await _client.PostAsync(_baseUrl.TrimEnd('/') + "/api/auth/login/", content);
-
-        if (response.IsSuccessStatusCode)
+        public async Task<bool> LoginAsync(string username, string password)
         {
-            var responseString = await response.Content.ReadAsStringAsync();
-            var tokenData = JObject.Parse(responseString);
-            AccessToken = tokenData["access"]?.ToString();
-            _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", AccessToken);
+            var loginData = new { username = username, password = password };
+            var json = JsonConvert.SerializeObject(loginData);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var secureCreds = new { username = username, passwordHash = ComputeHash(password) };
-            File.WriteAllText(_offlineCredsFile, JsonConvert.SerializeObject(secureCreds));
-            LoggedInUsername = username;
-
-            return true;
-        }
-        else
-        {
-
-            string errorBody = await response.Content.ReadAsStringAsync();
-            System.Diagnostics.Debug.WriteLine($"Błąd HTTP logowania: {response.StatusCode}\n{errorBody}");
-            System.Windows.MessageBox.Show($"Serwer odrzucił logowanie.\nKod: {response.StatusCode}\nSzczegóły: {errorBody}", "Szpieg Błędów");
-            return false;
-        }
-    }
-    catch (Exception ex)
-    {
-        System.Diagnostics.Debug.WriteLine($"BŁĄD POŁĄCZENIA: {ex.Message}");
-        System.Windows.MessageBox.Show($"Brak połączenia z serwerem. Próbuję zalogować w trybie offline...\nPowód: {ex.Message}", "Błąd Sieci");
-
-        if (File.Exists(_offlineUsersFile) && File.Exists(_offlineCredsFile))
-        {
             try
             {
-                string savedCredsJson = File.ReadAllText(_offlineCredsFile);
-                dynamic savedCreds = JsonConvert.DeserializeObject(savedCredsJson);
-                
-                if (savedCreds.username == username && savedCreds.passwordHash == ComputeHash(password))
+                var response = await _client.PostAsync(_baseUrl.TrimEnd('/') + "/api/auth/login/", content);
+
+                if (response.IsSuccessStatusCode)
                 {
-                    LoggedInUsername = username; 
+                    var responseString = await response.Content.ReadAsStringAsync();
+                    var tokenData = JObject.Parse(responseString);
+                    AccessToken = tokenData["access"]?.ToString();
+                    _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", AccessToken);
+
+                    var secureCreds = new { username = username, passwordHash = ComputeHash(password) };
+                    File.WriteAllText(_offlineCredsFile, JsonConvert.SerializeObject(secureCreds));
+                    LoggedInUsername = username;
+
                     return true;
                 }
+                else
+                {
+                    string errorBody = await response.Content.ReadAsStringAsync();
+                    System.Diagnostics.Debug.WriteLine($"Błąd HTTP logowania: {response.StatusCode}\n{errorBody}");
+                    System.Windows.MessageBox.Show($"Serwer odrzucił logowanie.\nKod: {response.StatusCode}\nSzczegóły: {errorBody}", "Szpieg Błędów");
+                    return false;
+                }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"BŁĄD POŁĄCZENIA: {ex.Message}");
+                System.Windows.MessageBox.Show($"Brak połączenia z serwerem. Próbuję zalogować w trybie offline...\nPowód: {ex.Message}", "Błąd Sieci");
+
+                if (File.Exists(_offlineUsersFile) && File.Exists(_offlineCredsFile))
+                {
+                    try
+                    {
+                        string savedCredsJson = File.ReadAllText(_offlineCredsFile);
+                        dynamic savedCreds = JsonConvert.DeserializeObject(savedCredsJson);
+                        
+                        if (savedCreds.username == username && savedCreds.passwordHash == ComputeHash(password))
+                        {
+                            LoggedInUsername = username; 
+                            return true;
+                        }
+                    }
+                    catch { }
+                }
+                return false;
+            }
         }
-        return false;
-    }
-}
 
         public void Logout()
         {
@@ -172,9 +172,32 @@ namespace desktopapp.Services
                 if (response.IsSuccessStatusCode)
                 {
                     string json = await response.Content.ReadAsStringAsync();
-                    var tasks = JsonConvert.DeserializeObject<List<Models.TaskModel>>(json);
-                    if (tasks != null) SaveTasksOffline(tasks);
-                    return tasks ?? new List<Models.TaskModel>();
+                    var tasks = new List<Models.TaskModel>();
+                    
+                    // Zamieniamy tekst na strukturę z której możemy czytać "ręcznie"
+                    var jArray = JArray.Parse(json);
+                    
+                    foreach (var item in jArray)
+                    {
+                        var task = item.ToObject<Models.TaskModel>();
+                        
+                        // MAGIA: Wyciągamy cyferkę ID z hiperlinku Wiktora (np. ".../api/projects/3/")
+                        string projectUrl = item["project"]?.ToString();
+                        if (!string.IsNullOrWhiteSpace(projectUrl))
+                        {
+                            // Rozbijamy link po ukośnikach i bierzemy ostatni element
+                            var parts = projectUrl.TrimEnd('/').Split('/');
+                            if (parts.Length > 0 && int.TryParse(parts.Last(), out int pId))
+                            {
+                                task.ProjectId = pId; // Ustawiamy poprawne liczbowe ID!
+                            }
+                        }
+                        
+                        tasks.Add(task);
+                    }
+
+                    if (tasks.Count > 0) SaveTasksOffline(tasks);
+                    return tasks;
                 }
             }
             catch { }
@@ -195,7 +218,17 @@ namespace desktopapp.Services
                 newTask.Id = 0;
 
                 string json = JsonConvert.SerializeObject(newTask, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                
+                var jObject = JObject.Parse(json);
+                
+                // --- NAPRAWA: Zamiast cyfry, budujemy pełny link URL dla Django ---
+                if (newTask.ProjectId != null && newTask.ProjectId > 0)
+                {
+                    jObject["project"] = $"{_baseUrl.TrimEnd('/')}/api/projects/{newTask.ProjectId}/";
+                }
+                // -------------------------------------------------------------------
+
+                var content = new StringContent(jObject.ToString(), Encoding.UTF8, "application/json");
                 string url = _baseUrl.TrimEnd('/') + "/api/tasks/";
 
                 var response = await _client.PostAsync(url, content);
@@ -216,13 +249,11 @@ namespace desktopapp.Services
             }
         }
 
-
         public async Task<bool> UpdateProfileAsync(int userId, string newPassword)
         {
             try
             {
                 if (string.IsNullOrEmpty(AccessToken)) return false;
-
 
                 var updateData = new { password = newPassword };
                 string json = JsonConvert.SerializeObject(updateData);
@@ -251,8 +282,6 @@ namespace desktopapp.Services
             }
         }
 
-
-
         public void SaveTasksOffline(List<Models.TaskModel> tasks)
         {
             try { File.WriteAllText(_offlineTasksFile, JsonConvert.SerializeObject(tasks)); } catch { }
@@ -278,10 +307,7 @@ namespace desktopapp.Services
                 }
 
                 string url = _baseUrl.TrimEnd('/') + $"/api/tasks/{taskId}/";
-
-
                 var response = await _client.DeleteAsync(url);
-
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -308,10 +334,21 @@ namespace desktopapp.Services
                 if (string.IsNullOrEmpty(AccessToken)) return false;
 
                 string json = JsonConvert.SerializeObject(updatedTask, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
-                var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+                
+                var jObject = JObject.Parse(json);
+                
+                // --- NAPRAWA: Zamiast cyfry, budujemy pełny link URL dla Django ---
+                if (updatedTask.ProjectId != null && updatedTask.ProjectId > 0)
+                {
+                    jObject["project"] = $"{_baseUrl.TrimEnd('/')}/api/projects/{updatedTask.ProjectId}/";
+                }
+                // -------------------------------------------------------------------
+
+                var content = new StringContent(jObject.ToString(), System.Text.Encoding.UTF8, "application/json");
 
                 string url = _baseUrl.TrimEnd('/') + $"/api/tasks/{updatedTask.Id}/";
-                var response = await _client.PutAsync(url, content);
+                var request = new HttpRequestMessage(new HttpMethod("PATCH"), url) { Content = content };
+                var response = await _client.SendAsync(request);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -320,7 +357,7 @@ namespace desktopapp.Services
                 else
                 {
                     string errorBody = await response.Content.ReadAsStringAsync();
-                    System.Diagnostics.Debug.WriteLine($"Błąd edycji: {response.StatusCode} - {errorBody}");
+                    System.Windows.MessageBox.Show($"Błąd edycji zadania:\nKod: {response.StatusCode}\nSzczegóły: {errorBody}");
                     return false;
                 }
             }
@@ -329,6 +366,95 @@ namespace desktopapp.Services
                 System.Diagnostics.Debug.WriteLine($"Błąd połączenia: {ex.Message}");
                 return false;
             }
+        }
+        
+
+        public async Task<List<Models.ProjectModel>> GetProjectsAsync()
+        {
+            try
+            {
+                var response = await _client.GetAsync(_baseUrl.TrimEnd('/') + "/api/projects/");
+                if (response.IsSuccessStatusCode)
+                {
+                    string json = await response.Content.ReadAsStringAsync();
+                    var projects = JsonConvert.DeserializeObject<List<Models.ProjectModel>>(json);
+                    
+                    if (projects != null)
+                    {
+                        File.WriteAllText(_offlineProjectsFile, JsonConvert.SerializeObject(projects));
+                        return projects;
+                    }
+                }
+            }
+            catch { }
+            
+            if (File.Exists(_offlineProjectsFile))
+            {
+                try { return JsonConvert.DeserializeObject<List<Models.ProjectModel>>(File.ReadAllText(_offlineProjectsFile)); } catch { }
+            }
+            return new List<Models.ProjectModel>();
+        }
+
+        public async Task<bool> CreateProjectAsync(Models.ProjectModel newProject)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(AccessToken)) return false;
+
+                // TŁUMACZYMY NA MAŁE LITERY DLA DJANGO
+                var payload = new
+                {
+                    name = newProject.Name,
+                    description = newProject.Description ?? ""
+                };
+
+                string json = JsonConvert.SerializeObject(payload);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _client.PostAsync(_baseUrl.TrimEnd('/') + "/api/projects/", content);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    // Pokaże nam dokładnie, na co pluje się backend
+                    string errorBody = await response.Content.ReadAsStringAsync();
+                    System.Windows.MessageBox.Show($"Serwer odrzucił projekt.\nKod: {response.StatusCode}\nSzczegóły: {errorBody}");
+                    return false;
+                }
+                return true;
+            }
+            catch { return false; }
+        }
+
+        public async Task<bool> UpdateProjectAsync(Models.ProjectModel updatedProject)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(AccessToken)) return false;
+
+                string json = JsonConvert.SerializeObject(updatedProject, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                string url = _baseUrl.TrimEnd('/') + $"/api/projects/{updatedProject.Id}/";
+                var request = new HttpRequestMessage(new HttpMethod("PATCH"), url) { Content = content };
+                
+                var response = await _client.SendAsync(request);
+                return response.IsSuccessStatusCode;
+            }
+            catch { return false; }
+        }
+
+        public async Task<bool> DeleteProjectAsync(int projectId)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(AccessToken)) return false;
+
+                string url = _baseUrl.TrimEnd('/') + $"/api/projects/{projectId}/";
+                var response = await _client.DeleteAsync(url);
+                
+                return response.IsSuccessStatusCode;
+            }
+            catch { return false; }
         }
     }
 }

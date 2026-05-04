@@ -7,17 +7,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading.Tasks; // Dodane, żeby Task.WhenAll zadziałało
+using System.Threading.Tasks; 
 
 namespace desktopapp.ViewModels
 {
-    
-    
-    
     public partial class MainViewModel : ObservableObject
     {
-        
-        
         private List<TaskModel> _allTasks = new List<TaskModel>();
 
         [ObservableProperty]
@@ -51,28 +46,23 @@ namespace desktopapp.ViewModels
 
         private List<UserModel> _apiUsers = new List<UserModel>();
         
-        
-
         public MainViewModel()
         {
-            LoadMockProjects();
             _ = InitializeDataAsync();
             StartAutoRefresh();
         }
 
         private async Task InitializeDataAsync()
         {
-
             await LoadApiUsersAsync();
-            await LoadTasksAsync();
+            await LoadProjectsFromApiAsync(); 
+            await LoadTasksAsync();           
             LoadUserProfile();
         }
 
         private void LoadUserProfile()
         {
-
             CurrentUserName = ApiService.Instance.LoggedInUsername ?? "Nieznany użytkownik";
-
 
             if (_apiUsers != null)
             {
@@ -87,6 +77,7 @@ namespace desktopapp.ViewModels
                 }
             }
         }
+
         private async Task RefreshTasksSilentlyAsync()
         {
             try
@@ -95,12 +86,8 @@ namespace desktopapp.ViewModels
                 
                 if (newTasks != null)
                 {
-                    var random = new Random();
-                    
                     foreach (var task in newTasks)
                     {
-                        task.ProjectId = random.Next(1, 4); 
-
                         if (_apiUsers != null && task.AssignedToId.HasValue)
                         {
                             var user = _apiUsers.FirstOrDefault(u => u.Id == task.AssignedToId.Value);
@@ -110,14 +97,10 @@ namespace desktopapp.ViewModels
                             }
                         }
                     }
-
-                   
-                    int? selectedId = SelectedTask?.Id;
-
                     
+                    int? selectedId = SelectedTask?.Id;
                     _allTasks = newTasks;
                     ApplyFilters();
-
                     
                     if (selectedId.HasValue)
                     {
@@ -125,10 +108,7 @@ namespace desktopapp.ViewModels
                     }
                 }
             }
-            catch
-            {
-                
-            }
+            catch { }
         }
         
         private System.Windows.Threading.DispatcherTimer _refreshTimer;
@@ -136,7 +116,7 @@ namespace desktopapp.ViewModels
         private void StartAutoRefresh()
         {
             _refreshTimer = new System.Windows.Threading.DispatcherTimer();
-            _refreshTimer.Interval = TimeSpan.FromSeconds(10); // Odświeża co 10 sekund
+            _refreshTimer.Interval = TimeSpan.FromSeconds(10); 
             _refreshTimer.Tick += async (s, e) => await RefreshTasksSilentlyAsync();
             _refreshTimer.Start();
         }
@@ -166,14 +146,11 @@ namespace desktopapp.ViewModels
         private async Task LoadTasksAsync()
         {
             _allTasks = await ApiService.Instance.GetTasksAsync();
-            var random = new Random();
 
             if (_apiUsers != null && _apiUsers.Any())
             {
                 foreach (var task in _allTasks)
                 {
-                    task.ProjectId = random.Next(1, 4); 
-
                     if (task.AssignedToId.HasValue)
                     {
                         var user = _apiUsers.FirstOrDefault(u => u.Id == task.AssignedToId.Value);
@@ -188,16 +165,37 @@ namespace desktopapp.ViewModels
             ApplyFilters(); 
         }
 
-        private void LoadMockProjects()
+        private async Task LoadProjectsFromApiAsync()
         {
-            Projects = new ObservableCollection<ProjectModel>
+            var apiProjects = await ApiService.Instance.GetProjectsAsync();
+            
+            var tempList = new ObservableCollection<ProjectModel>();
+            
+            // "Wszystkie projekty" ląduje zawsze na pozycji 0
+            tempList.Add(new ProjectModel { Id = 0, Name = "--- Wszystkie projekty ---", Description = "Pokazuje wszystko" });
+            
+            foreach (var p in apiProjects)
             {
-                new ProjectModel { Id = 0, Name = "--- Wszystkie projekty ---", Description = "Pokazuje wszystko" }, 
-                new ProjectModel { Id = 1, Name = "Aplikacja Webowa", Description = "Backend w Django i frontend w React" },
-                new ProjectModel { Id = 2, Name = "Aplikacja Mobilna", Description = "Apka we Flutterze dla klientów" },
-                new ProjectModel { Id = 3, Name = "Panel Admina", Description = "Aplikacja WPF w C#" }
-            };
-            SelectedProjectFilter = Projects[0];
+                tempList.Add(p);
+            }
+
+            Projects = tempList;
+
+            // KRYTYCZNA ZMIANA:
+            // Wcześniej mieliśmy: if (SelectedProjectFilter == null)
+            // Zmień to tak, aby ZAWSZE ustawiało wartość domyślną po odświeżeniu, jeśli jej brak, 
+            // a jeśli była jakaś wybrana (np. jesteś w trakcie przeglądania Projektu X), żeby do niego wróciła!
+            
+            if (SelectedProjectFilter == null)
+            {
+                SelectedProjectFilter = Projects.First();
+            }
+            else
+            {
+                // Znajdź projekt na nowej liście o tym samym ID, co ten wybrany poprzednio
+                var staryWybor = Projects.FirstOrDefault(p => p.Id == SelectedProjectFilter.Id);
+                SelectedProjectFilter = staryWybor ?? Projects.First();
+            }
         }
 
         partial void OnSearchUserTextChanged(string value)
@@ -211,9 +209,13 @@ namespace desktopapp.ViewModels
 
             var filtered = _allTasks.AsEnumerable();
             
-            if (SelectedProjectFilter != null && SelectedProjectFilter.Id != 0)
+            // Zmieniliśmy tutaj, aby pominąć nulla bezpiecznie
+            if (SelectedProjectFilter != null) 
             {
-                filtered = filtered.Where(t => t.ProjectId == SelectedProjectFilter.Id);
+                if (SelectedProjectFilter.Id != 0) // Jeśli to NIE jest 0 ("Wszystkie")
+                {
+                    filtered = filtered.Where(t => t.ProjectId == SelectedProjectFilter.Id);
+                }
             }
             
             if (!string.IsNullOrWhiteSpace(SearchUserText))
@@ -221,7 +223,8 @@ namespace desktopapp.ViewModels
                 filtered = filtered.Where(t => t.AssignedUser != null && t.AssignedUser.Contains(SearchUserText, StringComparison.OrdinalIgnoreCase));
             }
 
-            Tasks = new ObservableCollection<TaskModel>(filtered);
+            // Na koniec upewnijmy się, że UI na pewno dostało informację o nowej liście
+            Tasks = new ObservableCollection<TaskModel>(filtered.ToList());
         }
 
         [RelayCommand]
@@ -238,14 +241,11 @@ namespace desktopapp.ViewModels
                     _allTasks.Remove(taskToDelete);
                     Tasks.Remove(taskToDelete);
 
-
                     ApiService.Instance.SaveTasksOffline(_allTasks);
-
                     Services.NotificationService.Instance.Show("Zadanie usunięto z chmury!");
                 }
                 else
                 {
-
                     Services.NotificationService.Instance.Show("Błąd: Nie udało się usunąć zadania z serwera.");
                 }
             }
@@ -258,11 +258,14 @@ namespace desktopapp.ViewModels
             addTaskVm.AvailableUsernames = this.AvailableUsernames;
             addTaskVm.ApiUsers = this._apiUsers;
             
-            addTaskVm.AvailableProjects = new ObservableCollection<ProjectModel>(Projects.Where(p => p.Id != 0));
-            
-            if (SelectedProjectFilter != null && SelectedProjectFilter.Id != 0)
+            if (Projects != null)
             {
-                addTaskVm.SelectedProject = addTaskVm.AvailableProjects.FirstOrDefault(p => p.Id == SelectedProjectFilter.Id);
+                addTaskVm.AvailableProjects = new ObservableCollection<ProjectModel>(Projects.Where(p => p.Id != 0));
+                
+                if (SelectedProjectFilter != null && SelectedProjectFilter.Id != 0)
+                {
+                    addTaskVm.SelectedProject = addTaskVm.AvailableProjects.FirstOrDefault(p => p.Id == SelectedProjectFilter.Id);
+                }
             }
 
             var window = new Views.AddTaskWindow(addTaskVm);
@@ -275,7 +278,6 @@ namespace desktopapp.ViewModels
                 if (isSuccess)
                 {
                     await LoadTasksAsync();
-                    
                     ApplyFilters(); 
                     Services.NotificationService.Instance.Show("Zadanie zapisane w chmurze!");
                 }
@@ -308,8 +310,11 @@ namespace desktopapp.ViewModels
             editTaskVm.AssignedUser = SelectedTask.AssignedUser;
             editTaskVm.Status = SelectedTask.DisplayStatus;
             
-            editTaskVm.AvailableProjects = new ObservableCollection<ProjectModel>(Projects.Where(p => p.Id != 0));
-            editTaskVm.SelectedProject = editTaskVm.AvailableProjects.FirstOrDefault(p => p.Id == SelectedTask.ProjectId);
+            if (Projects != null)
+            {
+                editTaskVm.AvailableProjects = new ObservableCollection<ProjectModel>(Projects.Where(p => p.Id != 0));
+                editTaskVm.SelectedProject = editTaskVm.AvailableProjects.FirstOrDefault(p => p.Id == SelectedTask.ProjectId);
+            }
 
             var window = new Views.AddTaskWindow(editTaskVm);
             window.ShowDialog();
@@ -334,21 +339,33 @@ namespace desktopapp.ViewModels
         }
         
         [RelayCommand]
-        public void AddProject()
+        public async void AddProject()
         {
-            if (!string.IsNullOrWhiteSpace(NewProjectName))
+            if (string.IsNullOrWhiteSpace(NewProjectName))
             {
-                var nowyProjekt = new ProjectModel
-                {
-                    Id = Projects.Count + 1,
-                    Name = this.NewProjectName,
-                    Description = this.NewProjectDescription
-                };
+                Services.NotificationService.Instance.Show("Podaj nazwę projektu!");
+                return;
+            }
 
-                Projects.Add(nowyProjekt);
+            var nowyProjekt = new ProjectModel
+            {
+                Name = this.NewProjectName,
+                Description = this.NewProjectDescription ?? ""
+            };
 
+            bool isSuccess = await ApiService.Instance.CreateProjectAsync(nowyProjekt);
+
+            if (isSuccess)
+            {
+                Services.NotificationService.Instance.Show("Utworzono nowy projekt!");
                 NewProjectName = string.Empty;
                 NewProjectDescription = string.Empty;
+                
+                await LoadProjectsFromApiAsync(); 
+            }
+            else
+            {
+                Services.NotificationService.Instance.Show("Błąd! Nie udało się utworzyć projektu.");
             }
         }
 
@@ -409,8 +426,6 @@ namespace desktopapp.ViewModels
                 }
             }
         }
-        
-        
 
         public Services.NotificationService Notifier => Services.NotificationService.Instance;
     }
