@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace desktopapp.Services
 {
@@ -24,26 +25,20 @@ namespace desktopapp.Services
         private readonly string _offlineProjectsFile;
 
         public string AccessToken { get; private set; }
-        
         public string LoggedInUsername { get; private set; }
 
         private ApiService()
         {
             _client = new HttpClient();
-
             string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-
             string myAppFolder = Path.Combine(desktopPath, "BSI_TEST_OFFLINE");
 
-            if (!Directory.Exists(myAppFolder))
-            {
-                Directory.CreateDirectory(myAppFolder);
-            }
+            if (!Directory.Exists(myAppFolder)) Directory.CreateDirectory(myAppFolder);
 
             _offlineUsersFile = Path.Combine(myAppFolder, "offline_users_backup.json");
             _offlineCredsFile = Path.Combine(myAppFolder, "offline_creds_backup.json");
             _offlineTasksFile = Path.Combine(myAppFolder, "offline_tasks_backup.json");
-            _offlineProjectsFile = Path.Combine(myAppFolder, "offline_projects_backup.json"); // NOWE
+            _offlineProjectsFile = Path.Combine(myAppFolder, "offline_projects_backup.json");
         }
 
         private string ComputeHash(string input)
@@ -64,7 +59,6 @@ namespace desktopapp.Services
             try
             {
                 var response = await _client.PostAsync(_baseUrl.TrimEnd('/') + "/api/auth/login/", content);
-
                 if (response.IsSuccessStatusCode)
                 {
                     var responseString = await response.Content.ReadAsStringAsync();
@@ -75,36 +69,21 @@ namespace desktopapp.Services
                     var secureCreds = new { username = username, passwordHash = ComputeHash(password) };
                     File.WriteAllText(_offlineCredsFile, JsonConvert.SerializeObject(secureCreds));
                     LoggedInUsername = username;
-
                     return true;
                 }
-                else
-                {
-                    string errorBody = await response.Content.ReadAsStringAsync();
-                    System.Diagnostics.Debug.WriteLine($"Błąd HTTP logowania: {response.StatusCode}\n{errorBody}");
-                    System.Windows.MessageBox.Show($"Serwer odrzucił logowanie.\nKod: {response.StatusCode}\nSzczegóły: {errorBody}", "Szpieg Błędów");
-                    return false;
-                }
+                return false;
             }
-            catch (Exception ex)
+            catch
             {
-                System.Diagnostics.Debug.WriteLine($"BŁĄD POŁĄCZENIA: {ex.Message}");
-                System.Windows.MessageBox.Show($"Brak połączenia z serwerem. Próbuję zalogować w trybie offline...\nPowód: {ex.Message}", "Błąd Sieci");
-
                 if (File.Exists(_offlineUsersFile) && File.Exists(_offlineCredsFile))
                 {
-                    try
+                    string savedCredsJson = File.ReadAllText(_offlineCredsFile);
+                    dynamic savedCreds = JsonConvert.DeserializeObject(savedCredsJson);
+                    if (savedCreds.username == username && savedCreds.passwordHash == ComputeHash(password))
                     {
-                        string savedCredsJson = File.ReadAllText(_offlineCredsFile);
-                        dynamic savedCreds = JsonConvert.DeserializeObject(savedCredsJson);
-                        
-                        if (savedCreds.username == username && savedCreds.passwordHash == ComputeHash(password))
-                        {
-                            LoggedInUsername = username; 
-                            return true;
-                        }
+                        LoggedInUsername = username; 
+                        return true;
                     }
-                    catch { }
                 }
                 return false;
             }
@@ -138,29 +117,12 @@ namespace desktopapp.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var json = await response.Content.ReadAsStringAsync();
-                    var parsed = JToken.Parse(json);
-                    List<Models.UserModel> usersList = null;
-                    if (parsed is JArray array) usersList = array.ToObject<List<Models.UserModel>>();
-                    else if (parsed is JObject obj && obj["results"] != null) usersList = obj["results"].ToObject<List<Models.UserModel>>();
-
-                    if (usersList != null)
-                    {
-                        File.WriteAllText(_offlineUsersFile, JsonConvert.SerializeObject(usersList));
-                        return usersList;
-                    }
+                    var usersList = JToken.Parse(json).ToObject<List<Models.UserModel>>();
+                    File.WriteAllText(_offlineUsersFile, JsonConvert.SerializeObject(usersList));
+                    return usersList;
                 }
             }
-            catch
-            {
-                if (File.Exists(_offlineUsersFile))
-                {
-                    try
-                    {
-                        return JsonConvert.DeserializeObject<List<Models.UserModel>>(File.ReadAllText(_offlineUsersFile));
-                    }
-                    catch { }
-                }
-            }
+            catch { }
             return new List<Models.UserModel>();
         }
 
@@ -172,31 +134,30 @@ namespace desktopapp.Services
                 if (response.IsSuccessStatusCode)
                 {
                     string json = await response.Content.ReadAsStringAsync();
-                    var tasks = new List<Models.TaskModel>();
-                    
-
                     var jArray = JArray.Parse(json);
+                    var tasks = new List<Models.TaskModel>();
                     
                     foreach (var item in jArray)
                     {
                         var task = item.ToObject<Models.TaskModel>();
-                        
-
                         string projectUrl = item["project"]?.ToString();
                         if (!string.IsNullOrWhiteSpace(projectUrl))
                         {
-
                             var parts = projectUrl.TrimEnd('/').Split('/');
-                            if (parts.Length > 0 && int.TryParse(parts.Last(), out int pId))
-                            {
-                                task.ProjectId = pId; 
-                            }
+                            if (int.TryParse(parts.Last(), out int pId)) task.ProjectId = pId;
                         }
+
+                        // --- TŁUMACZ ODBIERANIA Z SERWERA ---
+                        if (task.Status == "todo") task.DisplayStatus = "Do zrobienia";
+                        // Uznajemy różne warianty Wiktora na wszelki wypadek
+                        else if (task.Status == "In progress") task.DisplayStatus = "W trakcie";
+                        else if (task.Status == "done") task.DisplayStatus = "Zakończone";
+                        else task.DisplayStatus = task.Status; 
+                        // ------------------------------------
                         
                         tasks.Add(task);
                     }
-
-                    if (tasks.Count > 0) SaveTasksOffline(tasks);
+                    SaveTasksOffline(tasks);
                     return tasks;
                 }
             }
@@ -208,123 +169,33 @@ namespace desktopapp.Services
         {
             try
             {
-                if (string.IsNullOrEmpty(AccessToken))
-                {
-                    System.Windows.MessageBox.Show("Błąd: Nie jesteś zalogowany! Zaloguj się ponownie.");
-                    return false;
-                }
+                if (string.IsNullOrEmpty(AccessToken)) return false;
 
-                int originalId = newTask.Id;
-                newTask.Id = 0;
+                var jObject = JObject.FromObject(newTask);
+                jObject.Remove("Id");
 
-                string json = JsonConvert.SerializeObject(newTask, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
-                
-                var jObject = JObject.Parse(json);
-                
-
-                if (newTask.ProjectId != null && newTask.ProjectId > 0)
-                {
+                if (newTask.ProjectId > 0)
                     jObject["project"] = $"{_baseUrl.TrimEnd('/')}/api/projects/{newTask.ProjectId}/";
-                }
 
+                // --- TŁUMACZ WYSYŁANIA NA SERWER ---
+                string status = newTask.DisplayStatus ?? newTask.Status;
+                if (status == "Do zrobienia") jObject["status"] = "todo";
+                else if (status == "W trakcie") jObject["status"] = "In progress"; 
+                else if (status == "Zakończone") jObject["status"] = "done";
+                // -----------------------------------
 
                 var content = new StringContent(jObject.ToString(), Encoding.UTF8, "application/json");
-                string url = _baseUrl.TrimEnd('/') + "/api/tasks/";
-
-                var response = await _client.PostAsync(url, content);
+                var response = await _client.PostAsync(_baseUrl.TrimEnd('/') + "/api/tasks/", content);
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    string errorBody = await response.Content.ReadAsStringAsync();
-                    System.Windows.MessageBox.Show($"Serwer odrzucił zadanie.\nKod: {response.StatusCode}\nSzczegóły: {errorBody}");
-                    newTask.Id = originalId;
+                    string error = await response.Content.ReadAsStringAsync();
+                    System.Windows.MessageBox.Show($"Błąd tworzenia zadania:\n{error}");
                     return false;
                 }
                 return true;
             }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Błąd połączenia: {ex.Message}");
-                return false;
-            }
-        }
-
-        public async Task<bool> UpdateProfileAsync(int userId, string newPassword)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(AccessToken)) return false;
-
-                var updateData = new { password = newPassword };
-                string json = JsonConvert.SerializeObject(updateData);
-                var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
-
-                string url = _baseUrl.TrimEnd('/') + $"/api/users/{userId}/";
-
-                var request = new HttpRequestMessage(new HttpMethod("PATCH"), url) { Content = content };
-                var response = await _client.SendAsync(request);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    return true;
-                }
-                else
-                {
-                    string errorBody = await response.Content.ReadAsStringAsync();
-                    System.Windows.MessageBox.Show($"Szpieg Błędów od Wiktora:\nKod: {response.StatusCode}\nSzczegóły: {errorBody}");
-                    return false;
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Błąd połączenia: {ex.Message}");
-                return false;
-            }
-        }
-
-        public void SaveTasksOffline(List<Models.TaskModel> tasks)
-        {
-            try { File.WriteAllText(_offlineTasksFile, JsonConvert.SerializeObject(tasks)); } catch { }
-        }
-
-        public List<Models.TaskModel> GetTasksOffline()
-        {
-            if (File.Exists(_offlineTasksFile))
-            {
-                try { return JsonConvert.DeserializeObject<List<Models.TaskModel>>(File.ReadAllText(_offlineTasksFile)); } catch { }
-            }
-            return new List<Models.TaskModel>();
-        }
-
-        public async Task<bool> DeleteTaskAsync(int taskId)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(AccessToken))
-                {
-                    System.Windows.MessageBox.Show("Błąd: Nie jesteś zalogowany!");
-                    return false;
-                }
-
-                string url = _baseUrl.TrimEnd('/') + $"/api/tasks/{taskId}/";
-                var response = await _client.DeleteAsync(url);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    return true;
-                }
-                else
-                {
-                    string errorBody = await response.Content.ReadAsStringAsync();
-                    System.Diagnostics.Debug.WriteLine($"Błąd usuwania zadania: {response.StatusCode} - {errorBody}");
-                    return false;
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Błąd połączenia: {ex.Message}");
-                return false;
-            }
+            catch { return false; }
         }
 
         public async Task<bool> UpdateTaskAsync(Models.TaskModel updatedTask)
@@ -333,41 +204,60 @@ namespace desktopapp.Services
             {
                 if (string.IsNullOrEmpty(AccessToken)) return false;
 
-                string json = JsonConvert.SerializeObject(updatedTask, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+                var jObject = JObject.FromObject(updatedTask);
                 
-                var jObject = JObject.Parse(json);
-                
-
-                if (updatedTask.ProjectId != null && updatedTask.ProjectId > 0)
-                {
+                if (updatedTask.ProjectId > 0)
                     jObject["project"] = $"{_baseUrl.TrimEnd('/')}/api/projects/{updatedTask.ProjectId}/";
-                }
 
+                // --- TŁUMACZ WYSYŁANIA NA SERWER ---
+                string status = updatedTask.DisplayStatus ?? updatedTask.Status;
+                if (status == "Do zrobienia") jObject["status"] = "todo";
+                else if (status == "W trakcie") jObject["status"] = "In progress"; 
+                else if (status == "Zakończone") jObject["status"] = "done";
+                // -----------------------------------
 
-                var content = new StringContent(jObject.ToString(), System.Text.Encoding.UTF8, "application/json");
-
+                var content = new StringContent(jObject.ToString(), Encoding.UTF8, "application/json");
                 string url = _baseUrl.TrimEnd('/') + $"/api/tasks/{updatedTask.Id}/";
+                
                 var request = new HttpRequestMessage(new HttpMethod("PATCH"), url) { Content = content };
                 var response = await _client.SendAsync(request);
 
-                if (response.IsSuccessStatusCode)
+                if (!response.IsSuccessStatusCode)
                 {
-                    return true;
-                }
-                else
-                {
-                    string errorBody = await response.Content.ReadAsStringAsync();
-                    System.Windows.MessageBox.Show($"Błąd edycji zadania:\nKod: {response.StatusCode}\nSzczegóły: {errorBody}");
+                    string error = await response.Content.ReadAsStringAsync();
+                    System.Windows.MessageBox.Show($"Błąd edycji zadania:\n{error}");
                     return false;
                 }
+                return true;
             }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Błąd połączenia: {ex.Message}");
-                return false;
-            }
+            catch { return false; }
         }
-        
+
+        public async Task<bool> DeleteTaskAsync(int taskId)
+        {
+            try
+            {
+                var response = await _client.DeleteAsync(_baseUrl.TrimEnd('/') + $"/api/tasks/{taskId}/");
+                return response.IsSuccessStatusCode;
+            }
+            catch { return false; }
+        }
+
+        public async Task<bool> UpdateProfileAsync(int userId, string newPassword)
+        {
+            try
+            {
+                var updateData = new { password = newPassword };
+                var content = new StringContent(JsonConvert.SerializeObject(updateData), Encoding.UTF8, "application/json");
+                var request = new HttpRequestMessage(new HttpMethod("PATCH"), _baseUrl.TrimEnd('/') + $"/api/users/{userId}/") { Content = content };
+                var response = await _client.SendAsync(request);
+                return response.IsSuccessStatusCode;
+            }
+            catch { return false; }
+        }
+
+        public void SaveTasksOffline(List<Models.TaskModel> tasks) => File.WriteAllText(_offlineTasksFile, JsonConvert.SerializeObject(tasks));
+        public List<Models.TaskModel> GetTasksOffline() => File.Exists(_offlineTasksFile) ? JsonConvert.DeserializeObject<List<Models.TaskModel>>(File.ReadAllText(_offlineTasksFile)) : new List<Models.TaskModel>();
 
         public async Task<List<Models.ProjectModel>> GetProjectsAsync()
         {
@@ -376,83 +266,31 @@ namespace desktopapp.Services
                 var response = await _client.GetAsync(_baseUrl.TrimEnd('/') + "/api/projects/");
                 if (response.IsSuccessStatusCode)
                 {
-                    string json = await response.Content.ReadAsStringAsync();
-                    var projects = JsonConvert.DeserializeObject<List<Models.ProjectModel>>(json);
-                    
-                    if (projects != null)
-                    {
-                        File.WriteAllText(_offlineProjectsFile, JsonConvert.SerializeObject(projects));
-                        return projects;
-                    }
+                    var projects = JsonConvert.DeserializeObject<List<Models.ProjectModel>>(await response.Content.ReadAsStringAsync());
+                    File.WriteAllText(_offlineProjectsFile, JsonConvert.SerializeObject(projects));
+                    return projects;
                 }
             }
             catch { }
-            
-            if (File.Exists(_offlineProjectsFile))
-            {
-                try { return JsonConvert.DeserializeObject<List<Models.ProjectModel>>(File.ReadAllText(_offlineProjectsFile)); } catch { }
-            }
             return new List<Models.ProjectModel>();
         }
 
         public async Task<bool> CreateProjectAsync(Models.ProjectModel newProject)
         {
-            try
-            {
-                if (string.IsNullOrEmpty(AccessToken)) return false;
-                
-                var payload = new
-                {
-                    name = newProject.Name,
-                    description = newProject.Description ?? ""
-                };
-
-                string json = JsonConvert.SerializeObject(payload);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                var response = await _client.PostAsync(_baseUrl.TrimEnd('/') + "/api/projects/", content);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    string errorBody = await response.Content.ReadAsStringAsync();
-                    System.Windows.MessageBox.Show($"Serwer odrzucił projekt.\nKod: {response.StatusCode}\nSzczegóły: {errorBody}");
-                    return false;
-                }
-                return true;
-            }
-            catch { return false; }
+            var payload = new { name = newProject.Name, description = newProject.Description ?? "" };
+            var content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
+            var response = await _client.PostAsync(_baseUrl.TrimEnd('/') + "/api/projects/", content);
+            return response.IsSuccessStatusCode;
         }
 
         public async Task<bool> UpdateProjectAsync(Models.ProjectModel updatedProject)
         {
-            try
-            {
-                if (string.IsNullOrEmpty(AccessToken)) return false;
-
-                string json = JsonConvert.SerializeObject(updatedProject, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                string url = _baseUrl.TrimEnd('/') + $"/api/projects/{updatedProject.Id}/";
-                var request = new HttpRequestMessage(new HttpMethod("PATCH"), url) { Content = content };
-                
-                var response = await _client.SendAsync(request);
-                return response.IsSuccessStatusCode;
-            }
-            catch { return false; }
+            var content = new StringContent(JsonConvert.SerializeObject(updatedProject), Encoding.UTF8, "application/json");
+            var request = new HttpRequestMessage(new HttpMethod("PATCH"), _baseUrl.TrimEnd('/') + $"/api/projects/{updatedProject.Id}/") { Content = content };
+            var response = await _client.SendAsync(request);
+            return response.IsSuccessStatusCode;
         }
 
-        public async Task<bool> DeleteProjectAsync(int projectId)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(AccessToken)) return false;
-
-                string url = _baseUrl.TrimEnd('/') + $"/api/projects/{projectId}/";
-                var response = await _client.DeleteAsync(url);
-                
-                return response.IsSuccessStatusCode;
-            }
-            catch { return false; }
-        }
+        public async Task<bool> DeleteProjectAsync(int projectId) => (await _client.DeleteAsync(_baseUrl.TrimEnd('/') + $"/api/projects/{projectId}/")).IsSuccessStatusCode;
     }
 }
