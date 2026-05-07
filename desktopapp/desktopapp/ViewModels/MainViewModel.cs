@@ -51,6 +51,23 @@ namespace desktopapp.ViewModels
         {
             ApplyFilters(); 
         }
+        
+        [ObservableProperty]
+        private bool _showOnlyMyTasks;
+
+        partial void OnShowOnlyMyTasksChanged(bool value)
+        {
+            ApplyFilters(); 
+        }
+
+        [ObservableProperty]
+        private int _totalTasksCount;
+
+        [ObservableProperty]
+        private int _completedTasksCount;
+
+        [ObservableProperty]
+        private int _inProgressTasksCount;
 
         [ObservableProperty]
         private ObservableCollection<string> _availableUsernames = new ObservableCollection<string>();
@@ -87,6 +104,7 @@ namespace desktopapp.ViewModels
                     CurrentUserEmail = "Brak emaila w bazie";
                 }
             }
+            ApplyFilters();
         }
 
         private async Task RefreshTasksSilentlyAsync()
@@ -182,7 +200,6 @@ namespace desktopapp.ViewModels
             
             var tempList = new ObservableCollection<ProjectModel>();
             
-
             tempList.Add(new ProjectModel { Id = 0, Name = "--- Wszystkie projekty ---", Description = "Pokazuje wszystko" });
             
             foreach (var p in apiProjects)
@@ -192,14 +209,12 @@ namespace desktopapp.ViewModels
 
             Projects = tempList;
             
-            
             if (SelectedProjectFilter == null)
             {
                 SelectedProjectFilter = Projects.First();
             }
             else
             {
-                
                 var staryWybor = Projects.FirstOrDefault(p => p.Id == SelectedProjectFilter.Id);
                 SelectedProjectFilter = staryWybor ?? Projects.First();
             }
@@ -215,23 +230,24 @@ namespace desktopapp.ViewModels
             if (_allTasks == null) return;
 
             var filtered = _allTasks.AsEnumerable();
-            
-           
-            if (SelectedProjectFilter != null) 
+            if (SelectedProjectFilter != null && SelectedProjectFilter.Id != 0) 
             {
-                if (SelectedProjectFilter.Id != 0) 
-                {
-                    filtered = filtered.Where(t => t.ProjectId == SelectedProjectFilter.Id);
-                }
+                filtered = filtered.Where(t => t.ProjectId == SelectedProjectFilter.Id);
             }
-            
             if (!string.IsNullOrWhiteSpace(SearchUserText))
             {
                 filtered = filtered.Where(t => t.AssignedUser != null && t.AssignedUser.Contains(SearchUserText, StringComparison.OrdinalIgnoreCase));
             }
+            if (ShowOnlyMyTasks && !string.IsNullOrEmpty(CurrentUserName))
+            {
+                filtered = filtered.Where(t => t.AssignedUser == CurrentUserName);
+            }
 
-       
-            Tasks = new ObservableCollection<TaskModel>(filtered.ToList());
+            var finalList = filtered.ToList();
+            Tasks = new ObservableCollection<TaskModel>(finalList);
+            TotalTasksCount = finalList.Count;
+            CompletedTasksCount = finalList.Count(t => t.DisplayStatus == "Zakończone");
+            InProgressTasksCount = finalList.Count(t => t.DisplayStatus == "W trakcie");
         }
 
         [RelayCommand]
@@ -250,6 +266,7 @@ namespace desktopapp.ViewModels
 
                     ApiService.Instance.SaveTasksOffline(_allTasks);
                     Services.NotificationService.Instance.Show("Zadanie usunięto z chmury!");
+                    ApplyFilters();
                 }
                 else
                 {
