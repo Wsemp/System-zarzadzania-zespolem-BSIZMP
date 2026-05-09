@@ -2,11 +2,17 @@
 
 {% block content %}
         {% for project in projects %}
-            <p>{{ project.name }}</p>
-            <p>{{ project.owner }}</p>
-            <p>{{ project.members }}</p>
-            <p>{{ project.created_at }}</p>
-            <p>{{ project.updated_at }}</p>
+
+            <div class="card" style="width: 18rem;">
+              <div class="card-body">
+                <h5 class="card-title">{{ project.name }}</h5>
+                <h6 class="card-subtitle mb-2 text-muted">{{ project.created_at }}</h6>
+                <p class="card-text"><p>{{ project.description }}</p></p>
+                <a href="#" class="card-link">Details</a>
+                <a href="#" class="card-link">Members</a>
+              </div>
+            </div>
+
             <hr>
         {% endfor %}
 {% endblock %}
