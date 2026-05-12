@@ -58,7 +58,7 @@ namespace desktopapp.ViewModels
             CreatedTask = new TaskModel
             {
                 Title = this.Title,
-                Description = this.Description,
+                Description = this.Description ?? string.Empty,
                 Status = statusKey,
                 AssignedUser = this.AssignedUser,
                 AssignedToId = selectedUser?.Id,
@@ -66,6 +66,13 @@ namespace desktopapp.ViewModels
                 ProjectId = SelectedProject?.Id 
             };
 
+            CloseAction?.Invoke();
+        }
+
+        [RelayCommand]
+        public void Close()
+        {
+            CreatedTask = null; // Zabezpieczenie przed zapisem przy anulowaniu
             CloseAction?.Invoke();
         }
     }

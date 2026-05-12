@@ -27,9 +27,11 @@ namespace desktopapp.Services
         public string AccessToken { get; private set; }
         public string LoggedInUsername { get; private set; }
 
-        private ApiService()
+        private ApiService() : this(new HttpClient()) { }
+
+        public ApiService(HttpClient client)
         {
-            _client = new HttpClient();
+            _client = client;
             string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
             string myAppFolder = Path.Combine(desktopPath, "BSI_TEST_OFFLINE");
 

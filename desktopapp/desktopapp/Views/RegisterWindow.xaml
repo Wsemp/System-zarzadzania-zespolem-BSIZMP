@@ -5,25 +5,33 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:desktopapp.Views"
         mc:Ignorable="d"
-        Title="Rejestracja" Height="450" Width="350">
+        Title="Rejestracja - Taskomat" Height="550" Width="800" WindowStartupLocation="CenterScreen" Background="{StaticResource BgLightGray}"
+        UseLayoutRounding="True" SnapsToDevicePixels="True" TextOptions.TextFormattingMode="Display" TextOptions.TextRenderingMode="ClearType">
 
-    <Grid Margin="20">
-        <StackPanel VerticalAlignment="Center">
-            <TextBlock Text="Rejestracja Administratora" FontSize="18" FontWeight="Bold" Margin="0,0,0,20" HorizontalAlignment="Center"/>
+    <Grid>
+        <!-- Wycentrowana biała karta formularza z cieniem -->
+        <Border Background="White" Width="350" Padding="30" CornerRadius="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Border.Effect>
+                <DropShadowEffect Color="Black" Opacity="0.1" ShadowDepth="4" BlurRadius="10" Direction="270"/>
+            </Border.Effect>
+            <StackPanel>
+                <TextBlock Text="Utwórz konto" FontSize="24" FontWeight="Bold" Foreground="{StaticResource TextDarkGray}" HorizontalAlignment="Center" Margin="0,0,0,5"/>
+                <TextBlock Text="Zarejestruj się w systemie Taskomat" FontSize="14" Foreground="Gray" HorizontalAlignment="Center" Margin="0,0,0,25"/>
 
-            <TextBlock Text="Nazwa użytkownika:" />
-            <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+                <TextBlock Text="Nazwa użytkownika" Style="{StaticResource FormLabel}"/>
+                <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,15" />
 
-            <TextBlock Text="Adres e-mail:" />
-            <TextBox Text="{Binding Email, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+                <TextBlock Text="Adres e-mail" Style="{StaticResource FormLabel}"/>
+                <TextBox Text="{Binding Email, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,15" />
 
-            <TextBlock Text="Hasło:" />
-            <TextBox Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+                <TextBlock Text="Hasło" Style="{StaticResource FormLabel}"/>
+                <PasswordBox PasswordChanged="PasswordBox_PasswordChanged" Margin="0,0,0,15" />
 
-            <TextBlock Text="Powtórz hasło:" />
-            <TextBox Text="{Binding ConfirmPassword, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,20" />
+                <TextBlock Text="Powtórz hasło" Style="{StaticResource FormLabel}"/>
+                <PasswordBox PasswordChanged="ConfirmPasswordBox_PasswordChanged" Margin="0,0,0,25" />
 
-            <Button Content="Zarejestruj się" Command="{Binding RegisterCommand}" Height="35" Background="#4CAF50" Foreground="White" FontWeight="Bold"/>
-        </StackPanel>
+                <Button Content="Zarejestruj się" Command="{Binding RegisterCommand}" Style="{StaticResource PrimaryButton}" Height="40" FontSize="16" FontWeight="SemiBold"/>
+            </StackPanel>
+        </Border>
     </Grid>
 </Window>

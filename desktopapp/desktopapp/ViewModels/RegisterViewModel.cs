@@ -1,19 +1,18 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using desktopapp.Services;
-using System;
 using System.Windows;
 
 namespace desktopapp.ViewModels
 {
     public partial class RegisterViewModel : ObservableObject
     {
-        [ObservableProperty] private string _username;
-        [ObservableProperty] private string _email;
-        [ObservableProperty] private string _password;
-        [ObservableProperty] private string _confirmPassword;
+        [ObservableProperty] private string? _username;
+        [ObservableProperty] private string? _email;
+        [ObservableProperty] private string? _password;
+        [ObservableProperty] private string? _confirmPassword;
 
-        public Action CloseAction { get; set; }
+        public Action? CloseAction { get; set; }
 
         [RelayCommand]
         public async Task RegisterAsync()
@@ -30,7 +29,7 @@ namespace desktopapp.ViewModels
                 return;
             }
 
-            bool isSuccess = await ApiService.Instance.RegisterAsync(Username, Email, Password);
+            bool isSuccess = await ApiService.Instance.RegisterAsync(Username!, Email!, Password!);
 
             if (isSuccess)
             {

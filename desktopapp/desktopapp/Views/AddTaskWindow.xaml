@@ -5,34 +5,44 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:desktopapp.Views"
         mc:Ignorable="d"
-        Title="AddTaskWindow" Height="450" Width="800">
-    <Grid Margin="20">
+        Title="Dodaj / Edytuj Zadanie" SizeToContent="Height" Width="450" WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
+        TextOptions.TextFormattingMode="Display" TextOptions.TextRenderingMode="ClearType" UseLayoutRounding="True">
+    
+    <Border Background="White" Padding="20">
         <StackPanel>
-            <TextBlock Text="Dodaj nowe zadanie" FontSize="18" FontWeight="Bold" Margin="0,0,0,15"/>
+            <TextBlock Text="Szczegóły zadania" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,20"/>
 
-            <TextBlock Text="Tytuł:" />
-            <TextBox Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+            <TextBlock Text="Tytuł:" Style="{StaticResource FormLabel}"/>
+            <TextBox Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,15" />
 
-            <TextBlock Text="Opis:" />
-            <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Height="50" TextWrapping="Wrap" Margin="0,0,0,10" />
+            <TextBlock Text="Opis:" Style="{StaticResource FormLabel}"/>
+            <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Height="80" TextWrapping="Wrap" Margin="0,0,0,15" />
 
-            <TextBlock Text="Przypisz do:" />
-            <ComboBox ItemsSource="{Binding AvailableUsernames}" SelectedItem="{Binding AssignedUser, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+            <TextBlock Text="Przypisz do:" Style="{StaticResource FormLabel}"/>
+            <ComboBox ItemsSource="{Binding AvailableUsernames}" SelectedItem="{Binding AssignedUser, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,15" />
 
-            <TextBlock Text="Projekt:" />
+            <TextBlock Text="Projekt:" Style="{StaticResource FormLabel}"/>
             <ComboBox ItemsSource="{Binding AvailableProjects}" 
                       DisplayMemberPath="Name" 
                       SelectedItem="{Binding SelectedProject}" 
-                      Margin="0,0,0,10"/>
+                      Margin="0,0,0,15"/>
             
-            <TextBlock Text="Status:" />
-            <ComboBox SelectedItem="{Binding Status}" Margin="0,0,0,20">
+            <TextBlock Text="Status:" Style="{StaticResource FormLabel}"/>
+            <ComboBox SelectedItem="{Binding Status}" Margin="0,0,0,25">
                 <System:String xmlns:System="clr-namespace:System;assembly=mscorlib">Do zrobienia</System:String>
                 <System:String xmlns:System="clr-namespace:System;assembly=mscorlib">W trakcie</System:String>
                 <System:String xmlns:System="clr-namespace:System;assembly=mscorlib">Zakończone</System:String>
             </ComboBox>
 
-            <Button Content="Zapisz zadanie" Command="{Binding SaveCommand}" Height="35" Background="#0078D7" Foreground="White" FontWeight="Bold" />
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="10"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" Content="Anuluj" Style="{StaticResource SecondaryButton}" Command="{Binding CloseCommand}"/>
+                <Button Grid.Column="2" Content="Zapisz" Style="{StaticResource PrimaryButton}" Command="{Binding SaveCommand}"/>
+            </Grid>
         </StackPanel>
-    </Grid>
+    </Border>
 </Window>
