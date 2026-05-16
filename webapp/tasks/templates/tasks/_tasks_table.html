@@ -1,0 +1,22 @@
+    <table class="table table-hover" id="task-table-body">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Title</th>
+          <th scope="col">Status</th>
+          <th scope="col">Assigned to</th>
+          <th scope="col">Created by</th>
+          <th scope="col">Created at</th>
+          <th scope="col">Updated at</th>
+          <th scope="col"
+              hx-get="{% url 'tasks-sort-by-due-date' %}?order={{ next_order }}"
+              hx-target="#task-table-body"
+              hx-swap="outerHTML">
+              Due date
+          </th>
+        </tr>
+      </thead>
+        <tbody>
+            {% include "tasks/_tasks_rows.html" %}
+        </tbody>
+    </table>
