@@ -6,24 +6,38 @@
         xmlns:local="clr-namespace:desktopapp.Views"
         xmlns:vm="clr-namespace:desktopapp.ViewModels" 
         mc:Ignorable="d"
-        Title="LoginView" Height="450" Width="800">
+        Title="Logowanie - Taskomat" Height="500" Width="800" WindowStartupLocation="CenterScreen" Background="{StaticResource PrimaryBlue}"
+        UseLayoutRounding="True" SnapsToDevicePixels="True" TextOptions.TextFormattingMode="Display" TextOptions.TextRenderingMode="ClearType">
 
     <Window.DataContext>
         <vm:LoginViewModel />
     </Window.DataContext>
 
-    <Grid Width="300" Height="250">
-        <StackPanel Margin="20" VerticalAlignment="Center">
-            <TextBlock Text="Logowanie do Systemu" FontSize="18" FontWeight="Bold" Margin="0,0,0,20" HorizontalAlignment="Center"/>
+    <Grid>
+        <!-- Wycentrowana biała karta formularza z cieniem -->
+        <Border Background="White" Width="350" Padding="30" CornerRadius="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Border.Effect>
+                <DropShadowEffect Color="Black" Opacity="0.15" ShadowDepth="4" BlurRadius="10" Direction="270"/>
+            </Border.Effect>
+            <StackPanel>
+                <!-- Logo/Tytuł okna w karcie -->
+                <TextBlock Text="Witaj w Taskomat" FontSize="24" FontWeight="Bold" Foreground="{StaticResource TextDarkGray}" HorizontalAlignment="Center" Margin="0,0,0,5"/>
+                <TextBlock Text="Zaloguj się, aby kontynuować" FontSize="14" Foreground="Gray" HorizontalAlignment="Center" Margin="0,0,0,30"/>
 
-            <TextBlock Text="Nazwa użytkownika:" />
-            <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" TextChanged="TextBox_TextChanged" />
+                <!-- Formularz Logowania -->
+                <TextBlock Text="Nazwa użytkownika" Style="{StaticResource FormLabel}"/>
+                <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" TextChanged="TextBox_TextChanged" Margin="0,0,0,15" />
 
-            <TextBlock Text="Hasło:" />
-            <PasswordBox x:Name="MyPasswordBox" PasswordChanged="MyPasswordBox_PasswordChanged" Margin="0,0,0,10" />
+                <TextBlock Text="Hasło" Style="{StaticResource FormLabel}"/>
+                <PasswordBox x:Name="MyPasswordBox" PasswordChanged="MyPasswordBox_PasswordChanged" Margin="0,0,0,25" />
 
-            <Button Content="Zaloguj" Command="{Binding LoginCommand}" Height="30" />
-            <Button Content="Nie masz konta? Zarejestruj się" Command="{Binding OpenRegisterWindowCommand}" Background="Transparent" BorderThickness="0" Foreground="#0078D7" Margin="0,15,0,0" Cursor="Hand"/>
-        </StackPanel>
+                <!-- Akcje -->
+                <Button Content="Zaloguj się" Command="{Binding LoginCommand}" Style="{StaticResource PrimaryButton}" Height="40" FontSize="16" FontWeight="SemiBold"/>
+                
+                <Border BorderBrush="{StaticResource BorderGray}" BorderThickness="0,1,0,0" Margin="0,20"/>
+                
+                <Button Content="Nie masz konta? Zarejestruj się" Command="{Binding OpenRegisterWindowCommand}" Style="{StaticResource SecondaryButton}" BorderThickness="0" Foreground="{StaticResource PrimaryBlue}"/>
+            </StackPanel>
+        </Border>
     </Grid>
 </Window>

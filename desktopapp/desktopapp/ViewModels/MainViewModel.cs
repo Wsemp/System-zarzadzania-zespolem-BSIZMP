@@ -72,8 +72,24 @@ namespace desktopapp.ViewModels
         [ObservableProperty]
         private ObservableCollection<string> _availableUsernames = new ObservableCollection<string>();
 
+        [ObservableProperty]
+        private ObservableCollection<UserModel> _apiUsersList = new ObservableCollection<UserModel>();
+
         private List<UserModel> _apiUsers = new List<UserModel>();
         
+        // Navigation View Support
+        [ObservableProperty]
+        private string _selectedView = "Zadania"; // Domyślny widok
+        
+        [RelayCommand]
+        public void SwitchView(string viewName)
+        {
+            if (!string.IsNullOrEmpty(viewName))
+            {
+                SelectedView = viewName;
+            }
+        }
+
         public MainViewModel()
         {
             _ = InitializeDataAsync();
@@ -160,6 +176,7 @@ namespace desktopapp.ViewModels
                 {
                     var usernamesList = _apiUsers.Select(u => u.Username).ToList();
                     AvailableUsernames = new ObservableCollection<string>(usernamesList);
+                    ApiUsersList = new ObservableCollection<UserModel>(_apiUsers);
                 }
                 else
                 {
