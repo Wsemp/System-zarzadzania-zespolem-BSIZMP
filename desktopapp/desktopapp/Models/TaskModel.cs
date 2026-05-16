@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System;
 
 namespace desktopapp.Models
 {
@@ -24,6 +25,9 @@ namespace desktopapp.Models
 
         [JsonProperty("assigned_to")]
         public int? AssignedToId { get; set; }
+        
+        [JsonProperty("due_date")]
+        public DateTime? DueDate { get; set; }
 
         [JsonIgnore]
         public string AssignedUser { get; set; }

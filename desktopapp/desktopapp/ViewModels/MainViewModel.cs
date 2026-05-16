@@ -61,6 +61,20 @@ namespace desktopapp.ViewModels
         }
 
         [ObservableProperty]
+        private DateTime? _selectedFilterDate;
+
+        partial void OnSelectedFilterDateChanged(DateTime? value)
+        {
+            ApplyFilters();
+        }
+
+        [RelayCommand]
+        public void ClearFilterDate()
+        {
+            SelectedFilterDate = null;
+        }
+
+        [ObservableProperty]
         private int _totalTasksCount;
 
         [ObservableProperty]
@@ -77,9 +91,8 @@ namespace desktopapp.ViewModels
 
         private List<UserModel> _apiUsers = new List<UserModel>();
         
-        // Navigation View Support
         [ObservableProperty]
-        private string _selectedView = "Zadania"; // Domyślny widok
+        private string _selectedView = "Zadania";
         
         [RelayCommand]
         public void SwitchView(string viewName)
@@ -259,6 +272,10 @@ namespace desktopapp.ViewModels
             {
                 filtered = filtered.Where(t => t.AssignedUser == CurrentUserName);
             }
+            if (SelectedFilterDate.HasValue)
+            {
+                filtered = filtered.Where(t => t.DueDate.HasValue && t.DueDate.Value.Date <= SelectedFilterDate.Value.Date);
+            }
 
             var finalList = filtered.ToList();
             Tasks = new ObservableCollection<TaskModel>(finalList);
@@ -350,6 +367,7 @@ namespace desktopapp.ViewModels
             editTaskVm.Description = SelectedTask.Description;
             editTaskVm.AssignedUser = SelectedTask.AssignedUser;
             editTaskVm.Status = SelectedTask.DisplayStatus;
+            editTaskVm.DueDate = SelectedTask.DueDate;
             
             if (Projects != null)
             {
