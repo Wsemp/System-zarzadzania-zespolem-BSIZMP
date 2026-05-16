@@ -1,9 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 
 namespace desktopapp.Models
 {
     public partial class ProjectModel : ObservableObject
     {
+        [Key]
         [ObservableProperty]
         private int _id;
 

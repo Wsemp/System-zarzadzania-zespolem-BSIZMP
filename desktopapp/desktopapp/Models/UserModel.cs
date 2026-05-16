@@ -1,9 +1,11 @@
 ﻿using Newtonsoft.Json;
+using System.ComponentModel.DataAnnotations;
 
 namespace desktopapp.Models
 {
     public class UserModel
     {
+        [Key]
         [JsonProperty("id")]
         public int Id { get; set; }
 

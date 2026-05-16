@@ -297,8 +297,7 @@ namespace desktopapp.ViewModels
                 {
                     _allTasks.Remove(taskToDelete);
                     Tasks.Remove(taskToDelete);
-
-                    ApiService.Instance.SaveTasksOffline(_allTasks);
+                    
                     Services.NotificationService.Instance.Show("Zadanie usunięto z chmury!");
                     ApplyFilters();
                 }
@@ -344,7 +343,6 @@ namespace desktopapp.ViewModels
                     addTaskVm.CreatedTask.Id = _allTasks.Any() ? _allTasks.Max(t => t.Id) + 1 : 1;
                     _allTasks.Insert(0, addTaskVm.CreatedTask);
                     ApplyFilters(); 
-                    ApiService.Instance.SaveTasksOffline(_allTasks);
                     Services.NotificationService.Instance.Show("Brak sieci. Zadanie zapisano lokalnie!");
                 }
             }
