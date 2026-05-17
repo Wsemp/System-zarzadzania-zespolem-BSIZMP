@@ -36,6 +36,8 @@ def create_task(
     if tags:
         task.tags.set(tags)
 
+    # assigment notification
+
     Notification.objects.create(
         recipient=assigned_to,
         task=task,
