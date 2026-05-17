@@ -21,7 +21,7 @@
 | **SYS-09** | Użytkownik może zaakceptować zaproszenie do projektu od Administratora. | * | | ✓ | ✓ |
 | **SYS-10** | Użytkownik może zarządzać swoim profilem i ustawieniami konta. | * | ✓ | ✓ | ✓ |
 | **SYS-11** | Administrator może zalogować się w systemie. | * | ✓ | | ✓ |
-| **SYS-12** | Administrator może dodawać, edytować i usuwać zadania. | * | ✓ | | |
+| **SYS-12** | Administrator może dodawać, edytować i usuwać zadania. | * | ✓ | | ✓ |
 | **SYS-13** | Administrator może tworzyć nowe projekty. | * | ✓ | | ✓ |
 | **SYS-14** | Administrator może edytować uprawnienia użytkowników przypisanych do projektu. | * | ✓ | | ✓ |
 | **SYS-15** | Administrator może przydzielać użytkowników do konkretnych zadań. | * | ✓ | | ✓ |

@@ -31,6 +31,9 @@ namespace desktopapp.ViewModels
         [ObservableProperty]
         private ObservableCollection<string> _availableUsernames;
 
+        [ObservableProperty]
+        private DateTime? _dueDate;
+
         public Action CloseAction { get; set; }
 
         public TaskModel CreatedTask { get; private set; }
@@ -62,6 +65,7 @@ namespace desktopapp.ViewModels
                 Status = statusKey,
                 AssignedUser = this.AssignedUser,
                 AssignedToId = selectedUser?.Id,
+                DueDate = this.DueDate,
                 TagIds = new System.Collections.Generic.List<int>(),
                 ProjectId = SelectedProject?.Id 
             };
@@ -72,7 +76,7 @@ namespace desktopapp.ViewModels
         [RelayCommand]
         public void Close()
         {
-            CreatedTask = null; // Zabezpieczenie przed zapisem przy anulowaniu
+            CreatedTask = null;
             CloseAction?.Invoke();
         }
     }

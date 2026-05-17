@@ -61,6 +61,20 @@ namespace desktopapp.ViewModels
         }
 
         [ObservableProperty]
+        private DateTime? _selectedFilterDate;
+
+        partial void OnSelectedFilterDateChanged(DateTime? value)
+        {
+            ApplyFilters();
+        }
+
+        [RelayCommand]
+        public void ClearFilterDate()
+        {
+            SelectedFilterDate = null;
+        }
+
+        [ObservableProperty]
         private int _totalTasksCount;
 
         [ObservableProperty]
@@ -77,9 +91,8 @@ namespace desktopapp.ViewModels
 
         private List<UserModel> _apiUsers = new List<UserModel>();
         
-        // Navigation View Support
         [ObservableProperty]
-        private string _selectedView = "Zadania"; // Domyślny widok
+        private string _selectedView = "Zadania";
         
         [RelayCommand]
         public void SwitchView(string viewName)
@@ -259,6 +272,10 @@ namespace desktopapp.ViewModels
             {
                 filtered = filtered.Where(t => t.AssignedUser == CurrentUserName);
             }
+            if (SelectedFilterDate.HasValue)
+            {
+                filtered = filtered.Where(t => t.DueDate.HasValue && t.DueDate.Value.Date <= SelectedFilterDate.Value.Date);
+            }
 
             var finalList = filtered.ToList();
             Tasks = new ObservableCollection<TaskModel>(finalList);
@@ -280,8 +297,7 @@ namespace desktopapp.ViewModels
                 {
                     _allTasks.Remove(taskToDelete);
                     Tasks.Remove(taskToDelete);
-
-                    ApiService.Instance.SaveTasksOffline(_allTasks);
+                    
                     Services.NotificationService.Instance.Show("Zadanie usunięto z chmury!");
                     ApplyFilters();
                 }
@@ -327,7 +343,6 @@ namespace desktopapp.ViewModels
                     addTaskVm.CreatedTask.Id = _allTasks.Any() ? _allTasks.Max(t => t.Id) + 1 : 1;
                     _allTasks.Insert(0, addTaskVm.CreatedTask);
                     ApplyFilters(); 
-                    ApiService.Instance.SaveTasksOffline(_allTasks);
                     Services.NotificationService.Instance.Show("Brak sieci. Zadanie zapisano lokalnie!");
                 }
             }
@@ -350,6 +365,7 @@ namespace desktopapp.ViewModels
             editTaskVm.Description = SelectedTask.Description;
             editTaskVm.AssignedUser = SelectedTask.AssignedUser;
             editTaskVm.Status = SelectedTask.DisplayStatus;
+            editTaskVm.DueDate = SelectedTask.DueDate;
             
             if (Projects != null)
             {

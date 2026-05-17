@@ -1,17 +1,20 @@
 ﻿using Newtonsoft.Json;
+using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace desktopapp.Models
 {
     public class TaskModel
     {
+        [Key]
+        [JsonProperty("id")]
+        public int Id { get; set; }
+
         [JsonProperty("project_id")]
         public int? ProjectId { get; set; }
         
         [JsonProperty("tag_ids")]
         public System.Collections.Generic.List<int> TagIds { get; set; } = new System.Collections.Generic.List<int>();
-
-        [JsonProperty("id")]
-        public int Id { get; set; }
 
         [JsonProperty("title")]
         public string Title { get; set; }
@@ -24,6 +27,9 @@ namespace desktopapp.Models
 
         [JsonProperty("assigned_to")]
         public int? AssignedToId { get; set; }
+        
+        [JsonProperty("due_date")]
+        public DateTime? DueDate { get; set; }
 
         [JsonIgnore]
         public string AssignedUser { get; set; }
