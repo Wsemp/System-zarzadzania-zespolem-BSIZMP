@@ -3,6 +3,7 @@ from django.db import transaction
 from ..selectors import get_task_byid
 from django.contrib.auth.models import User
 from notifications.models import Notification
+from notifications.services.notifications_services import create_notification
 # from datetime import datetime
 # from django.shortcuts import get_object_or_404
 
@@ -38,7 +39,7 @@ def create_task(
 
     # assigment notification
 
-    Notification.objects.create(
+    create_notification(
         recipient=assigned_to,
         task=task,
         type=Notification.Type.TASK_ASSIGNED,
@@ -78,7 +79,7 @@ def update_task(*, task_id: int, **data):
             old_assigned_to != task.assigned_to
             and task.assigned_to is not None
     ):
-        Notification.objects.create(
+        create_notification(
             recipient=task.assigned_to,
             task=task,
             type=Notification.Type.TASK_ASSIGNED,
@@ -91,7 +92,7 @@ def update_task(*, task_id: int, **data):
             old_status != task.status
             and task.status == Task.Status.DONE
     ):
-        Notification.objects.create(
+        create_notification(
             recipient=task.created_by,
             task=task,
             type=Notification.Type.TASK_COMPLETED,
