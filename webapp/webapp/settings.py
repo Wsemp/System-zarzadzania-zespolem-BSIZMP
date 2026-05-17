@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'tests',
     'tasks',
     'projects',
+    'notifications',
     'crispy_forms',
     'crispy_bootstrap5',
 ]
