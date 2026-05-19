@@ -10,6 +10,7 @@ class AuthService {
     debugPrint('[AUTH] === LOGIN START: $username ===');
 
     debugPrint('[AUTH] Krok 1: POST ${ApiEndpoints.authLogin}');
+
     late Map<String, dynamic> tokenData;
     try {
       tokenData = await ApiClient.post(ApiEndpoints.authLogin, {
