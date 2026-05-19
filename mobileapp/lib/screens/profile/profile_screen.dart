@@ -118,6 +118,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               padding: const EdgeInsets.all(24),
               child: Column(
                 children: [
+                  // Avatar
                   Container(
                     width: 80,
                     height: 80,
@@ -139,6 +140,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
+
+                  // Pola formularza
                   TextFormField(
                     controller: _usernameCtrl,
                     enabled: _editing,
@@ -157,6 +160,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       prefixIcon: Icon(Icons.email_outlined),
                     ),
                   ),
+
+                  // Badge admina
                   if (_user?.isStaff == true) ...[
                     const SizedBox(height: 16),
                     Container(
@@ -177,26 +182,83 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                   ],
+
+                  // Przycisk zapisu (tryb edycji)
                   if (_editing) ...[
                     const SizedBox(height: 32),
                     GradientButton(
-                      label: 'Zapisz',
+                      label: 'Zapisz zmiany',
                       onPressed: _saving ? null : _save,
                       isLoading: _saving,
                     ),
                   ],
+
                   const SizedBox(height: 32),
                   const Divider(),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
+
+                  // Zmień hasło
                   ListTile(
-                    leading: const Icon(Icons.logout, color: Colors.red),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    leading: Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: AppColors.purple.withOpacity(0.08),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.lock_reset_rounded,
+                        color: AppColors.purple,
+                        size: 20,
+                      ),
+                    ),
+                    title: const Text(
+                      'Zmień hasło',
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    trailing: const Icon(
+                      Icons.chevron_right_rounded,
+                      color: AppColors.textSecondary,
+                    ),
+                    onTap: () => context.push('/change-password'),
+                  ),
+
+                  const SizedBox(height: 4),
+
+                  // Wyloguj
+                  ListTile(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    leading: Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: Colors.red.withOpacity(0.08),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.logout_rounded,
+                        color: Colors.red,
+                        size: 20,
+                      ),
+                    ),
                     title: const Text(
                       'Wyloguj się',
-                      style: TextStyle(color: Colors.red),
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                     onTap: () async {
                       await context.read<AuthProvider>().logout();
-                      if (context.mounted) context.go('/login');
+                      if (context.mounted) context.go('/welcome');
                     },
                   ),
                 ],

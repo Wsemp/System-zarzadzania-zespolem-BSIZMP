@@ -93,6 +93,20 @@ class AuthService {
     return login(username, password);
   }
 
+  /// Zmiana hasła zalogowanego użytkownika.
+  /// Backend musi obsługiwać POST /api/auth/change-password/
+  static Future<void> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    debugPrint('[AUTH] === CHANGE PASSWORD ===');
+    await ApiClient.post(ApiEndpoints.changePassword, {
+      'old_password': oldPassword,
+      'new_password': newPassword,
+    });
+    debugPrint('[AUTH] Hasło zmienione OK');
+  }
+
   static Future<void> logout() => TokenStorage.clear();
 
   static Future<bool> isLoggedIn() async {
