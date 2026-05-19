@@ -7,7 +7,7 @@ namespace desktopapp.Tests
     {
         [Theory]
         [InlineData("todo", "Do zrobienia")]
-        [InlineData("in_progress", "W trakcie")]
+        [InlineData("In progress", "W trakcie")]
         [InlineData("done", "Zakończone")]
         [InlineData("unknown", "unknown")]
         public void DisplayStatus_Zwraca_Prawidlowa_Polska_Nazwe_Dla_Statusu(string apiStatus, string expectedDisplay)
@@ -21,7 +21,7 @@ namespace desktopapp.Tests
 
         [Theory]
         [InlineData("Do zrobienia", "todo")]
-        [InlineData("W trakcie", "in_progress")]
+        [InlineData("W trakcie", "In progress")]
         [InlineData("Zakończone", "done")]
         [InlineData("Inny", "Inny")]
         public void DisplayStatus_Ustawia_Prawidlowy_Status_Api(string displayStatus, string expectedApiStatus)

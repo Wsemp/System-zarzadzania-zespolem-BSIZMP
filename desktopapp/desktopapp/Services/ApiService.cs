@@ -10,6 +10,7 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace desktopapp.Services
 {
@@ -22,12 +23,12 @@ namespace desktopapp.Services
         private readonly AppDbContext _dbContext;
         private readonly string _baseUrl = "https://system-zarzadzania-zespolem-bsizmp.onrender.com/";
 
-        public string AccessToken { get; private set; }
-        public string LoggedInUsername { get; private set; }
+        public string? AccessToken { get; private set; }
+        public string? LoggedInUsername { get; private set; }
 
         private ApiService() : this(new HttpClient(), new AppDbContext()) { }
 
-        public ApiService(HttpClient client, AppDbContext context = null)
+        public ApiService(HttpClient client, AppDbContext? context = null)
         {
             _client = client;
             _dbContext = context ?? new AppDbContext();
@@ -109,10 +110,13 @@ namespace desktopapp.Services
                 {
                     var json = await response.Content.ReadAsStringAsync();
                     var usersList = JToken.Parse(json).ToObject<List<UserModel>>();
-                    _dbContext.Users.RemoveRange(_dbContext.Users);
-                    await _dbContext.Users.AddRangeAsync(usersList);
-                    await _dbContext.SaveChangesAsync();
-                    return usersList;
+                    if (usersList != null)
+                    {
+                        _dbContext.Users.RemoveRange(_dbContext.Users);
+                        await _dbContext.Users.AddRangeAsync(usersList);
+                        await _dbContext.SaveChangesAsync();
+                        return usersList;
+                    }
                 }
             }
             catch { }
@@ -128,7 +132,24 @@ namespace desktopapp.Services
                 if (response.IsSuccessStatusCode)
                 {
                     string json = await response.Content.ReadAsStringAsync();
-                    var tasks = JsonConvert.DeserializeObject<List<TaskModel>>(json);
+                    var jArray = JArray.Parse(json);
+                    var tasks = new List<TaskModel>();
+                    
+                    foreach (var item in jArray)
+                    {
+                        var task = item.ToObject<TaskModel>();
+                        string projectUrl = item["project"]?.ToString();
+                        if (!string.IsNullOrWhiteSpace(projectUrl))
+                        {
+                            var parts = projectUrl.TrimEnd('/').Split('/');
+                            if (int.TryParse(parts.Last(), out int pId))
+                            {
+                                task.ProjectId = pId;
+                            }
+                        }
+                        tasks.Add(task);
+                    }
+
                     _dbContext.Tasks.RemoveRange(_dbContext.Tasks);
                     await _dbContext.Tasks.AddRangeAsync(tasks);
                     await _dbContext.SaveChangesAsync();
@@ -145,12 +166,53 @@ namespace desktopapp.Services
             try
             {
                 if (string.IsNullOrEmpty(AccessToken)) return false;
-                var json = JsonConvert.SerializeObject(newTask);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var jObject = JObject.FromObject(newTask);
+                jObject.Remove("Id");
+
+                if (newTask.ProjectId > 0)
+                {
+                    jObject["project"] = $"{_baseUrl.TrimEnd('/')}/api/projects/{newTask.ProjectId}/";
+                }
+                
+                string currentStatus = newTask.Status?.Trim().ToLower();
+
+                if (currentStatus == "do zrobienia" || currentStatus == "todo") 
+                {
+                    jObject["status"] = "todo";
+                }
+                else if (currentStatus == "w trakcie" || currentStatus == "in_progress" || currentStatus == "in progress") 
+                {
+                    jObject["status"] = "In progress";
+                }
+                else if (currentStatus == "zakończone" || currentStatus == "done") 
+                {
+                    jObject["status"] = "done";
+                }
+                else 
+                {
+                    jObject["status"] = "todo"; 
+                }
+
+                var content = new StringContent(jObject.ToString(), Encoding.UTF8, "application/json");
                 var response = await _client.PostAsync(_baseUrl + "api/tasks/", content);
-                return response.IsSuccessStatusCode;
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    string error = await response.Content.ReadAsStringAsync();
+                    MessageBox.Show($"Błąd tworzenia zadania:\n{error}", "Błąd serwera", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return false;
+                }
+                return true;
             }
-            catch { return false; }
+            catch (Exception ex)
+            {
+                _dbContext.Tasks.Add(newTask);
+                await _dbContext.SaveChangesAsync();
+    
+                MessageBox.Show($"Brak sieci, zapisano zadanie lokalnie.", "Tryb Offline", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
         }
 
         public async Task<bool> UpdateTaskAsync(TaskModel updatedTask)
@@ -158,13 +220,37 @@ namespace desktopapp.Services
             try
             {
                 if (string.IsNullOrEmpty(AccessToken)) return false;
-                var json = JsonConvert.SerializeObject(updatedTask);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var jObject = JObject.FromObject(updatedTask);
+                jObject.Remove("Id");
+
+                if (updatedTask.ProjectId > 0)
+                {
+                    jObject["project"] = $"{_baseUrl.TrimEnd('/')}/api/projects/{updatedTask.ProjectId}/";
+                }
+                
+                string currentStatus = updatedTask.Status?.Trim();
+                if (currentStatus == "Do zrobienia" || currentStatus == "todo") jObject["status"] = "todo";
+                else if (currentStatus == "W trakcie" || currentStatus == "In progress") jObject["status"] = "In progress";
+                else if (currentStatus == "Zakończone" || currentStatus == "done") jObject["status"] = "done";
+
+                var content = new StringContent(jObject.ToString(), Encoding.UTF8, "application/json");
                 var request = new HttpRequestMessage(new HttpMethod("PATCH"), _baseUrl + $"api/tasks/{updatedTask.Id}/") { Content = content };
                 var response = await _client.SendAsync(request);
-                return response.IsSuccessStatusCode;
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    string error = await response.Content.ReadAsStringAsync();
+                    MessageBox.Show($"Błąd edycji zadania:\n{error}", "Błąd serwera", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return false;
+                }
+                return true;
             }
-            catch { return false; }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Błąd sieciowy przy edycji: {ex.Message}", "Błąd połączenia", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
         }
 
         public async Task<bool> DeleteTaskAsync(int taskId)
@@ -198,10 +284,13 @@ namespace desktopapp.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var projects = JsonConvert.DeserializeObject<List<ProjectModel>>(await response.Content.ReadAsStringAsync());
-                    _dbContext.Projects.RemoveRange(_dbContext.Projects);
-                    await _dbContext.Projects.AddRangeAsync(projects);
-                    await _dbContext.SaveChangesAsync();
-                    return projects;
+                    if (projects != null)
+                    {
+                        _dbContext.Projects.RemoveRange(_dbContext.Projects);
+                        await _dbContext.Projects.AddRangeAsync(projects);
+                        await _dbContext.SaveChangesAsync();
+                        return projects;
+                    }
                 }
             }
             catch { }

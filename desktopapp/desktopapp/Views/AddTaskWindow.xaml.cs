@@ -1,8 +1,6 @@
 ﻿using desktopapp.ViewModels;
 using System.Windows;
 
-using System.Windows;
-
 namespace desktopapp.Views 
 {
     public partial class AddTaskWindow : Window

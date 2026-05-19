@@ -10,9 +10,9 @@ namespace desktopapp.Models
         private int _id;
 
         [ObservableProperty]
-        private string _name;
+        private string? _name;
 
         [ObservableProperty]
-        private string _description;
+        private string? _description;
     }
 }
