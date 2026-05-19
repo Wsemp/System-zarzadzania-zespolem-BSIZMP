@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # mobileapp
 
 A new Flutter project.
@@ -15,6 +14,3 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
-=======
-# System-zarzadzania-zespolem-BSIZMP
->>>>>>> 4dec0fcbf7f0650dfff921dde9b2ebf003396594

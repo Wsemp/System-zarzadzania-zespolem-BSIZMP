@@ -1,0 +1,35 @@
+name: Django CI (Docker)
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    env:
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      DEBUG: ${{ secrets.DEBUG }}
+      ALLOWED_HOSTS: ${{ secrets.ALLOWED_HOSTS }}
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+
+      - name: Build Docker image
+        run: |
+                  docker build \
+                    --build-arg SECRET_KEY=$SECRET_KEY \
+                    --build-arg DEBUG=$DEBUG \
+                    --build-arg ALLOWED_HOSTS="$ALLOWED_HOSTS" \
+                    -t my-django-app:latest ./webapp
+
+      - name: Django test
+        run: |
+          docker run -e SECRET_KEY=$SECRET_KEY \
+                     -e DEBUG=$DEBUG \
+                     -e ALLOWED_HOSTS="$ALLOWED_HOSTS" \
+                     my-django-app:latest python manage.py test

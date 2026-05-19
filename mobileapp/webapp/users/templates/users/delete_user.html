@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+    <h2>Czy na pewno chcesz usunąć użytkownika {{ user.username }}?</h2>
+
+    <form method="POST" action="{% url 'delete_user' user.id %}">
+        {% csrf_token %}
+        <button type="submit">Tak, usuń</button>
+        <a href="{% url 'users_view' %}">Anuluj</a>
+    </form>
+{% endblock %}

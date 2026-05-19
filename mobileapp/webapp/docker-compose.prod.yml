@@ -1,0 +1,12 @@
+services:
+  backend:
+    build: .
+    command: sh -c "gunicorn webapp.wsgi:application --bind 0.0.0.0:8000"
+    container_name: django_webapp
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    restart: unless-stopped
