@@ -9,36 +9,33 @@ namespace desktopapp.ViewModels
     public partial class AddTaskViewModel : ObservableObject
     {
         [ObservableProperty]
-        private ObservableCollection<ProjectModel>? _availableProjects;
+        private ObservableCollection<ProjectModel> _availableProjects;
 
         [ObservableProperty]
-        private ProjectModel? _selectedProject;
+        private ProjectModel _selectedProject;
         
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
-        private string? _title;
+        private string _title;
 
         [ObservableProperty]
-        private string? _description;
+        private string _description;
 
         [ObservableProperty]
         private string _status = "Do zrobienia";
 
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
-        private string? _assignedUser;
+        private string _assignedUser;
 
         [ObservableProperty]
-        private ObservableCollection<string>? _availableUsernames;
+        private ObservableCollection<string> _availableUsernames;
 
-        [ObservableProperty]
-        private DateTime? _dueDate;
+        public Action CloseAction { get; set; }
 
-        public Action? CloseAction { get; set; }
+        public TaskModel CreatedTask { get; private set; }
 
-        public TaskModel? CreatedTask { get; private set; }
-
-        public System.Collections.Generic.List<UserModel>? ApiUsers { get; set; }
+        public System.Collections.Generic.List<UserModel> ApiUsers { get; set; }
 
         private bool CanSave()
         {
@@ -53,7 +50,7 @@ namespace desktopapp.ViewModels
             string statusKey = Status switch
             {
                 "Do zrobienia" => "todo",
-                "W trakcie" => "In progress",
+                "W trakcie" => "in_progress",
                 "Zakończone" => "done",
                 _ => "todo"
             };
@@ -65,7 +62,6 @@ namespace desktopapp.ViewModels
                 Status = statusKey,
                 AssignedUser = this.AssignedUser,
                 AssignedToId = selectedUser?.Id,
-                DueDate = this.DueDate,
                 TagIds = new System.Collections.Generic.List<int>(),
                 ProjectId = SelectedProject?.Id 
             };
@@ -76,7 +72,7 @@ namespace desktopapp.ViewModels
         [RelayCommand]
         public void Close()
         {
-            CreatedTask = null;
+            CreatedTask = null; // Zabezpieczenie przed zapisem przy anulowaniu
             CloseAction?.Invoke();
         }
     }

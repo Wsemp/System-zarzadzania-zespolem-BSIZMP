@@ -1,62 +1,101 @@
-class Task {
-  final int? id;
+enum TaskStatus { todo, inProgress, done }
+
+extension TaskStatusExt on TaskStatus {
+  String get value {
+    switch (this) {
+      case TaskStatus.todo:
+        return 'todo';
+      case TaskStatus.inProgress:
+        return 'in_progress';
+      case TaskStatus.done:
+        return 'done';
+    }
+  }
+
+  String get label {
+    switch (this) {
+      case TaskStatus.todo:
+        return 'To Do';
+      case TaskStatus.inProgress:
+        return 'In Progress';
+      case TaskStatus.done:
+        return 'Done';
+    }
+  }
+
+  static TaskStatus fromString(String? value) {
+    switch (value) {
+      case 'in_progress':
+        return TaskStatus.inProgress;
+      case 'done':
+        return TaskStatus.done;
+      default:
+        return TaskStatus.todo;
+    }
+  }
+}
+
+class TaskModel {
+  final int id;
   final String title;
   final String description;
-  final String cleanDescription;
-  final String priority;
-  final String? assignedTo;
-  final DateTime? dueDate;
+  final TaskStatus status;
+  final int? assignedTo;
+  // TODO: potwierdź nazwę pola z backendem – może być 'project_id'
+  final int? project;
+  final List<int> tagIds;
+  final String? dueDate;
 
-  Task({
-    this.id,
+  const TaskModel({
+    required this.id,
     required this.title,
     required this.description,
-    required this.cleanDescription,
-    required this.priority,
+    required this.status,
     this.assignedTo,
+    this.project,
+    required this.tagIds,
     this.dueDate,
   });
 
-  factory Task.fromJson(Map<String, dynamic> json) {
-    try {
-      String rawDesc = json['description']?.toString() ?? '';
+  factory TaskModel.fromJson(Map<String, dynamic> json) => TaskModel(
+    id: json['id'] as int,
+    title: json['title'] as String,
+    description: json['description'] as String? ?? '',
+    status: TaskStatusExt.fromString(json['status'] as String?),
+    assignedTo: json['assigned_to'] as int?,
+    project: json['project'] as int?,
+    tagIds:
+        (json['tag_ids'] as List<dynamic>?)?.map((e) => e as int).toList() ??
+        [],
+    dueDate: json['due_date'] as String?,
+  );
 
-      String parsedPriority = 'Normalny';
-      if (rawDesc.contains('[Priorytet: Wysoki]'))
-        parsedPriority = 'Wysoki';
-      else if (rawDesc.contains('[Priorytet: Niski]'))
-        parsedPriority = 'Niski';
+  Map<String, dynamic> toJson() => {
+    'title': title,
+    'description': description,
+    'status': status.value,
+    'assigned_to': assignedTo,
+    'project': project,
+    'tag_ids': tagIds,
+    'due_date': dueDate,
+  };
 
-      String? parsedUser;
-      final userMatch = RegExp(r'\[Dla: (.*?)\]').firstMatch(rawDesc);
-      if (userMatch != null) parsedUser = userMatch.group(1);
-
-      String cleaned = rawDesc
-          .replaceAll(RegExp(r'\n?\[Priorytet: .*?\]'), '')
-          .replaceAll(RegExp(r'\n?\[Dla: .*?\]'), '')
-          .trim();
-
-      return Task(
-        id: json['id'] is int
-            ? json['id']
-            : int.tryParse(json['id']?.toString() ?? ''),
-        title: json['title']?.toString() ?? 'Zadanie bez tytulu',
-        description: rawDesc,
-        cleanDescription: cleaned.isEmpty ? 'Brak opisu' : cleaned,
-        priority: parsedPriority,
-        assignedTo: parsedUser,
-        dueDate: json['due_date'] != null
-            ? DateTime.tryParse(json['due_date'].toString())
-            : null,
-      );
-    } catch (e) {
-      return Task(
-        id: null,
-        title: 'Blad formatu zadania',
-        description: '',
-        cleanDescription: 'Dane tego zadania sa niepelne w bazie.',
-        priority: 'Normalny',
-      );
-    }
-  }
+  TaskModel copyWith({
+    String? title,
+    String? description,
+    TaskStatus? status,
+    int? assignedTo,
+    int? project,
+    List<int>? tagIds,
+    String? dueDate,
+  }) => TaskModel(
+    id: id,
+    title: title ?? this.title,
+    description: description ?? this.description,
+    status: status ?? this.status,
+    assignedTo: assignedTo ?? this.assignedTo,
+    project: project ?? this.project,
+    tagIds: tagIds ?? this.tagIds,
+    dueDate: dueDate ?? this.dueDate,
+  );
 }
