@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../core/theme/app_theme.dart';
 import '../models/task_model.dart';
 import 'task_card.dart';
@@ -9,29 +10,29 @@ class KanbanColumn extends StatelessWidget {
 
   const KanbanColumn({super.key, required this.status, required this.tasks});
 
-  Color get _headerColor {
+  Color get _color {
     switch (status) {
       case TaskStatus.todo:
-        return AppColors.textSecondary;
-      case TaskStatus.inProgress:
         return AppColors.orange;
+      case TaskStatus.inProgress:
+        return AppColors.purple;
       case TaskStatus.done:
-        return Colors.green;
+        return AppColors.success;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 280,
+      width: 290,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: _headerColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              color: _color.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(AppRadius.lg),
             ),
             child: Row(
               children: [
@@ -39,16 +40,16 @@ class KanbanColumn extends StatelessWidget {
                   width: 10,
                   height: 10,
                   decoration: BoxDecoration(
-                    color: _headerColor,
+                    color: _color,
                     shape: BoxShape.circle,
                   ),
                 ),
                 const SizedBox(width: 8),
                 Text(
                   status.label,
-                  style: TextStyle(
-                    color: _headerColor,
-                    fontWeight: FontWeight.bold,
+                  style: GoogleFonts.poppins(
+                    color: _color,
+                    fontWeight: FontWeight.w600,
                     fontSize: 14,
                   ),
                 ),
@@ -56,36 +57,37 @@ class KanbanColumn extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
-                    vertical: 2,
+                    vertical: 3,
                   ),
                   decoration: BoxDecoration(
-                    color: _headerColor.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(10),
+                    color: _color.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(AppRadius.full),
                   ),
                   child: Text(
                     tasks.length.toString(),
-                    style: TextStyle(
-                      color: _headerColor,
+                    style: GoogleFonts.poppins(
+                      color: _color,
                       fontSize: 12,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           if (tasks.isEmpty)
             Container(
               height: 80,
               decoration: BoxDecoration(
+                color: Colors.white,
                 border: Border.all(color: AppColors.divider),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.xl),
               ),
-              child: const Center(
+              child: Center(
                 child: Text(
                   'Brak zadań',
-                  style: TextStyle(color: AppColors.textSecondary),
+                  style: GoogleFonts.poppins(color: AppColors.textSecondary),
                 ),
               ),
             )

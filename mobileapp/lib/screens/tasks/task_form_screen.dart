@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/task_model.dart';
@@ -90,7 +91,6 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
         status: _status,
         assignedTo: _assignedTo,
         dueDate: _dueDate,
-        // Jawnie przekazujemy projectId z widgetu – nie polegamy na stanie providera
         projectId: widget.projectId,
       );
     }
@@ -104,13 +104,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(taskProvider.error ?? 'Błąd zapisu'),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 5),
-          action: SnackBarAction(
-            label: 'OK',
-            textColor: Colors.white,
-            onPressed: () {},
-          ),
+          backgroundColor: AppColors.error,
         ),
       );
     }
@@ -140,151 +134,271 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_isEdit ? 'Edytuj zadanie' : 'Nowe zadanie'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildHeader(context),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildInputCard(),
+                      const SizedBox(height: 16),
+                      _buildStatusCard(),
+                      const SizedBox(height: 16),
+                      _buildAssigneeCard(),
+                      const SizedBox(height: 16),
+                      _buildDateCard(),
+                      const SizedBox(height: 32),
+                      GradientButton(
+                        label: _isEdit ? 'Zapisz zmiany' : 'Utwórz zadanie',
+                        onPressed: _loading ? null : _submit,
+                        isLoading: _loading,
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextFormField(
-                controller: _titleCtrl,
-                textInputAction: TextInputAction.next,
-                decoration: const InputDecoration(
-                  labelText: 'Tytuł zadania *',
-                  prefixIcon: Icon(Icons.title),
-                ),
-                validator: (v) =>
-                    v == null || v.trim().isEmpty ? 'Pole wymagane' : null,
-              ),
-              const SizedBox(height: 16),
+    );
+  }
 
-              TextFormField(
-                controller: _descCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Opis',
-                  prefixIcon: Icon(Icons.description_outlined),
-                  alignLabelWithHint: true,
-                ),
-                maxLines: 3,
-                textInputAction: TextInputAction.newline,
-              ),
-              const SizedBox(height: 20),
-
-              const Text(
-                'Status',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary,
-                  fontSize: 13,
-                ),
-              ),
-              const SizedBox(height: 8),
-              SegmentedButton<TaskStatus>(
-                segments: TaskStatus.values
-                    .map(
-                      (s) => ButtonSegment(
-                        value: s,
-                        label: Text(
-                          s.label,
-                          style: const TextStyle(fontSize: 11),
-                        ),
-                      ),
-                    )
-                    .toList(),
-                selected: {_status},
-                onSelectionChanged: (s) => setState(() => _status = s.first),
-                style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.resolveWith(
-                    (states) => states.contains(WidgetState.selected)
-                        ? AppColors.purple
-                        : null,
+  Widget _buildHeader(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () => context.pop(),
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.cardShadow,
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
                   ),
-                  foregroundColor: WidgetStateProperty.resolveWith(
-                    (states) => states.contains(WidgetState.selected)
-                        ? Colors.white
-                        : AppColors.textSecondary,
-                  ),
-                ),
+                ],
               ),
-              const SizedBox(height: 20),
+              child: const Icon(
+                Icons.arrow_back_rounded,
+                color: AppColors.textPrimary,
+                size: 20,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            _isEdit ? 'Edytuj zadanie' : 'Nowe zadanie',
+            style: GoogleFonts.poppins(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-              if (_usersLoading)
-                const Center(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8),
-                    child: SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+  Widget _buildCard({required Widget child}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.cardShadow,
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(20),
+      child: child,
+    );
+  }
+
+  Widget _buildInputCard() {
+    return _buildCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextFormField(
+            controller: _titleCtrl,
+            textInputAction: TextInputAction.next,
+            style: GoogleFonts.poppins(fontSize: 14),
+            decoration: const InputDecoration(
+              labelText: 'Tytuł zadania *',
+              prefixIcon: Icon(Icons.title_rounded),
+            ),
+            validator: (v) =>
+                v == null || v.trim().isEmpty ? 'Pole wymagane' : null,
+          ),
+          const SizedBox(height: 14),
+          TextFormField(
+            controller: _descCtrl,
+            style: GoogleFonts.poppins(fontSize: 14),
+            decoration: const InputDecoration(
+              labelText: 'Opis',
+              prefixIcon: Icon(Icons.description_outlined),
+              alignLabelWithHint: true,
+            ),
+            maxLines: 3,
+            textInputAction: TextInputAction.newline,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusCard() {
+    return _buildCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Status',
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
+              fontSize: 13,
+            ),
+          ),
+          const SizedBox(height: 12),
+          SegmentedButton<TaskStatus>(
+            segments: TaskStatus.values
+                .map(
+                  (s) => ButtonSegment(
+                    value: s,
+                    label: Text(
+                      s.label,
+                      style: GoogleFonts.poppins(fontSize: 11),
                     ),
                   ),
                 )
-              else if (_users.isNotEmpty)
-                DropdownButtonFormField<int?>(
-                  value: _assignedTo,
-                  isExpanded: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Przypisz do',
-                    prefixIcon: Icon(Icons.person_outline),
-                  ),
-                  items: [
-                    const DropdownMenuItem(
-                      value: null,
-                      child: Text('Nieprzypisane'),
-                    ),
-                    ..._users.map(
-                      (u) => DropdownMenuItem(
-                        value: u.id, // int – poprawne
-                        child: Text(u.username),
-                      ),
-                    ),
-                  ],
-                  onChanged: (v) => setState(() => _assignedTo = v),
-                ),
-              const SizedBox(height: 16),
-
-              InkWell(
-                onTap: _pickDate,
-                borderRadius: BorderRadius.circular(12),
-                child: InputDecorator(
-                  decoration: InputDecoration(
-                    labelText: 'Termin (opcjonalnie)',
-                    prefixIcon: const Icon(Icons.calendar_today_outlined),
-                    suffixIcon: _dueDate != null
-                        ? IconButton(
-                            icon: const Icon(Icons.clear, size: 18),
-                            onPressed: () => setState(() => _dueDate = null),
-                          )
-                        : null,
-                  ),
-                  child: Text(
-                    _dueDate ?? 'Wybierz datę',
-                    style: TextStyle(
-                      color: _dueDate != null
-                          ? AppColors.textPrimary
-                          : AppColors.textSecondary,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              GradientButton(
-                label: _isEdit ? 'Zapisz zmiany' : 'Utwórz zadanie',
-                onPressed: _loading ? null : _submit,
-                isLoading: _loading,
-              ),
-            ],
+                .toList(),
+            selected: {_status},
+            onSelectionChanged: (s) => setState(() => _status = s.first),
           ),
-        ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAssigneeCard() {
+    return _buildCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Przypisanie',
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
+              fontSize: 13,
+            ),
+          ),
+          const SizedBox(height: 12),
+          if (_usersLoading)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+            )
+          else if (_users.isNotEmpty)
+            DropdownButtonFormField<int?>(
+              value: _assignedTo,
+              isExpanded: true,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                color: AppColors.textPrimary,
+              ),
+              decoration: const InputDecoration(
+                labelText: 'Przypisz do',
+                prefixIcon: Icon(Icons.person_outline_rounded),
+              ),
+              items: [
+                DropdownMenuItem(
+                  value: null,
+                  child: Text(
+                    'Nieprzypisane',
+                    style: GoogleFonts.poppins(color: AppColors.textSecondary),
+                  ),
+                ),
+                ..._users.map(
+                  (u) => DropdownMenuItem(
+                    value: u.id,
+                    child: Text(u.username, style: GoogleFonts.poppins()),
+                  ),
+                ),
+              ],
+              onChanged: (v) => setState(() => _assignedTo = v),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDateCard() {
+    return _buildCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Termin',
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
+              fontSize: 13,
+            ),
+          ),
+          const SizedBox(height: 12),
+          InkWell(
+            onTap: _pickDate,
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            child: InputDecorator(
+              decoration: InputDecoration(
+                labelText: 'Termin (opcjonalnie)',
+                prefixIcon: const Icon(Icons.calendar_today_outlined),
+                suffixIcon: _dueDate != null
+                    ? IconButton(
+                        icon: const Icon(Icons.clear, size: 18),
+                        onPressed: () => setState(() => _dueDate = null),
+                        color: AppColors.textSecondary,
+                      )
+                    : null,
+              ),
+              child: Text(
+                _dueDate ?? 'Wybierz datę',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: _dueDate != null
+                      ? AppColors.textPrimary
+                      : AppColors.textSecondary,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

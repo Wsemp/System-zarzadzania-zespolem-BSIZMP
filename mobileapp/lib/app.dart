@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
 import 'models/task_model.dart';
@@ -9,11 +10,13 @@ import 'screens/auth/login_screen.dart';
 import 'screens/auth/otp_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/auth/welcome_screen.dart';
+import 'screens/calendar/calendar_screen.dart';
 import 'screens/invitations/invitations_screen.dart';
 import 'screens/notifications/notifications_screen.dart';
 import 'screens/profile/profile_screen.dart';
 import 'screens/projects/project_detail_screen.dart';
 import 'screens/projects/projects_list_screen.dart';
+import 'screens/home/home_screen.dart';
 import 'screens/splash/splash_screen.dart';
 import 'screens/tasks/task_detail_screen.dart';
 import 'screens/tasks/task_form_screen.dart';
@@ -102,7 +105,18 @@ final _router = GoRouter(
       path: '/otp',
       builder: (_, state) => OtpScreen(contact: state.extra as String?),
     ),
-    GoRoute(path: '/projects', builder: (_, __) => const ProjectsListScreen()),
+    ShellRoute(
+      builder: (context, state, child) => MainShell(child: child),
+      routes: [
+        GoRoute(path: '/home', builder: (_, __) => const HomeScreen()),
+        GoRoute(
+          path: '/projects',
+          builder: (_, __) => const ProjectsListScreen(),
+        ),
+        GoRoute(path: '/calendar', builder: (_, __) => const CalendarScreen()),
+        GoRoute(path: '/profile', builder: (_, __) => const ProfileScreen()),
+      ],
+    ),
     GoRoute(
       path: '/projects/:id',
       builder: (_, state) => ProjectDetailScreen(
@@ -124,7 +138,6 @@ final _router = GoRouter(
       path: '/tasks/:id/edit',
       builder: (_, state) => TaskFormScreen(task: state.extra as TaskModel?),
     ),
-    GoRoute(path: '/profile', builder: (_, __) => const ProfileScreen()),
     GoRoute(
       path: '/change-password',
       builder: (_, __) => const ChangePasswordScreen(),
@@ -147,3 +160,156 @@ final _router = GoRouter(
     return null;
   },
 );
+
+class MainShell extends StatelessWidget {
+  final Widget child;
+  const MainShell({super.key, required this.child});
+
+  int _locationToIndex(BuildContext context) {
+    final loc = GoRouterState.of(context).matchedLocation;
+    if (loc.startsWith('/projects')) return 1;
+    if (loc.startsWith('/calendar')) return 2;
+    if (loc.startsWith('/profile')) return 3;
+    return 0;
+  }
+
+  void _onTap(BuildContext context, int index) {
+    switch (index) {
+      case 0:
+        context.go('/home');
+        break;
+      case 1:
+        context.go('/projects');
+        break;
+      case 2:
+        context.go('/calendar');
+        break;
+      case 3:
+        context.go('/profile');
+        break;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final currentIndex = _locationToIndex(context);
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: child,
+      bottomNavigationBar: _FloatingBottomNav(
+        currentIndex: currentIndex,
+        onTap: (i) => _onTap(context, i),
+      ),
+    );
+  }
+}
+
+class _FloatingBottomNav extends StatelessWidget {
+  final int currentIndex;
+  final ValueChanged<int> onTap;
+
+  const _FloatingBottomNav({required this.currentIndex, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+      child: Container(
+        height: 68,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(AppRadius.xxl),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.purple.withOpacity(0.15),
+              blurRadius: 24,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _NavItem(
+              icon: Icons.home_rounded,
+              label: 'Home',
+              active: currentIndex == 0,
+              onTap: () => onTap(0),
+            ),
+            _NavItem(
+              icon: Icons.folder_rounded,
+              label: 'Projekty',
+              active: currentIndex == 1,
+              onTap: () => onTap(1),
+            ),
+            _NavItem(
+              icon: Icons.calendar_month_rounded,
+              label: 'Kalendarz',
+              active: currentIndex == 2,
+              onTap: () => onTap(2),
+            ),
+            _NavItem(
+              icon: Icons.person_rounded,
+              label: 'Konto',
+              active: currentIndex == 3,
+              onTap: () => onTap(3),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NavItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool active;
+  final VoidCallback onTap;
+
+  const _NavItem({
+    required this.icon,
+    required this.label,
+    required this.active,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOut,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: active
+              ? AppColors.purple.withOpacity(0.1)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 22,
+              color: active ? AppColors.purple : AppColors.textSecondary,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 10,
+                fontWeight: active ? FontWeight.w600 : FontWeight.w400,
+                color: active ? AppColors.purple : AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

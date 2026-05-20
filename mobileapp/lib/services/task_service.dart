@@ -5,18 +5,24 @@ import '../core/api/api_endpoints.dart';
 import '../models/task_model.dart';
 
 class TaskService {
-  static Future<List<TaskModel>> getTasks({int? projectId}) async {
-    final path = projectId != null
-        ? '${ApiEndpoints.tasks}?project=$projectId'
+  static Future<List<TaskModel>> getTasks({
+    int? projectId,
+    int? assignedTo,
+  }) async {
+    final params = <String>[];
+    if (projectId != null) params.add('project=$projectId');
+    if (assignedTo != null) params.add('assigned_to=$assignedTo');
+
+    final path = params.isNotEmpty
+        ? '${ApiEndpoints.tasks}?${params.join('&')}'
         : ApiEndpoints.tasks;
 
     final data = await ApiClient.get(path);
     final all = (data as List).map((j) => TaskModel.fromJson(j)).toList();
 
     debugPrint(
-      '[TASK] getTasks – pobranych: ${all.length}, projectId: $projectId',
+      '[TASK] getTasks – pobranych: ${all.length}, projectId: $projectId, assignedTo: $assignedTo',
     );
-    all.forEach((t) => debugPrint('  task#${t.id} project=${t.project}'));
 
     if (projectId != null) {
       final filtered = all.where((t) => t.project == projectId).toList();
@@ -45,9 +51,7 @@ class TaskService {
       'description': description,
       'status': status.value,
       if (assignedTo != null) 'assigned_to': assignedTo,
-      // Backend używa HyperlinkedRelatedField – wymaga pełnego URL
       if (projectId != null) 'project': ApiEndpoints.projectUrl(projectId),
-      // Backend wymaga tag_ids zawsze (nawet pusta lista)
       'tag_ids': tagIds ?? [],
       if (dueDate != null) 'due_date': dueDate,
     };

@@ -25,9 +25,9 @@ class _SplashScreenState extends State<SplashScreen> {
     await auth.checkAuth();
     if (!mounted) return;
     if (auth.isAuthenticated) {
-      context.go('/projects');
+      context.go('/home');
     } else {
-      context.go('/login');
+      context.go('/welcome');
     }
   }
 

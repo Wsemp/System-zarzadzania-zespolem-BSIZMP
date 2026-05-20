@@ -20,7 +20,8 @@ class GradientButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final grad = gradient ??
+    final grad =
+        gradient ??
         (onPressed != null
             ? AppColors.gradientPurple
             : const LinearGradient(colors: [Colors.grey, Colors.grey]));
@@ -67,31 +68,6 @@ class GradientButton extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class OrangeGradientButton extends StatelessWidget {
-  final String label;
-  final VoidCallback? onPressed;
-  final bool isLoading;
-  final IconData? icon;
-
-  const OrangeGradientButton({
-    super.key,
-    required this.label,
-    required this.onPressed,
-    this.isLoading = false,
-    this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GradientButton(
-      label: label,
-      onPressed: onPressed,
-      isLoading: isLoading,
-      gradient: AppColors.gradientOrange,
     );
   }
 }

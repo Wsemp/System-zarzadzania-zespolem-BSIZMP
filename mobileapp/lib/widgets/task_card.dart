@@ -77,7 +77,7 @@ class TaskCard extends StatelessWidget {
                       Row(
                         children: [
                           if (task.dueDate != null) ...[
-                            Icon(
+                            const Icon(
                               Icons.calendar_today_outlined,
                               size: 12,
                               color: AppColors.textSecondary,
@@ -150,7 +150,7 @@ class _UserAvatar extends StatelessWidget {
     return Container(
       width: 26,
       height: 26,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: AppColors.gradientPurple,
         shape: BoxShape.circle,
       ),

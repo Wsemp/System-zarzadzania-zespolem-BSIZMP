@@ -16,13 +16,16 @@ class TaskProvider extends ChangeNotifier {
   List<TaskModel> getByStatus(TaskStatus status) =>
       _tasks.where((t) => t.status == status).toList();
 
-  Future<void> loadTasks({int? projectId}) async {
+  Future<void> loadTasks({int? projectId, int? assignedTo}) async {
     _loading = true;
     _currentProjectId = projectId;
     _error = null;
     notifyListeners();
     try {
-      _tasks = await TaskService.getTasks(projectId: projectId);
+      _tasks = await TaskService.getTasks(
+        projectId: projectId,
+        assignedTo: assignedTo,
+      );
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -31,8 +34,6 @@ class TaskProvider extends ChangeNotifier {
     }
   }
 
-  /// [projectId] – bezpośrednie ID projektu z ekranu formularza.
-  /// Fallback do [_currentProjectId] gdy nie podano (np. tworzenie poza kontekstem projektu).
   Future<bool> createTask({
     required String title,
     required String description,
