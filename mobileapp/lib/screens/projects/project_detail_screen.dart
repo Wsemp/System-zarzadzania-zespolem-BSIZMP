@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/task_model.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/task_provider.dart';
 import '../../widgets/kanban_column.dart';
 
@@ -24,6 +25,7 @@ class ProjectDetailScreen extends StatefulWidget {
 class _ProjectDetailScreenState extends State<ProjectDetailScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  bool _showOnlyMine = true;
 
   @override
   void initState() {
@@ -43,6 +45,12 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
   @override
   Widget build(BuildContext context) {
     final taskProvider = context.watch<TaskProvider>();
+    final currentUserId = context.read<AuthProvider>().user?.id;
+
+    final allTasks = taskProvider.tasks;
+    final filteredTasks = _showOnlyMine && currentUserId != null
+        ? allTasks.where((t) => t.assignedTo == currentUserId).toList()
+        : allTasks;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -52,12 +60,19 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
           children: [
             _buildHeader(context),
             _buildTabBar(),
+            _buildFilterToggle(),
             Expanded(
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  _KanbanView(taskProvider: taskProvider),
-                  _ListView(taskProvider: taskProvider),
+                  _KanbanView(
+                    tasks: filteredTasks,
+                    loading: taskProvider.loading,
+                  ),
+                  _ListView(
+                    tasks: filteredTasks,
+                    loading: taskProvider.loading,
+                  ),
                 ],
               ),
             ),
@@ -162,6 +177,41 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
     );
   }
 
+  Widget _buildFilterToggle() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+      child: Container(
+        height: 36,
+        padding: const EdgeInsets.all(3),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.cardShadow,
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            _ToggleChip(
+              label: 'Moje zadania',
+              selected: _showOnlyMine,
+              onTap: () => setState(() => _showOnlyMine = true),
+            ),
+            _ToggleChip(
+              label: 'Wszystkie',
+              selected: !_showOnlyMine,
+              onTap: () => setState(() => _showOnlyMine = false),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildFAB(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
@@ -186,13 +236,54 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
   }
 }
 
-class _KanbanView extends StatelessWidget {
-  final TaskProvider taskProvider;
-  const _KanbanView({required this.taskProvider});
+class _ToggleChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _ToggleChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    if (taskProvider.loading) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          decoration: BoxDecoration(
+            gradient: selected ? AppColors.gradientPurple : null,
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+              color: selected ? Colors.white : AppColors.textSecondary,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _KanbanView extends StatelessWidget {
+  final List<TaskModel> tasks;
+  final bool loading;
+  const _KanbanView({required this.tasks, required this.loading});
+
+  List<TaskModel> _byStatus(TaskStatus status) =>
+      tasks.where((t) => t.status == status).toList();
+
+  @override
+  Widget build(BuildContext context) {
+    if (loading) {
       return const Center(child: CircularProgressIndicator());
     }
     return SingleChildScrollView(
@@ -203,17 +294,17 @@ class _KanbanView extends StatelessWidget {
         children: [
           KanbanColumn(
             status: TaskStatus.todo,
-            tasks: taskProvider.getByStatus(TaskStatus.todo),
+            tasks: _byStatus(TaskStatus.todo),
           ),
           const SizedBox(width: 12),
           KanbanColumn(
             status: TaskStatus.inProgress,
-            tasks: taskProvider.getByStatus(TaskStatus.inProgress),
+            tasks: _byStatus(TaskStatus.inProgress),
           ),
           const SizedBox(width: 12),
           KanbanColumn(
             status: TaskStatus.done,
-            tasks: taskProvider.getByStatus(TaskStatus.done),
+            tasks: _byStatus(TaskStatus.done),
           ),
         ],
       ),
@@ -222,15 +313,16 @@ class _KanbanView extends StatelessWidget {
 }
 
 class _ListView extends StatelessWidget {
-  final TaskProvider taskProvider;
-  const _ListView({required this.taskProvider});
+  final List<TaskModel> tasks;
+  final bool loading;
+  const _ListView({required this.tasks, required this.loading});
 
   @override
   Widget build(BuildContext context) {
-    if (taskProvider.loading) {
+    if (loading) {
       return const Center(child: CircularProgressIndicator());
     }
-    if (taskProvider.tasks.isEmpty) {
+    if (tasks.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -254,11 +346,8 @@ class _ListView extends StatelessWidget {
     }
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
-      itemCount: taskProvider.tasks.length,
-      itemBuilder: (_, i) {
-        final task = taskProvider.tasks[i];
-        return _TaskListTile(task: task);
-      },
+      itemCount: tasks.length,
+      itemBuilder: (_, i) => _TaskListTile(task: tasks[i]),
     );
   }
 }

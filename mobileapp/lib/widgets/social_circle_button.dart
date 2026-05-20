@@ -1,7 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 const double _kButtonSize = 52.0;
-const double _kIconSize = 22.0;
+
+const String _googleLogoSvg = '''
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+</svg>
+''';
 
 class SocialCircleButton extends StatelessWidget {
   final Widget child;
@@ -15,15 +25,25 @@ class SocialCircleButton extends StatelessWidget {
     this.onTap,
   });
 
-  factory SocialCircleButton.google({VoidCallback? onTap}) =>
-      SocialCircleButton(onTap: onTap, child: const _GoogleG());
+  factory SocialCircleButton.google({VoidCallback? onTap}) {
+    return SocialCircleButton(
+      onTap: onTap,
+      backgroundColor: Colors.white,
+      child: SvgPicture.string(_googleLogoSvg, width: 24, height: 24),
+    );
+  }
 
-  factory SocialCircleButton.facebook({VoidCallback? onTap}) =>
-      SocialCircleButton(
-        onTap: onTap,
-        backgroundColor: const Color(0xFF1877F2),
-        child: const _FacebookF(),
-      );
+  factory SocialCircleButton.facebook({VoidCallback? onTap}) {
+    return SocialCircleButton(
+      onTap: onTap,
+      backgroundColor: const Color(0xFF1877F2),
+      child: const FaIcon(
+        FontAwesomeIcons.facebookF,
+        color: Colors.white,
+        size: 22,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,117 +70,4 @@ class SocialCircleButton extends StatelessWidget {
       ),
     );
   }
-}
-
-class _GoogleG extends StatelessWidget {
-  const _GoogleG();
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: _kIconSize,
-      height: _kIconSize,
-      child: CustomPaint(painter: const _GoogleGPainter()),
-    );
-  }
-}
-
-class _GoogleGPainter extends CustomPainter {
-  const _GoogleGPainter();
-
-  static const _blue = Color(0xFF4285F4);
-  static const _red = Color(0xFFEA4335);
-  static const _yellow = Color(0xFFFBBC05);
-  static const _green = Color(0xFF34A853);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final cx = size.width / 2;
-    final cy = size.height / 2;
-    final r = size.width * 0.41;
-    final sw = size.width * 0.20;
-    final rect = Rect.fromCircle(center: Offset(cx, cy), radius: r);
-
-    Paint arc(Color c) => Paint()
-      ..color = c
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = sw
-      ..strokeCap = StrokeCap.butt;
-
-    // Clockwise from 3 o'clock, ~350 total, 10 gap at bar
-    // Green:  5 to 65  (60 sweep)
-    canvas.drawArc(rect, 0.087, 1.047, false, arc(_green));
-    // Yellow: 65 to 125 (60 sweep)
-    canvas.drawArc(rect, 1.134, 1.047, false, arc(_yellow));
-    // Red:   125 to 215 (90 sweep)
-    canvas.drawArc(rect, 2.182, 1.571, false, arc(_red));
-    // Blue:  215 to 355 (140 sweep)
-    canvas.drawArc(rect, 3.752, 2.443, false, arc(_blue));
-
-    // Horizontal bar — blue, from center to right edge
-    canvas.drawLine(
-      Offset(cx, cy),
-      Offset(cx + r + sw / 2, cy),
-      Paint()
-        ..color = _blue
-        ..strokeWidth = sw
-        ..strokeCap = StrokeCap.square,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_GoogleGPainter old) => false;
-}
-
-class _FacebookF extends StatelessWidget {
-  const _FacebookF();
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: _kIconSize,
-      height: _kIconSize,
-      child: CustomPaint(painter: const _FacebookFPainter()),
-    );
-  }
-}
-
-class _FacebookFPainter extends CustomPainter {
-  const _FacebookFPainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-    final sw = w * 0.18;
-
-    final paint = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = sw
-      ..strokeCap = StrokeCap.square;
-
-    // Vertical stroke
-    final vx = w * 0.52;
-    canvas.drawLine(Offset(vx, h * 0.12), Offset(vx, h * 0.88), paint);
-
-    // Crossbar
-    canvas.drawLine(
-      Offset(w * 0.30, h * 0.50),
-      Offset(w * 0.74, h * 0.50),
-      paint,
-    );
-
-    // Top curve
-    canvas.drawArc(
-      Rect.fromLTWH(w * 0.22, h * 0.08, w * 0.60, h * 0.36),
-      -3.14159,
-      1.5708,
-      false,
-      paint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_FacebookFPainter old) => false;
 }

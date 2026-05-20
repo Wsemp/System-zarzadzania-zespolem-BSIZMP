@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
 import 'models/task_model.dart';
 import 'providers/auth_provider.dart';
+import 'providers/notification_provider.dart';
 import 'screens/auth/change_password_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/otp_screen.dart';
@@ -65,10 +66,13 @@ class _SessionWrapperState extends State<_SessionWrapper> {
   void _onAuthChanged() => _syncSession();
 
   void _syncSession() {
+    final notifProv = context.read<NotificationProvider>();
     if (_auth?.isAuthenticated == true) {
       SessionService.start(_onTimeout);
+      notifProv.startPolling();
     } else {
       SessionService.stop();
+      notifProv.stopPolling();
     }
   }
 

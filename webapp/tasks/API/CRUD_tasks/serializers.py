@@ -1,5 +1,5 @@
 from ...models import Task, Tag
-# from ...services.task_services import create_task
+from ...services.task_services import create_task
 from rest_framework import serializers
 from django.contrib.auth.models import User
 
@@ -51,11 +51,11 @@ class TaskSerializer(serializers.HyperlinkedModelSerializer):
         ]
 
     def create(self, validated_data):
-        tags = validated_data.pop('tags', [])
+        # tags = validated_data.pop('tags', [])
         user = self.context['request'].user
 
-        task = Task.objects.create(created_by=user, **validated_data)
-        task.tags.set(tags)
+        task = create_task(created_by=user, **validated_data)
+        # task.tags.set(tags)
 
         return task
 

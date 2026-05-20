@@ -11,5 +11,3 @@ class InvitationSerializer(serializers.HyperlinkedModelSerializer):
         model = Invitation
         fields = ['url', 'id', 'email', 'inviter', 'project', 'message', 'created_at', 'expires_at', 'accepted', 'accepted_by', 'accepted_at']
 
-#    def create(self, validated_data):
-#        return create_notification(**validated_data)

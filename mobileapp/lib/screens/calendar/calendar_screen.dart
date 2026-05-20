@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/task_model.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/task_provider.dart';
 import '../../widgets/task_card.dart';
 
@@ -22,7 +23,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<TaskProvider>().loadTasks();
+      final userId = context.read<AuthProvider>().user?.id;
+      context.read<TaskProvider>().loadTasks(assignedTo: userId);
     });
   }
 
