@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import '../../core/auth/token_storage.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/auth_clipper.dart';
@@ -37,6 +38,23 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _error;
 
   @override
+  void initState() {
+    super.initState();
+    _loadSavedCredentials();
+  }
+
+  Future<void> _loadSavedCredentials() async {
+    final creds = await TokenStorage.getSavedCredentials();
+    if (creds != null && mounted) {
+      setState(() {
+        _userCtrl.text = creds['username']!;
+        _passCtrl.text = creds['password']!;
+        _rememberMe = true;
+      });
+    }
+  }
+
+  @override
   void dispose() {
     _userCtrl.dispose();
     _passCtrl.dispose();
@@ -51,9 +69,21 @@ class _LoginScreenState extends State<LoginScreen> {
     });
     try {
       final auth = context.read<AuthProvider>();
-      final ok = await auth.login(_userCtrl.text.trim(), _passCtrl.text);
+      final ok = await auth.login(
+        _userCtrl.text.trim(),
+        _passCtrl.text,
+        rememberMe: _rememberMe,
+      );
       if (!mounted) return;
       if (ok) {
+        if (_rememberMe) {
+          await TokenStorage.saveCredentials(
+            _userCtrl.text.trim(),
+            _passCtrl.text,
+          );
+        } else {
+          await TokenStorage.clearCredentials();
+        }
         context.go('/home');
       } else {
         setState(() => _error = auth.error ?? 'Nieprawidłowe dane logowania');
@@ -61,6 +91,57 @@ class _LoginScreenState extends State<LoginScreen> {
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  Future<void> _showForgotPasswordDialog() async {
+    final emailCtrl = TextEditingController(
+      text: _userCtrl.text.contains('@') ? _userCtrl.text : '',
+    );
+
+    await showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (ctx) => _ForgotPasswordDialog(
+        emailCtrl: emailCtrl,
+        onSend: (email) async {
+          final auth = context.read<AuthProvider>();
+          return auth.forgotPassword(email);
+        },
+      ),
+    );
+  }
+
+  void _showComingSoon(String platform) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          'Wkrótce dostępne',
+          style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 17),
+        ),
+        content: Text(
+          'Logowanie przez $platform będzie dostępne w kolejnej wersji aplikacji. Zapraszamy wkrótce!',
+          style: GoogleFonts.poppins(
+            fontSize: 13,
+            color: AppColors.textSecondary,
+            height: 1.5,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              'OK',
+              style: GoogleFonts.poppins(
+                color: const Color(0xFF7C5CFC),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   InputDecoration _inputDeco(String hint, IconData icon, {Widget? suffix}) {
@@ -274,7 +355,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               const Spacer(),
                               GestureDetector(
-                                onTap: () {},
+                                onTap: _showForgotPasswordDialog,
                                 child: Text(
                                   'Zapomniałeś hasła?',
                                   style: GoogleFonts.poppins(
@@ -338,9 +419,13 @@ class _LoginScreenState extends State<LoginScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              SocialCircleButton.facebook(),
+                              SocialCircleButton.facebook(
+                                onTap: () => _showComingSoon('Facebook'),
+                              ),
                               const SizedBox(width: 24),
-                              SocialCircleButton.google(),
+                              SocialCircleButton.google(
+                                onTap: () => _showComingSoon('Google'),
+                              ),
                             ],
                           ),
                           const SizedBox(height: 28),
@@ -377,6 +462,172 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _ForgotPasswordDialog extends StatefulWidget {
+  final TextEditingController emailCtrl;
+  final Future<String?> Function(String email) onSend;
+
+  const _ForgotPasswordDialog({required this.emailCtrl, required this.onSend});
+
+  @override
+  State<_ForgotPasswordDialog> createState() => _ForgotPasswordDialogState();
+}
+
+class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
+  bool _sending = false;
+  bool _sent = false;
+  String? _error;
+
+  Future<void> _send() async {
+    final email = widget.emailCtrl.text.trim();
+    if (email.isEmpty || !email.contains('@')) {
+      setState(() => _error = 'Podaj prawidłowy adres e-mail');
+      return;
+    }
+    setState(() {
+      _sending = true;
+      _error = null;
+    });
+    final error = await widget.onSend(email);
+    if (!mounted) return;
+    setState(() {
+      _sending = false;
+      if (error == null) {
+        _sent = true;
+      } else {
+        _error = error;
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: Text(
+        'Resetuj hasło',
+        style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 17),
+      ),
+      content: _sent
+          ? Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.mark_email_read_outlined,
+                  size: 48,
+                  color: Color(0xFF7C5CFC),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Link do resetowania hasła został wysłany na adres:\n${widget.emailCtrl.text.trim()}',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            )
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Podaj swój adres e-mail, a wyślemy Ci link do resetowania hasła.',
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: widget.emailCtrl,
+                  keyboardType: TextInputType.emailAddress,
+                  style: GoogleFonts.poppins(fontSize: 14),
+                  decoration: InputDecoration(
+                    hintText: 'Adres e-mail',
+                    hintStyle: GoogleFonts.poppins(
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                    ),
+                    prefixIcon: const Icon(Icons.email_outlined, size: 20),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    filled: true,
+                    fillColor: const Color(0xFFF7F7FB),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF7C5CFC),
+                        width: 1.5,
+                      ),
+                    ),
+                  ),
+                ),
+                if (_error != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    _error!,
+                    style: GoogleFonts.poppins(
+                      color: Colors.red.shade700,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+      actions: _sent
+          ? [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(
+                  'OK',
+                  style: GoogleFonts.poppins(
+                    color: const Color(0xFF7C5CFC),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ]
+          : [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(
+                  'Anuluj',
+                  style: GoogleFonts.poppins(color: AppColors.textSecondary),
+                ),
+              ),
+              TextButton(
+                onPressed: _sending ? null : _send,
+                child: _sending
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Color(0xFF7C5CFC),
+                        ),
+                      )
+                    : Text(
+                        'Wyślij',
+                        style: GoogleFonts.poppins(
+                          color: const Color(0xFF7C5CFC),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+              ),
+            ],
     );
   }
 }

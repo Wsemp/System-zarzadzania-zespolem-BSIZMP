@@ -18,18 +18,23 @@ class TaskService {
         : ApiEndpoints.tasks;
 
     final data = await ApiClient.get(path);
-    final all = (data as List).map((j) => TaskModel.fromJson(j)).toList();
+    List<TaskModel> result = (data as List)
+        .map((j) => TaskModel.fromJson(j))
+        .toList();
 
-    debugPrint(
-      '[TASK] getTasks – pobranych: ${all.length}, projectId: $projectId, assignedTo: $assignedTo',
-    );
+    debugPrint('[TASK] getTasks – pobranych z serwera: ${result.length}');
 
     if (projectId != null) {
-      final filtered = all.where((t) => t.project == projectId).toList();
-      debugPrint('[TASK] po filtrze projekt=$projectId: ${filtered.length}');
-      return filtered;
+      result = result.where((t) => t.project == projectId).toList();
+      debugPrint('[TASK] po filtrze projekt=$projectId: ${result.length}');
     }
-    return all;
+
+    if (assignedTo != null) {
+      result = result.where((t) => t.assignedTo == assignedTo).toList();
+      debugPrint('[TASK] po filtrze assignedTo=$assignedTo: ${result.length}');
+    }
+
+    return result;
   }
 
   static Future<TaskModel> getTask(int id) async {

@@ -5,9 +5,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/project_model.dart';
+import '../../models/user_model.dart';
 import '../../providers/invitation_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../providers/project_provider.dart';
+import '../../services/invitation_service.dart';
+import '../../services/user_service.dart';
 
 class ProjectsListScreen extends StatefulWidget {
   const ProjectsListScreen({super.key});
@@ -30,68 +33,166 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
   void _showCreateDialog() {
     final nameCtrl = TextEditingController();
     final descCtrl = TextEditingController();
+    final Set<int> selectedIds = {};
+    List<UserModel> users = [];
+    bool usersLoading = true;
+    bool usersRequested = false;
+
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.xl),
-        ),
-        title: Text(
-          'Nowy projekt',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w700),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameCtrl,
-              textInputAction: TextInputAction.next,
-              style: GoogleFonts.poppins(fontSize: 14),
-              decoration: const InputDecoration(labelText: 'Nazwa projektu'),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) {
+          if (!usersRequested) {
+            usersRequested = true;
+            UserService.getUsers()
+                .then((loaded) {
+                  setDialogState(() {
+                    users = loaded;
+                    usersLoading = false;
+                  });
+                })
+                .catchError((_) {
+                  setDialogState(() => usersLoading = false);
+                });
+          }
+
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppRadius.xl),
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: descCtrl,
-              style: GoogleFonts.poppins(fontSize: 14),
-              decoration: const InputDecoration(
-                labelText: 'Opis (opcjonalnie)',
-              ),
-              maxLines: 2,
+            title: Text(
+              'Nowy projekt',
+              style: GoogleFonts.poppins(fontWeight: FontWeight.w700),
             ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(
-              'Anuluj',
-              style: GoogleFonts.poppins(color: AppColors.textSecondary),
-            ),
-          ),
-          Container(
-            decoration: BoxDecoration(
-              gradient: AppColors.gradientPurple,
-              borderRadius: BorderRadius.circular(AppRadius.md),
-            ),
-            child: TextButton(
-              onPressed: () async {
-                if (nameCtrl.text.trim().isEmpty) return;
-                Navigator.pop(ctx);
-                await context.read<ProjectProvider>().createProject(
-                  nameCtrl.text.trim(),
-                  descCtrl.text.trim(),
-                );
-              },
-              child: Text(
-                'Utwórz',
-                style: GoogleFonts.poppins(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
+            content: SizedBox(
+              width: double.maxFinite,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextField(
+                      controller: nameCtrl,
+                      textInputAction: TextInputAction.next,
+                      style: GoogleFonts.poppins(fontSize: 14),
+                      decoration: const InputDecoration(
+                        labelText: 'Nazwa projektu',
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: descCtrl,
+                      style: GoogleFonts.poppins(fontSize: 14),
+                      decoration: const InputDecoration(
+                        labelText: 'Opis (opcjonalnie)',
+                      ),
+                      maxLines: 2,
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Dodaj członków',
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    if (usersLoading)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        child: Center(
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                      )
+                    else if (users.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Text(
+                          'Brak dostępnych użytkowników',
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      )
+                    else
+                      ...users.map(
+                        (u) => CheckboxListTile(
+                          value: selectedIds.contains(u.id),
+                          onChanged: (v) {
+                            setDialogState(() {
+                              if (v == true) {
+                                selectedIds.add(u.id);
+                              } else {
+                                selectedIds.remove(u.id);
+                              }
+                            });
+                          },
+                          title: Text(
+                            u.username,
+                            style: GoogleFonts.poppins(fontSize: 14),
+                          ),
+                          activeColor: AppColors.purple,
+                          controlAffinity: ListTileControlAffinity.leading,
+                          contentPadding: EdgeInsets.zero,
+                          dense: true,
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),
-          ),
-        ],
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(
+                  'Anuluj',
+                  style: GoogleFonts.poppins(color: AppColors.textSecondary),
+                ),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: AppColors.gradientPurple,
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                ),
+                child: TextButton(
+                  onPressed: () async {
+                    if (nameCtrl.text.trim().isEmpty) return;
+                    Navigator.pop(ctx);
+                    final projectProv = context.read<ProjectProvider>();
+                    final ok = await projectProv.createProject(
+                      nameCtrl.text.trim(),
+                      descCtrl.text.trim(),
+                    );
+                    if (ok && selectedIds.isNotEmpty && mounted) {
+                      final createdProject = projectProv.projects.last;
+                      for (final userId in selectedIds) {
+                        try {
+                          await InvitationService.sendInvitation(
+                            projectId: createdProject.id,
+                            inviteeId: userId,
+                          );
+                        } catch (_) {}
+                      }
+                    }
+                  },
+                  child: Text(
+                    'Utwórz',
+                    style: GoogleFonts.poppins(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

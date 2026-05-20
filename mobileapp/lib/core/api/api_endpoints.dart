@@ -8,6 +8,7 @@ class ApiEndpoints {
   static const String tokenRefresh = '/api/token/refresh/';
   static const String register = '/api/auth/register/';
   static const String changePassword = '/api/auth/change-password/';
+  static const String passwordReset = '/api/auth/password-reset/';
 
   // Users
   static const String users = '/api/users/';
@@ -31,10 +32,6 @@ class ApiEndpoints {
   static const String notifications = '/api/notifications/';
   static String notification(int id) => '/api/notifications/$id/';
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // URL helpers – backend używa HyperlinkedModelSerializer,
-  // więc relacje muszą być wysyłane jako pełne URL-e, nie integer ID
-  // ──────────────────────────────────────────────────────────────────────────
   static String userUrl(int id) => '$baseUrl${user(id)}';
   static String projectUrl(int id) => '$baseUrl${project(id)}';
   static String taskUrl(int id) => '$baseUrl${task(id)}';

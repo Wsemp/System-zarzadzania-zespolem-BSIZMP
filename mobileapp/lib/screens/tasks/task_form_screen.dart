@@ -232,17 +232,27 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
     );
   }
 
+  Text _sectionLabel(String text) => Text(
+    text,
+    style: GoogleFonts.poppins(
+      fontWeight: FontWeight.w600,
+      color: AppColors.textSecondary,
+      fontSize: 13,
+    ),
+  );
+
   Widget _buildInputCard() {
     return _buildCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          _sectionLabel('Tytuł zadania'),
+          const SizedBox(height: 12),
           TextFormField(
             controller: _titleCtrl,
             textInputAction: TextInputAction.next,
             style: GoogleFonts.poppins(fontSize: 14),
             decoration: const InputDecoration(
-              labelText: 'Tytuł zadania *',
               prefixIcon: Icon(Icons.title_rounded),
             ),
             validator: (v) =>
@@ -270,14 +280,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Status',
-            style: GoogleFonts.poppins(
-              fontWeight: FontWeight.w600,
-              color: AppColors.textSecondary,
-              fontSize: 13,
-            ),
-          ),
+          _sectionLabel('Status'),
           const SizedBox(height: 12),
           SegmentedButton<TaskStatus>(
             segments: TaskStatus.values
@@ -304,14 +307,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Przypisanie',
-            style: GoogleFonts.poppins(
-              fontWeight: FontWeight.w600,
-              color: AppColors.textSecondary,
-              fontSize: 13,
-            ),
-          ),
+          _sectionLabel('Przypisanie'),
           const SizedBox(height: 12),
           if (_usersLoading)
             const Center(
@@ -333,7 +329,6 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                 color: AppColors.textPrimary,
               ),
               decoration: const InputDecoration(
-                labelText: 'Przypisz do',
                 prefixIcon: Icon(Icons.person_outline_rounded),
               ),
               items: [
@@ -363,21 +358,13 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Termin',
-            style: GoogleFonts.poppins(
-              fontWeight: FontWeight.w600,
-              color: AppColors.textSecondary,
-              fontSize: 13,
-            ),
-          ),
+          _sectionLabel('Termin'),
           const SizedBox(height: 12),
           InkWell(
             onTap: _pickDate,
             borderRadius: BorderRadius.circular(AppRadius.md),
             child: InputDecorator(
               decoration: InputDecoration(
-                labelText: 'Termin (opcjonalnie)',
                 prefixIcon: const Icon(Icons.calendar_today_outlined),
                 suffixIcon: _dueDate != null
                     ? IconButton(
