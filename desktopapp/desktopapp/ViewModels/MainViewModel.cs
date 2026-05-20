@@ -267,7 +267,7 @@ namespace desktopapp.ViewModels
             ApplyFilters(); 
         }
 
-        private void ApplyFilters()
+        public void ApplyFilters()
         {
             if (_allTasks == null) return;
 
@@ -608,5 +608,10 @@ namespace desktopapp.ViewModels
         }
 
         public NotificationService Notifier => NotificationService.Instance;
+
+        public void SetTasksForTesting(List<TaskModel> tasks)
+        {
+            _allTasks = tasks;
+        }
     }
 }
