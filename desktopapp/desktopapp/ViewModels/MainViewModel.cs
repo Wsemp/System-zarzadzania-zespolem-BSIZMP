@@ -95,6 +95,9 @@ namespace desktopapp.ViewModels
         
         [ObservableProperty]
         private string _selectedView = "Zadania";
+
+        [ObservableProperty]
+        private ObservableCollection<InvitationModel> _pendingInvitations = new ObservableCollection<InvitationModel>();
         
         [RelayCommand]
         public void SwitchView(string viewName)
@@ -115,8 +118,15 @@ namespace desktopapp.ViewModels
         {
             await LoadApiUsersAsync();
             await LoadProjectsFromApiAsync(); 
-            await LoadTasksAsync();           
+            await LoadTasksAsync();
+            await LoadInvitationsAsync();
             LoadUserProfile();
+        }
+
+        private async Task LoadInvitationsAsync()
+        {
+            var invitations = await ApiService.Instance.GetPendingInvitationsAsync();
+            PendingInvitations = new ObservableCollection<InvitationModel>(invitations);
         }
 
         private void LoadUserProfile()
@@ -555,6 +565,45 @@ namespace desktopapp.ViewModels
                     window.Close();
                     break;
                 }
+            }
+        }
+
+        [RelayCommand]
+        public async Task AcceptInvitation(int invitationId)
+        {
+            bool success = await ApiService.Instance.AcceptInvitationAsync(invitationId);
+            if (success)
+            {
+                var invitation = PendingInvitations.FirstOrDefault(i => i.Id == invitationId);
+                if (invitation != null)
+                {
+                    PendingInvitations.Remove(invitation);
+                }
+                NotificationService.Instance.Show("Zaakceptowano zaproszenie!");
+                await LoadProjectsFromApiAsync();
+            }
+            else
+            {
+                NotificationService.Instance.Show("Błąd: Nie udało się zaakceptować zaproszenia.");
+            }
+        }
+
+        [RelayCommand]
+        public async Task RejectInvitation(int invitationId)
+        {
+            bool success = await ApiService.Instance.RejectInvitationAsync(invitationId);
+            if (success)
+            {
+                var invitation = PendingInvitations.FirstOrDefault(i => i.Id == invitationId);
+                if (invitation != null)
+                {
+                    PendingInvitations.Remove(invitation);
+                }
+                NotificationService.Instance.Show("Odrzucono zaproszenie.");
+            }
+            else
+            {
+                NotificationService.Instance.Show("Błąd: Nie udało się odrzucić zaproszenia.");
             }
         }
 

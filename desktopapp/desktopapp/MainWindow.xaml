@@ -13,7 +13,6 @@
     </Window.DataContext>
 
     <Window.Resources>
-        <!-- Converter potrzebny do Menu RadioButtons -->
         <vm:StringToBoolConverter x:Key="ViewToCheckedConverter"/>
         
         <Style TargetType="TextBlock" x:Key="DataGridCellPadding">
@@ -24,11 +23,10 @@
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/> <!-- Navbar -->
-            <RowDefinition Height="*"/>    <!-- Main Content -->
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Pasek nawigacyjny z cieniem (Navbar) -->
         <Border Grid.Row="0" Background="White" Padding="15,10">
             <Border.Effect>
                 <DropShadowEffect Color="Black" Opacity="0.1" ShadowDepth="2" BlurRadius="5" Direction="270"/>
@@ -40,22 +38,19 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Logo / Tytuł -->
                 <TextBlock Grid.Column="0" Text="Taskomat" FontWeight="Bold" FontSize="20" VerticalAlignment="Center" Margin="10,0,30,0"/>
 
-                <!-- Nawigacja - symulacja zakładek za pomocą RadioButtonów -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                     <RadioButton Content="Zadania" Style="{StaticResource MenuLinkButton}" IsChecked="{Binding SelectedView, Converter={StaticResource ViewToCheckedConverter}, ConverterParameter='Zadania'}" Command="{Binding SwitchViewCommand}" CommandParameter="Zadania"/>
                     <RadioButton Content="Projekty" Style="{StaticResource MenuLinkButton}" IsChecked="{Binding SelectedView, Converter={StaticResource ViewToCheckedConverter}, ConverterParameter='Projekty'}" Command="{Binding SwitchViewCommand}" CommandParameter="Projekty"/>
+                    <RadioButton Content="Zaproszenia" Style="{StaticResource MenuLinkButton}" IsChecked="{Binding SelectedView, Converter={StaticResource ViewToCheckedConverter}, ConverterParameter='Zaproszenia'}" Command="{Binding SwitchViewCommand}" CommandParameter="Zaproszenia"/>
                     <RadioButton Content="Ustawienia" Style="{StaticResource MenuLinkButton}" IsChecked="{Binding SelectedView, Converter={StaticResource ViewToCheckedConverter}, ConverterParameter='Ustawienia'}" Command="{Binding SwitchViewCommand}" CommandParameter="Ustawienia"/>
                 </StackPanel>
 
-                <!-- Przycisk Logout -->
                 <Button Grid.Column="2" Content="Logout" Style="{StaticResource DangerButton}" Command="{Binding LogoutCommand}" VerticalAlignment="Center" Margin="0,0,10,0"/>
             </Grid>
         </Border>
 
-        <!-- Główna zawartość -->
         <Grid Grid.Row="1" Margin="20">
             
             <Grid>
@@ -119,7 +114,6 @@
                         <DataGridTextColumn Header="Tytuł" Binding="{Binding Title}" Width="*" ElementStyle="{StaticResource DataGridCellPadding}"/>
                         <DataGridTextColumn Header="Przypisany" Binding="{Binding AssignedUser}" Width="150" ElementStyle="{StaticResource DataGridCellPadding}"/>
                         <DataGridTextColumn Header="Termin" Binding="{Binding DueDate, StringFormat=\{0:dd.MM.yyyy\}}" Width="100" ElementStyle="{StaticResource DataGridCellPadding}"/>
-                        
                         <DataGridTemplateColumn Header="Status" Width="130" CellStyle="{StaticResource StatusCellStyle}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
@@ -248,6 +242,48 @@
                         </Button>
                     </StackPanel>
                 </Border>
+            </Grid>
+
+            <Grid>
+                <Grid.Style>
+                    <Style TargetType="Grid">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding SelectedView}" Value="Zaproszenia">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Style>
+                <StackPanel>
+                    <TextBlock Text="Oczekujące Zaproszenia" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,15"/>
+                    <ItemsControl ItemsSource="{Binding PendingInvitations}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="White" BorderBrush="{StaticResource BorderGray}" BorderThickness="1" CornerRadius="4" Padding="15" Margin="0,0,0,10">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <WrapPanel>
+                                                <TextBlock Text="Zostałeś zaproszony do projektu:" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding ProjectName}" FontWeight="Bold" Margin="5,0,5,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="przez" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding InvitedBy}" FontWeight="Bold" Margin="5,0,0,0" VerticalAlignment="Center"/>
+                                            </WrapPanel>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                            <Button Content="Akceptuj" Style="{StaticResource PrimaryButton}" Command="{Binding DataContext.AcceptInvitationCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding Id}" Margin="0,0,10,0"/>
+                                            <Button Content="Odrzuć" Style="{StaticResource DangerButton}" Command="{Binding DataContext.RejectInvitationCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding Id}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
             </Grid>
 
             <Border Background="White" BorderBrush="{StaticResource BorderGray}" BorderThickness="1" CornerRadius="4" Padding="30" HorizontalAlignment="Left" VerticalAlignment="Top">

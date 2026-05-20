@@ -315,5 +315,42 @@ namespace desktopapp.Services
         }
 
         public async Task<bool> DeleteProjectAsync(int projectId) => (await _client.DeleteAsync(_baseUrl + $"api/projects/{projectId}/")).IsSuccessStatusCode;
+
+        public async Task<List<InvitationModel>> GetPendingInvitationsAsync()
+        {
+            try
+            {
+                var response = await _client.GetAsync(_baseUrl + "api/invitations/");
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    return JsonConvert.DeserializeObject<List<InvitationModel>>(json) ?? new List<InvitationModel>();
+                }
+            }
+            catch { }
+            return new List<InvitationModel>();
+        }
+
+        public async Task<bool> AcceptInvitationAsync(int invitationId)
+        {
+            try
+            {
+                var content = new StringContent("{}", Encoding.UTF8, "application/json");
+                var response = await _client.PostAsync(_baseUrl + $"api/invitations/{invitationId}/accept/", content);
+                return response.IsSuccessStatusCode;
+            }
+            catch { return false; }
+        }
+
+        public async Task<bool> RejectInvitationAsync(int invitationId)
+        {
+            try
+            {
+                var content = new StringContent("{}", Encoding.UTF8, "application/json");
+                var response = await _client.PostAsync(_baseUrl + $"api/invitations/{invitationId}/reject/", content);
+                return response.IsSuccessStatusCode;
+            }
+            catch { return false; }
+        }
     }
 }
