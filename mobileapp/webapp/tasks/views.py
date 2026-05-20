@@ -1,0 +1,89 @@
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from .models import Task
+from .selectors import get_tasks, get_task_byid
+from .forms import TaskForm
+from django.http import HttpResponseNotAllowed, HttpResponseForbidden, HttpResponseNotFound
+from .services.task_services import create_task, delete_task, update_task
+
+# show tasks
+
+@login_required
+def show_tasks(request):
+    tasks = get_tasks()
+    return render(request, "tasks/tasks.html", {
+        "tasks": tasks
+    })
+
+# create task
+
+@login_required
+def create_task_view(request):
+
+    if not request.user.is_staff:
+        return HttpResponseForbidden()
+
+    if request.method == "POST":
+
+        form = TaskForm(request.POST)
+
+        if form.is_valid():
+            logged_user = request.user
+            create_task(created_by=logged_user, **form.cleaned_data)
+            return redirect("/tasks/")
+    else:
+        form = TaskForm()
+
+    return render(request, "tasks/create_task.html", context={"form": form})
+
+# delete task view
+
+@login_required
+def delete_task_view(request, task_id):
+
+    if not request.user.is_staff:
+        return HttpResponseForbidden()
+
+    if request.method == "POST":
+        success = delete_task(task_id=task_id)
+        if success:
+            return redirect("/tasks/")
+
+    task = get_task_byid(task_id=task_id)
+    return render(request, "tasks/delete_task.html", context={"task": task})
+
+# update task
+
+@login_required
+def update_task_view(request, task_id):
+    if not request.user.is_staff:
+        return HttpResponseForbidden()
+
+    task = get_task_byid(task_id=task_id)
+
+    if request.method == "POST":
+        form = TaskForm(request.POST, instance=task)
+        if form.is_valid():
+            update_task(task_id=task_id, **form.cleaned_data)
+            return redirect("tasks_view")
+
+    else:
+        form = TaskForm(instance=task)
+
+    return render(request, "tasks/update_task.html", {"form": form, "task": task})
+
+
+def tasks_sort_by_due_date(request):
+    order = request.GET.get("order", "asc")
+    print(order)
+    if order == "asc":
+        tasks = Task.objects.all().order_by("due_date")
+        next_order = "desc"
+    else:
+        tasks = Task.objects.all().order_by("-due_date")
+        next_order = "asc"
+
+    return render(request, "tasks/_tasks_table.html", {
+        "tasks": tasks,
+        "next_order": next_order
+    })

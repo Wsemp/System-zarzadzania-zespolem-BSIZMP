@@ -7,8 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading.Tasks;
-using System.Windows.Threading;
+using System.Threading.Tasks; 
 
 namespace desktopapp.ViewModels
 {
@@ -17,26 +16,25 @@ namespace desktopapp.ViewModels
         private List<TaskModel> _allTasks = new List<TaskModel>();
 
         [ObservableProperty]
-        private ObservableCollection<TaskModel>? _tasks;
+        private ObservableCollection<TaskModel> _tasks;
 
         [ObservableProperty]
-        [NotifyCanExecuteChangedFor(nameof(EditTaskCommand))]
-        private TaskModel? _selectedTask;
+        private TaskModel _selectedTask;
 
         [ObservableProperty]
-        private string? _searchUserText;
+        private string _searchUserText;
 
         [ObservableProperty]
-        private ObservableCollection<ProjectModel>? _projects;
+        private ObservableCollection<ProjectModel> _projects;
 
         [ObservableProperty]
-        private string? _newProjectName;
+        private string _newProjectName;
 
         [ObservableProperty]
-        private string? _newProjectDescription;
+        private string _newProjectDescription;
         
         [ObservableProperty]
-        private ProjectModel? _selectedProject;
+        private ProjectModel _selectedProject;
 
         [ObservableProperty]
         private string _projectFormTitle = "Utwórz nowy projekt";
@@ -44,12 +42,12 @@ namespace desktopapp.ViewModels
         [ObservableProperty]
         private string _projectButtonText = "Dodaj projekt";
 
-        private int? _editingProjectId;
+        private int? _editingProjectId = null;
         
         [ObservableProperty]
-        private ProjectModel? _selectedProjectFilter;
+        private ProjectModel _selectedProjectFilter;
 
-        partial void OnSelectedProjectFilterChanged(ProjectModel? value)
+        partial void OnSelectedProjectFilterChanged(ProjectModel value)
         {
             ApplyFilters(); 
         }
@@ -60,20 +58,6 @@ namespace desktopapp.ViewModels
         partial void OnShowOnlyMyTasksChanged(bool value)
         {
             ApplyFilters(); 
-        }
-
-        [ObservableProperty]
-        private DateTime? _selectedFilterDate;
-
-        partial void OnSelectedFilterDateChanged(DateTime? value)
-        {
-            ApplyFilters();
-        }
-
-        [RelayCommand]
-        public void ClearFilterDate()
-        {
-            SelectedFilterDate = null;
         }
 
         [ObservableProperty]
@@ -93,8 +77,9 @@ namespace desktopapp.ViewModels
 
         private List<UserModel> _apiUsers = new List<UserModel>();
         
+        // Navigation View Support
         [ObservableProperty]
-        private string _selectedView = "Zadania";
+        private string _selectedView = "Zadania"; // Domyślny widok
         
         [RelayCommand]
         public void SwitchView(string viewName)
@@ -164,14 +149,14 @@ namespace desktopapp.ViewModels
                     
                     if (selectedId.HasValue)
                     {
-                        SelectedTask = Tasks?.FirstOrDefault(t => t.Id == selectedId.Value);
+                        SelectedTask = Tasks.FirstOrDefault(t => t.Id == selectedId.Value);
                     }
                 }
             }
             catch { }
         }
         
-        private DispatcherTimer? _refreshTimer;
+        private System.Windows.Threading.DispatcherTimer _refreshTimer;
 
         private void StartAutoRefresh()
         {
@@ -189,7 +174,7 @@ namespace desktopapp.ViewModels
 
                 if (_apiUsers != null && _apiUsers.Any())
                 {
-                    var usernamesList = _apiUsers.Select(u => u.Username).Where(u => u != null).Select(u => u!);
+                    var usernamesList = _apiUsers.Select(u => u.Username).ToList();
                     AvailableUsernames = new ObservableCollection<string>(usernamesList);
                     ApiUsersList = new ObservableCollection<UserModel>(_apiUsers);
                 }
@@ -252,7 +237,7 @@ namespace desktopapp.ViewModels
             }
         }
 
-        partial void OnSearchUserTextChanged(string? value)
+        partial void OnSearchUserTextChanged(string value)
         {
             ApplyFilters(); 
         }
@@ -274,10 +259,6 @@ namespace desktopapp.ViewModels
             {
                 filtered = filtered.Where(t => t.AssignedUser == CurrentUserName);
             }
-            if (SelectedFilterDate.HasValue)
-            {
-                filtered = filtered.Where(t => t.DueDate.HasValue && t.DueDate.Value.Date <= SelectedFilterDate.Value.Date);
-            }
 
             var finalList = filtered.ToList();
             Tasks = new ObservableCollection<TaskModel>(finalList);
@@ -287,7 +268,7 @@ namespace desktopapp.ViewModels
         }
 
         [RelayCommand]
-        public async Task DeleteTask()
+        public async void DeleteTask()
         {
             if (SelectedTask != null)
             {
@@ -298,20 +279,21 @@ namespace desktopapp.ViewModels
                 if (isSuccess)
                 {
                     _allTasks.Remove(taskToDelete);
-                    Tasks?.Remove(taskToDelete);
-                    
-                    NotificationService.Instance.Show("Zadanie usunięto z chmury!");
+                    Tasks.Remove(taskToDelete);
+
+                    ApiService.Instance.SaveTasksOffline(_allTasks);
+                    Services.NotificationService.Instance.Show("Zadanie usunięto z chmury!");
                     ApplyFilters();
                 }
                 else
                 {
-                    NotificationService.Instance.Show("Błąd: Nie udało się usunąć zadania z serwera.");
+                    Services.NotificationService.Instance.Show("Błąd: Nie udało się usunąć zadania z serwera.");
                 }
             }
         }
 
         [RelayCommand]
-        public async Task OpenAddTaskWindow()
+        public async void OpenAddTaskWindow()
         {
             var addTaskVm = new AddTaskViewModel();
             addTaskVm.AvailableUsernames = this.AvailableUsernames;
@@ -338,22 +320,27 @@ namespace desktopapp.ViewModels
                 {
                     await LoadTasksAsync();
                     ApplyFilters(); 
-                    NotificationService.Instance.Show("Zadanie zapisane w chmurze!");
+                    Services.NotificationService.Instance.Show("Zadanie zapisane w chmurze!");
                 }
                 else
                 {
                     addTaskVm.CreatedTask.Id = _allTasks.Any() ? _allTasks.Max(t => t.Id) + 1 : 1;
                     _allTasks.Insert(0, addTaskVm.CreatedTask);
                     ApplyFilters(); 
-                    NotificationService.Instance.Show("Brak sieci. Zadanie zapisano lokalnie!");
+                    ApiService.Instance.SaveTasksOffline(_allTasks);
+                    Services.NotificationService.Instance.Show("Brak sieci. Zadanie zapisano lokalnie!");
                 }
             }
         }
 
-        [RelayCommand(CanExecute = nameof(CanEditTask))]
-        public async Task EditTask()
+        [RelayCommand]
+        public async void EditTask()
         {
-            if (SelectedTask == null) return;
+            if (SelectedTask == null)
+            {
+                Services.NotificationService.Instance.Show("Wybierz zadanie z listy, aby je edytować!");
+                return;
+            }
 
             var editTaskVm = new AddTaskViewModel();
             editTaskVm.AvailableUsernames = this.AvailableUsernames;
@@ -363,7 +350,6 @@ namespace desktopapp.ViewModels
             editTaskVm.Description = SelectedTask.Description;
             editTaskVm.AssignedUser = SelectedTask.AssignedUser;
             editTaskVm.Status = SelectedTask.DisplayStatus;
-            editTaskVm.DueDate = SelectedTask.DueDate;
             
             if (Projects != null)
             {
@@ -384,18 +370,13 @@ namespace desktopapp.ViewModels
                 {
                     await LoadTasksAsync();
                     ApplyFilters();
-                    NotificationService.Instance.Show("Zadanie zaktualizowane pomyślnie!");
+                    Services.NotificationService.Instance.Show("Zadanie zaktualizowane pomyślnie!");
                 }
                 else
                 {
-                    NotificationService.Instance.Show("Błąd aktualizacji na serwerze!");
+                    Services.NotificationService.Instance.Show("Błąd aktualizacji na serwerze!");
                 }
             }
-        }
-
-        private bool CanEditTask()
-        {
-            return SelectedTask != null;
         }
         
         [RelayCommand]
@@ -403,7 +384,7 @@ namespace desktopapp.ViewModels
         {
             if (SelectedProject == null || SelectedProject.Id == 0)
             {
-                NotificationService.Instance.Show("Wybierz projekt z tabeli (nie można edytować 'Wszystkich')!");
+                Services.NotificationService.Instance.Show("Wybierz projekt z tabeli (nie można edytować 'Wszystkich')!");
                 return;
             }
 
@@ -425,11 +406,11 @@ namespace desktopapp.ViewModels
         }
 
         [RelayCommand]
-        public async Task AddProject()
+        public async void AddProject()
         {
             if (string.IsNullOrWhiteSpace(NewProjectName))
             {
-                NotificationService.Instance.Show("Podaj nazwę projektu!");
+                Services.NotificationService.Instance.Show("Podaj nazwę projektu!");
                 return;
             }
 
@@ -445,13 +426,13 @@ namespace desktopapp.ViewModels
                 bool isSuccess = await ApiService.Instance.UpdateProjectAsync(projectToUpdate);
                 if (isSuccess)
                 {
-                    NotificationService.Instance.Show("Zaktualizowano projekt!");
+                    Services.NotificationService.Instance.Show("Zaktualizowano projekt!");
                     CancelEditProject(); 
                     await LoadProjectsFromApiAsync(); 
                 }
                 else
                 {
-                    NotificationService.Instance.Show("Błąd aktualizacji projektu na serwerze.");
+                    Services.NotificationService.Instance.Show("Błąd aktualizacji projektu na serwerze.");
                 }
             }
             else 
@@ -465,30 +446,30 @@ namespace desktopapp.ViewModels
                 bool isSuccess = await ApiService.Instance.CreateProjectAsync(nowyProjekt);
                 if (isSuccess)
                 {
-                    NotificationService.Instance.Show("Utworzono nowy projekt!");
+                    Services.NotificationService.Instance.Show("Utworzono nowy projekt!");
                     CancelEditProject(); 
                     await LoadProjectsFromApiAsync(); 
                 }
                 else
                 {
-                    NotificationService.Instance.Show("Błąd! Nie udało się utworzyć projektu.");
+                    Services.NotificationService.Instance.Show("Błąd! Nie udało się utworzyć projektu.");
                 }
             }
         }
 
         [RelayCommand]
-        public async Task DeleteProject()
+        public async void DeleteProject()
         {
             if (SelectedProject == null || SelectedProject.Id == 0)
             {
-                NotificationService.Instance.Show("Wybierz projekt do usunięcia!");
+                Services.NotificationService.Instance.Show("Wybierz projekt do usunięcia!");
                 return;
             }
 
             bool isSuccess = await ApiService.Instance.DeleteProjectAsync(SelectedProject.Id);
             if (isSuccess)
             {
-                NotificationService.Instance.Show("Usunięto projekt z chmury!");
+                Services.NotificationService.Instance.Show("Usunięto projekt z chmury!");
                 if (_editingProjectId == SelectedProject.Id) CancelEditProject();
                 
                 await LoadProjectsFromApiAsync();
@@ -496,25 +477,25 @@ namespace desktopapp.ViewModels
             }
             else
             {
-                NotificationService.Instance.Show("Błąd: Serwer odrzucił usunięcie (może projekt ma przypisane zadania i baza blokuje usunięcie?).");
+                Services.NotificationService.Instance.Show("Błąd: Serwer odrzucił usunięcie (może projekt ma przypisane zadania i baza blokuje usunięcie?).");
             }
         }
 
         [ObservableProperty]
-        private string? _currentUserName;
+        private string _currentUserName;
 
         [ObservableProperty]
-        private string? _currentUserEmail;
+        private string _currentUserEmail;
 
         [ObservableProperty]
-        private string? _newPassword;
+        private string _newPassword;
 
         [RelayCommand]
-        public async Task SaveProfile()
+        public async void SaveProfile()
         {
             if (string.IsNullOrWhiteSpace(NewPassword))
             {
-                NotificationService.Instance.Show("Wpisz nowe hasło, aby zapisać zmiany!");
+                Services.NotificationService.Instance.Show("Wpisz nowe hasło, aby zapisać zmiany!");
                 return;
             }
 
@@ -526,17 +507,17 @@ namespace desktopapp.ViewModels
 
                 if (isSuccess)
                 {
-                    NotificationService.Instance.Show("Hasło zostało pomyślnie zmienione w chmurze!");
+                    Services.NotificationService.Instance.Show("Hasło zostało pomyślnie zmienione w chmurze!");
                     NewPassword = string.Empty;
                 }
                 else
                 {
-                    NotificationService.Instance.Show("Błąd: Serwer odrzucił zmianę hasła.");
+                    Services.NotificationService.Instance.Show("Błąd: Serwer odrzucił zmianę hasła.");
                 }
             }
             else
             {
-                NotificationService.Instance.Show("Błąd: Nie odnaleziono Twojego profilu w pobranej bazie.");
+                Services.NotificationService.Instance.Show("Błąd: Nie odnaleziono Twojego profilu w pobranej bazie.");
             }
         }
 
@@ -558,6 +539,6 @@ namespace desktopapp.ViewModels
             }
         }
 
-        public NotificationService Notifier => NotificationService.Instance;
+        public Services.NotificationService Notifier => Services.NotificationService.Instance;
     }
 }

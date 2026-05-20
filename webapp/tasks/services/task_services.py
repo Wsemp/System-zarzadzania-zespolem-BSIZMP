@@ -2,9 +2,7 @@ from ..models import Task
 from django.db import transaction
 from ..selectors import get_task_byid
 from django.contrib.auth.models import User
-from notifications.models import Notification
-from notifications.services.notifications_services import create_notification
-# from datetime import datetime
+
 # from django.shortcuts import get_object_or_404
 
 @transaction.atomic
@@ -37,15 +35,6 @@ def create_task(
     if tags:
         task.tags.set(tags)
 
-    # assigment notification
-
-    create_notification(
-        recipient=assigned_to,
-        task=task,
-        type=Notification.Type.TASK_ASSIGNED,
-        message=f"You were assigned to task '{task.title}'"
-    )
-
     return task
 
 @transaction.atomic
@@ -60,9 +49,6 @@ def delete_task(*, task_id: int) -> bool:
 def update_task(*, task_id: int, **data):
     task = get_task_byid(task_id=task_id)
 
-    old_assigned_to = task.assigned_to
-    old_status = task.status
-
     tags = data.pop("tags", None)
 
     for field, value in data.items():
@@ -72,31 +58,5 @@ def update_task(*, task_id: int, **data):
 
     if tags is not None:
         task.tags.set(tags)
-
-    # assigment notification
-
-    if (
-            old_assigned_to != task.assigned_to
-            and task.assigned_to is not None
-    ):
-        create_notification(
-            recipient=task.assigned_to,
-            task=task,
-            type=Notification.Type.TASK_ASSIGNED,
-            message=f"You were assigned to task '{task.title}'"
-        )
-
-    # completed notification
-
-    if (
-            old_status != task.status
-            and task.status == Task.Status.DONE
-    ):
-        create_notification(
-            recipient=task.created_by,
-            task=task,
-            type=Notification.Type.TASK_COMPLETED,
-            message=f"Task '{task.title}' was completed"
-        )
 
     return task

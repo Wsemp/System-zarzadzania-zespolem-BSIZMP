@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    {% include "tasks/_tasks_table.html" %}
+
+    <button type="button" class="btn btn-link">
+        <a href="{% url 'create_task' %}">Utwórz zadanie</a>
+    </button>
+
+{% endblock %}

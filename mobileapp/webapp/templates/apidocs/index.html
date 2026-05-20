@@ -1,0 +1,713 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Taskomat API</title>
+    <style type="text/css">
+      body {
+      	font-family: Trebuchet MS, sans-serif;
+      	font-size: 15px;
+      	color: #444;
+      	margin-right: 24px;
+      }
+      
+      h1	{
+      	font-size: 25px;
+      }
+      h2	{
+      	font-size: 20px;
+      }
+      h3	{
+      	font-size: 16px;
+      	font-weight: bold;
+      }
+      hr	{
+      	height: 1px;
+      	border: 0;
+      	color: #ddd;
+      	background-color: #ddd;
+      }
+      
+      .app-desc {
+        clear: both;
+        margin-left: 20px;
+      }
+      .param-name {
+        width: 100%;
+      }
+      .license-info {
+        margin-left: 20px;
+      }
+      
+      .license-url {
+        margin-left: 20px;
+      }
+      
+      .model {
+        margin: 0 0 0px 20px;
+      }
+      
+      .method {
+        margin-left: 20px;
+      }
+      
+      .method-notes	{
+      	margin: 10px 0 20px 0;
+      	font-size: 90%;
+      	color: #555;
+      }
+      
+      pre {
+        padding: 10px;
+        margin-bottom: 2px;
+      }
+      
+      .http-method {
+       text-transform: uppercase;
+      }
+      
+      pre.get {
+        background-color: #0f6ab4;
+      }
+      
+      pre.post {
+        background-color: #10a54a;
+      }
+      
+      pre.put {
+        background-color: #c5862b;
+      }
+      
+      pre.delete {
+        background-color: #a41e22;
+      }
+      
+      .huge	{
+      	color: #fff;
+      }
+      
+      pre.example {
+        background-color: #f3f3f3;
+        padding: 10px;
+        border: 1px solid #ddd;
+      }
+      
+      code {
+        white-space: pre;
+      }
+      
+      .nickname {
+        font-weight: bold;
+      }
+      
+      .method-path {
+        font-size: 1.5em;
+        background-color: #0f6ab4;
+      }
+      
+      .up {
+        float:right;
+      }
+      
+      .parameter {
+        width: 500px;
+      }
+      
+      .param {
+        width: 500px;
+        padding: 10px 0 0 20px;
+        font-weight: bold;
+      }
+      
+      .param-desc {
+        width: 700px;
+        padding: 0 0 0 20px;
+        color: #777;
+      }
+      
+      .param-type {
+        font-style: italic;
+      }
+      
+      .param-enum-header {
+      width: 700px;
+      padding: 0 0 0 60px;
+      color: #777;
+      font-weight: bold;
+      }
+      
+      .param-enum {
+      width: 700px;
+      padding: 0 0 0 80px;
+      color: #777;
+      font-style: italic;
+      }
+      
+      .field-label {
+        padding: 0;
+        margin: 0;
+        clear: both;
+      }
+      
+      .field-items	{
+      	padding: 0 0 15px 0;
+      	margin-bottom: 15px;
+      }
+      
+      .return-type {
+        clear: both;
+        padding-bottom: 10px;
+      }
+      
+      .param-header {
+        font-weight: bold;
+      }
+      
+      .method-tags {
+        text-align: right;
+      }
+      
+      .method-tag {
+        background: none repeat scroll 0% 0% #24A600;
+        border-radius: 3px;
+        padding: 2px 10px;
+        margin: 2px;
+        color: #FFF;
+        display: inline-block;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+  <div class="method-summary"></div>
+  <h4><a href="#">Postman docs</a></h4>
+  <ul>
+  <li>
+    <a href="https://team-wiktor.postman.co/workspace/Team-Wiktor-Workspace~620468ac-9a45-451c-84af-65fc2404d26b/specification/652479f6-8131-4037-9e4f-68aa4696819c/file/abf65875-8e53-4cd2-a556-2c108ffc8953">
+        postman
+    </a>
+  </li>
+  </ul>
+  <h4><a href="#Auth">Auth</a></h4>
+  <ul>
+  <li><a href="#apiTokenPost"><code><span class="http-method">post</span> /api/token/</code></a></li>
+  <li><a href="#apiTokenRefreshPost"><code><span class="http-method">post</span> /api/token/refresh/</code></a></li>
+  </ul>
+  <h4><a href="#Project">Project</a></h4>
+  <ul>
+  <li><a href="#apiProjectsGet"><code><span class="http-method">get</span> /api/projects/</code></a></li>
+  <li><a href="#apiProjectsIdDelete"><code><span class="http-method">delete</span> /api/projects/{id}/</code></a></li>
+  <li><a href="#apiProjectsIdGet"><code><span class="http-method">get</span> /api/projects/{id}/</code></a></li>
+  <li><a href="#apiProjectsIdPatch"><code><span class="http-method">patch</span> /api/projects/{id}/</code></a></li>
+  <li><a href="#apiProjectsPost"><code><span class="http-method">post</span> /api/projects/</code></a></li>
+  </ul>
+  <h4><a href="#Task">Task</a></h4>
+  <ul>
+  <li><a href="#apiTasksGet"><code><span class="http-method">get</span> /api/tasks/</code></a></li>
+  <li><a href="#apiTasksIdDelete"><code><span class="http-method">delete</span> /api/tasks/{id}/</code></a></li>
+  <li><a href="#apiTasksIdGet"><code><span class="http-method">get</span> /api/tasks/{id}/</code></a></li>
+  <li><a href="#apiTasksIdPatch"><code><span class="http-method">patch</span> /api/tasks/{id}/</code></a></li>
+  <li><a href="#apiTasksPost"><code><span class="http-method">post</span> /api/tasks/</code></a></li>
+  </ul>
+  <h4><a href="#User">User</a></h4>
+  <ul>
+  <li><a href="#apiUsersGet"><code><span class="http-method">get</span> /api/users/</code></a></li>
+  <li><a href="#apiUsersIdDelete"><code><span class="http-method">delete</span> /api/users/{id}/</code></a></li>
+  <li><a href="#apiUsersIdGet"><code><span class="http-method">get</span> /api/users/{id}/</code></a></li>
+  <li><a href="#apiUsersIdPatch"><code><span class="http-method">patch</span> /api/users/{id}/</code></a></li>
+  <li><a href="#apiUsersPost"><code><span class="http-method">post</span> /api/users/</code></a></li>
+  </ul>
+
+  <h1><a name="Auth">Auth</a></h1>
+  <div class="method"><a name="apiTokenPost"></a>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="post"><code class="huge"><span class="http-method">post</span> /api/token/</code></pre></div>
+    <div class="method-summary">Get access and refresh token (<span class="nickname">apiTokenPost</span>)</div>
+    <div class="method-notes"></div>
+
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    Tokens generated successfully
+        <a href="#"></a>
+    <h4 class="field-label">401</h4>
+    Invalid credentials
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="apiTokenRefreshPost"></a>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="post"><code class="huge"><span class="http-method">post</span> /api/token/refresh/</code></pre></div>
+    <div class="method-summary">Refresh access token (<span class="nickname">apiTokenRefreshPost</span>)</div>
+    <div class="method-notes"></div>
+
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    Token refreshed successfully
+        <a href="#"></a>
+    <h4 class="field-label">401</h4>
+    Invalid refresh token
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <h1><a name="Project">Project</a></h1>
+  <div class="method"><a name="apiProjectsGet"></a>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /api/projects/</code></pre></div>
+    <div class="method-summary">Get projects (<span class="nickname">apiProjectsGet</span>)</div>
+    <div class="method-notes"></div>
+
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    List of projects
+        <a href="#"></a>
+    <h4 class="field-label">401</h4>
+    Unauthorized
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="apiProjectsIdDelete"></a>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="delete"><code class="huge"><span class="http-method">delete</span> /api/projects/{id}/</code></pre></div>
+    <div class="method-summary">Delete project (<span class="nickname">apiProjectsIdDelete</span>)</div>
+    <div class="method-notes"></div>
+
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">204</h4>
+    Project deleted
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    Project not found
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="apiProjectsIdGet"></a>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /api/projects/{id}/</code></pre></div>
+    <div class="method-summary">Get project (<span class="nickname">apiProjectsIdGet</span>)</div>
+    <div class="method-notes"></div>
+
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    Project details
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    Project not found
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="apiProjectsIdPatch"></a>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="patch"><code class="huge"><span class="http-method">patch</span> /api/projects/{id}/</code></pre></div>
+    <div class="method-summary">Update project (<span class="nickname">apiProjectsIdPatch</span>)</div>
+    <div class="method-notes"></div>
+
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    Project updated
+        <a href="#"></a>
+    <h4 class="field-label">400</h4>
+    Validation error
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    Project not found
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="apiProjectsPost"></a>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="post"><code class="huge"><span class="http-method">post</span> /api/projects/</code></pre></div>
+    <div class="method-summary">Create project (<span class="nickname">apiProjectsPost</span>)</div>
+    <div class="method-notes"></div>
+
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">201</h4>
+    Project created
+        <a href="#"></a>
+    <h4 class="field-label">400</h4>
+    Validation error
+        <a href="#"></a>
+    <h4 class="field-label">401</h4>
+    Unauthorized
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <h1><a name="Task">Task</a></h1>
+  <div class="method"><a name="apiTasksGet"></a>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /api/tasks/</code></pre></div>
+    <div class="method-summary">Get tasks (<span class="nickname">apiTasksGet</span>)</div>
+    <div class="method-notes"></div>
+
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    List of tasks
+        <a href="#"></a>
+    <h4 class="field-label">401</h4>
+    Unauthorized
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="apiTasksIdDelete"></a>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="delete"><code class="huge"><span class="http-method">delete</span> /api/tasks/{id}/</code></pre></div>
+    <div class="method-summary">Delete task (<span class="nickname">apiTasksIdDelete</span>)</div>
+    <div class="method-notes"></div>
+
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">204</h4>
+    Task deleted
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    Task not found
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="apiTasksIdGet"></a>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /api/tasks/{id}/</code></pre></div>
+    <div class="method-summary">Get task (<span class="nickname">apiTasksIdGet</span>)</div>
+    <div class="method-notes"></div>
+
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    Task details
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    Task not found
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="apiTasksIdPatch"></a>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="patch"><code class="huge"><span class="http-method">patch</span> /api/tasks/{id}/</code></pre></div>
+    <div class="method-summary">Update task (<span class="nickname">apiTasksIdPatch</span>)</div>
+    <div class="method-notes"></div>
+
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    Task updated
+        <a href="#"></a>
+    <h4 class="field-label">400</h4>
+    Validation error
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    Task not found
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="apiTasksPost"></a>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="post"><code class="huge"><span class="http-method">post</span> /api/tasks/</code></pre></div>
+    <div class="method-summary">Create task (<span class="nickname">apiTasksPost</span>)</div>
+    <div class="method-notes"></div>
+
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">201</h4>
+    Task created
+        <a href="#"></a>
+    <h4 class="field-label">400</h4>
+    Validation error
+        <a href="#"></a>
+    <h4 class="field-label">401</h4>
+    Unauthorized
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <h1><a name="User">User</a></h1>
+  <div class="method"><a name="apiUsersGet"></a>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /api/users/</code></pre></div>
+    <div class="method-summary">Get users (<span class="nickname">apiUsersGet</span>)</div>
+    <div class="method-notes"></div>
+
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    List of users
+        <a href="#"></a>
+    <h4 class="field-label">401</h4>
+    Unauthorized
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="apiUsersIdDelete"></a>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="delete"><code class="huge"><span class="http-method">delete</span> /api/users/{id}/</code></pre></div>
+    <div class="method-summary">Delete user (<span class="nickname">apiUsersIdDelete</span>)</div>
+    <div class="method-notes"></div>
+
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">204</h4>
+    User deleted
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    User not found
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="apiUsersIdGet"></a>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /api/users/{id}/</code></pre></div>
+    <div class="method-summary">Get user (<span class="nickname">apiUsersIdGet</span>)</div>
+    <div class="method-notes"></div>
+
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    User details
+        <a href="#"></a>
+    <h4 class="field-label">401</h4>
+    Unauthorized
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    User not found
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="apiUsersIdPatch"></a>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="patch"><code class="huge"><span class="http-method">patch</span> /api/users/{id}/</code></pre></div>
+    <div class="method-summary">Update user (<span class="nickname">apiUsersIdPatch</span>)</div>
+    <div class="method-notes"></div>
+
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    User updated
+        <a href="#"></a>
+    <h4 class="field-label">400</h4>
+    Validation error
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    User not found
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="apiUsersPost"></a>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="post"><code class="huge"><span class="http-method">post</span> /api/users/</code></pre></div>
+    <div class="method-summary">Create user (<span class="nickname">apiUsersPost</span>)</div>
+    <div class="method-notes"></div>
+
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">201</h4>
+    User created
+        <a href="#"></a>
+    <h4 class="field-label">400</h4>
+    Validation error
+        <a href="#"></a>
+    <h4 class="field-label">401</h4>
+    Unauthorized
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+
+  <h2><a name="__Models">Models</a></h2>
+  [ Jump to <a href="#__Methods">Methods</a> ]
+
+  <h3>Table of Contents</h3>
+  <ol>
+  </ol>
+
+  </body>
+</html>

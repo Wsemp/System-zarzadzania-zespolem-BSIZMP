@@ -83,8 +83,6 @@
                         <Border BorderBrush="{StaticResource BorderGray}" BorderThickness="1" CornerRadius="4" Margin="0,0,10,0" Background="White">
                             <ComboBox Width="150" ItemsSource="{Binding Projects}" DisplayMemberPath="Name" SelectedItem="{Binding SelectedProjectFilter, UpdateSourceTrigger=PropertyChanged}" Padding="5" VerticalContentAlignment="Center" BorderThickness="0"/>
                         </Border>
-                        <DatePicker Width="120" SelectedDate="{Binding SelectedFilterDate, UpdateSourceTrigger=PropertyChanged}" Height="35" BorderBrush="{StaticResource BorderGray}" Padding="5,0" Margin="0,0,5,0"/>
-                        <Button Content="X" Command="{Binding ClearFilterDateCommand}" Background="Transparent" Foreground="{StaticResource DangerRed}" BorderThickness="0" Margin="0,0,10,0" ToolTip="Wyczyść datę"/>
                         <CheckBox Content="Tylko moje zadania" IsChecked="{Binding ShowOnlyMyTasks, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Foreground="{StaticResource PrimaryBlue}"/>
                     </StackPanel>
                 </StackPanel>
@@ -118,7 +116,6 @@
                         <DataGridTextColumn Header="#" Binding="{Binding Id}" Width="50" ElementStyle="{StaticResource DataGridCellPadding}" />
                         <DataGridTextColumn Header="Tytuł" Binding="{Binding Title}" Width="*" ElementStyle="{StaticResource DataGridCellPadding}"/>
                         <DataGridTextColumn Header="Przypisany" Binding="{Binding AssignedUser}" Width="150" ElementStyle="{StaticResource DataGridCellPadding}"/>
-                        <DataGridTextColumn Header="Termin" Binding="{Binding DueDate, StringFormat=\{0:dd.MM.yyyy\}}" Width="100" ElementStyle="{StaticResource DataGridCellPadding}"/>
                         
                         <DataGridTemplateColumn Header="Status" Width="130" CellStyle="{StaticResource StatusCellStyle}">
                             <DataGridTemplateColumn.CellTemplate>
@@ -129,9 +126,6 @@
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding DisplayStatus}" Value="Do zrobienia">
                                                         <Setter Property="Background" Value="#f8d7da"/>
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding DisplayStatus}" Value="W trakcie">
-                                                        <Setter Property="Background" Value="#fff3cd"/>
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding DisplayStatus}" Value="Zakończone">
                                                         <Setter Property="Background" Value="#d1e7dd"/>
@@ -147,7 +141,7 @@
                                                             <Setter Property="Foreground" Value="#842029"/>
                                                         </DataTrigger>
                                                         <DataTrigger Binding="{Binding DisplayStatus}" Value="W trakcie">
-                                                            <Setter Property="Foreground" Value="#664d03"/>
+                                                            <Setter Property="Foreground" Value="#084298"/>
                                                         </DataTrigger>
                                                         <DataTrigger Binding="{Binding DisplayStatus}" Value="Zakończone">
                                                             <Setter Property="Foreground" Value="#0f5132"/>

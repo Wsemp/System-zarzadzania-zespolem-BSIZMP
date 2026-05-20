@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Miscellaneous
 *.class
 *.log
@@ -43,3 +44,37 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+=======
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Environment variables
+.env
+
+# migrations
+
+# */*/migrations/
+
+# staticfiles
+
+webapp/staticfiles
+
+# local database
+
+*.sqlite3
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+.vs/
+bin/
+obj/
+>>>>>>> 4dec0fcbf7f0650dfff921dde9b2ebf003396594

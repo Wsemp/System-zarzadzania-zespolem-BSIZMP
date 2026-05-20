@@ -2,9 +2,7 @@
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using desktopapp.Data;
 using desktopapp.Services;
-using Microsoft.EntityFrameworkCore;
 using Moq;
 using Moq.Protected;
 using Xunit;
@@ -13,15 +11,6 @@ namespace desktopapp.Tests
 {
     public class ApiServiceTests
     {
-        private readonly DbContextOptions<AppDbContext> _dbOptions;
-
-        public ApiServiceTests()
-        {
-            _dbOptions = new DbContextOptionsBuilder<AppDbContext>()
-                .UseInMemoryDatabase(databaseName: System.Guid.NewGuid().ToString())
-                .Options;
-        }
-
         [Fact]
         public async Task LoginAsync_Zwraca_True_Gdy_Serwer_Odpowiada_200()
         {
@@ -43,15 +32,13 @@ namespace desktopapp.Tests
 
             var httpClient = new HttpClient(handlerMock.Object);
             
-            using (var context = new AppDbContext(_dbOptions))
-            {
-                var apiService = new ApiService(httpClient, context);
-                bool result = await apiService.LoginAsync("testUser", "testPass");
+            var apiService = new ApiService(httpClient);
 
-                Assert.True(result);
-                Assert.Equal("fake_token", apiService.AccessToken);
-                Assert.Equal("testUser", apiService.LoggedInUsername);
-            }
+            bool result = await apiService.LoginAsync("testUser", "testPass");
+
+            Assert.True(result);
+            Assert.Equal("fake_token", apiService.AccessToken);
+            Assert.Equal("testUser", apiService.LoggedInUsername);
         }
 
         [Fact]
@@ -73,15 +60,18 @@ namespace desktopapp.Tests
                 .ReturnsAsync(response);
 
             var httpClient = new HttpClient(handlerMock.Object);
-            
-            using (var context = new AppDbContext(_dbOptions))
+            var apiService = new ApiService(httpClient);
+
+            string offlineCredsFile = System.IO.Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.Desktop), "BSI_TEST_OFFLINE", "offline_creds_backup.json");
+            if (System.IO.File.Exists(offlineCredsFile))
             {
-                var apiService = new ApiService(httpClient, context);
-                bool result = await apiService.LoginAsync("wrongUser", "wrongPass");
-                
-                Assert.False(result);
-                Assert.Null(apiService.AccessToken);
+                 System.IO.File.Delete(offlineCredsFile);
             }
+
+            bool result = await apiService.LoginAsync("wrongUser", "wrongPass");
+
+            Assert.False(result);
+            Assert.Null(apiService.AccessToken); 
         }
     }
 }
