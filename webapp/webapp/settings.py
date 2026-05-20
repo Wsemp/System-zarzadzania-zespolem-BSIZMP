@@ -38,6 +38,8 @@ INSTALLED_APPS = [
     'tests',
     'tasks',
     'projects',
+    'invitations',
+    'notifications',
     'crispy_forms',
     'crispy_bootstrap5',
 ]
