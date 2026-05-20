@@ -18,6 +18,9 @@
             <TextBlock Text="Opis:" Style="{StaticResource FormLabel}"/>
             <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Height="80" TextWrapping="Wrap" Margin="0,0,0,15" />
 
+            <TextBlock Text="Termin wykonania:" Style="{StaticResource FormLabel}"/>
+            <DatePicker SelectedDate="{Binding DueDate, UpdateSourceTrigger=PropertyChanged}" Height="35" BorderBrush="#dee2e6" Padding="5,0" Margin="0,0,0,15"/>
+
             <TextBlock Text="Przypisz do:" Style="{StaticResource FormLabel}"/>
             <ComboBox ItemsSource="{Binding AvailableUsernames}" SelectedItem="{Binding AssignedUser, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,15" />
 
