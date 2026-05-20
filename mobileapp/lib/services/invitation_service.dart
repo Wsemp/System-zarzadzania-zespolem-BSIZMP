@@ -8,9 +8,17 @@ class InvitationService {
     return (data as List).map((j) => InvitationModel.fromJson(j)).toList();
   }
 
+  static Future<void> sendInvitation({
+    required int projectId,
+    required int inviteeId,
+  }) async {
+    await ApiClient.post(ApiEndpoints.invitations, {
+      'project': ApiEndpoints.projectUrl(projectId),
+      'invitee': ApiEndpoints.userUrl(inviteeId),
+    });
+  }
+
   static Future<void> acceptInvitation(int id) async {
-    // Próbuj dedykowanego endpointu; jeśli backend go nie ma,
-    // użyj PATCH ze statusem
     try {
       await ApiClient.post(ApiEndpoints.invitationAccept(id), {});
     } catch (_) {

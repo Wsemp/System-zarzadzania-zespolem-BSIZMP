@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../models/notification_model.dart';
 import '../services/notification_service.dart';
@@ -6,13 +7,37 @@ class NotificationProvider extends ChangeNotifier {
   List<NotificationModel> _notifications = [];
   bool _loading = false;
   String? _error;
+  bool _polling = false;
+  Timer? _timer;
 
-  List<NotificationModel> get notifications => _notifications;
+  List<NotificationModel> get notifications =>
+      _notifications.where((n) => n.isRelevant).toList();
   List<NotificationModel> get unread =>
-      _notifications.where((n) => !n.isRead).toList();
+      notifications.where((n) => !n.isRead).toList();
   bool get loading => _loading;
   String? get error => _error;
   int get unreadCount => unread.length;
+
+  void startPolling() {
+    if (_polling) return;
+    _polling = true;
+    _timer = Timer.periodic(const Duration(seconds: 15), (_) => _silentLoad());
+  }
+
+  void stopPolling() {
+    _timer?.cancel();
+    _timer = null;
+    _polling = false;
+  }
+
+  // Cichy reload — nie ustawia _loading, żeby badge nie migał
+  Future<void> _silentLoad() async {
+    try {
+      final fresh = await NotificationService.getNotifications();
+      _notifications = fresh;
+      notifyListeners();
+    } catch (_) {}
+  }
 
   Future<void> load() async {
     _loading = true;
@@ -58,5 +83,11 @@ class NotificationProvider extends ChangeNotifier {
       _error = e.toString();
       notifyListeners();
     }
+  }
+
+  @override
+  void dispose() {
+    stopPolling();
+    super.dispose();
   }
 }

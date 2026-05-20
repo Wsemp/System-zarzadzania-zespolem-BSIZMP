@@ -82,6 +82,39 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
+  void _showComingSoon(String platform) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          'Wkrótce dostępne',
+          style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 17),
+        ),
+        content: Text(
+          'Rejestracja przez $platform będzie dostępna w kolejnej wersji aplikacji. Zapraszamy wkrótce!',
+          style: GoogleFonts.poppins(
+            fontSize: 13,
+            color: AppColors.textSecondary,
+            height: 1.5,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              'OK',
+              style: GoogleFonts.poppins(
+                color: const Color(0xFF7C5CFC),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   InputDecoration _inputDeco(String hint, IconData icon, {Widget? suffix}) {
     return InputDecoration(
       hintText: hint,
@@ -412,9 +445,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              SocialCircleButton.facebook(),
+                              SocialCircleButton.facebook(
+                                onTap: () => _showComingSoon('Facebook'),
+                              ),
                               const SizedBox(width: 24),
-                              SocialCircleButton.google(),
+                              SocialCircleButton.google(
+                                onTap: () => _showComingSoon('Google'),
+                              ),
                             ],
                           ),
                           const SizedBox(height: 20),
