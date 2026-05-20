@@ -6,7 +6,7 @@ extension TaskStatusExt on TaskStatus {
       case TaskStatus.todo:
         return 'todo';
       case TaskStatus.inProgress:
-        return 'in_progress';
+        return 'In progress';
       case TaskStatus.done:
         return 'done';
     }
@@ -15,16 +15,18 @@ extension TaskStatusExt on TaskStatus {
   String get label {
     switch (this) {
       case TaskStatus.todo:
-        return 'To Do';
+        return 'Do wykonania';
       case TaskStatus.inProgress:
-        return 'In Progress';
+        return 'W trakcie';
       case TaskStatus.done:
-        return 'Done';
+        return 'Zakończone';
     }
   }
 
   static TaskStatus fromString(String? value) {
     switch (value) {
+      case 'In progress':
+      case 'in-progress':
       case 'in_progress':
         return TaskStatus.inProgress;
       case 'done':
@@ -41,7 +43,7 @@ class TaskModel {
   final String description;
   final TaskStatus status;
   final int? assignedTo;
-  // TODO: potwierdź nazwę pola z backendem – może być 'project_id'
+  final String? assignedToUsername;
   final int? project;
   final List<int> tagIds;
   final String? dueDate;
@@ -52,50 +54,68 @@ class TaskModel {
     required this.description,
     required this.status,
     this.assignedTo,
+    this.assignedToUsername,
     this.project,
     required this.tagIds,
     this.dueDate,
   });
 
-  factory TaskModel.fromJson(Map<String, dynamic> json) => TaskModel(
-    id: json['id'] as int,
-    title: json['title'] as String,
-    description: json['description'] as String? ?? '',
-    status: TaskStatusExt.fromString(json['status'] as String?),
-    assignedTo: json['assigned_to'] as int?,
-    project: json['project'] as int?,
-    tagIds:
-        (json['tag_ids'] as List<dynamic>?)?.map((e) => e as int).toList() ??
-        [],
-    dueDate: json['due_date'] as String?,
-  );
+  factory TaskModel.fromJson(Map<String, dynamic> json) {
+    final assignedRaw = json['assigned_to'];
+    final projectRaw = json['project'];
+    final tagsRaw = json['tag_ids'] ?? json['tags'] ?? const [];
 
-  Map<String, dynamic> toJson() => {
-    'title': title,
-    'description': description,
-    'status': status.value,
-    'assigned_to': assignedTo,
-    'project': project,
-    'tag_ids': tagIds,
-    'due_date': dueDate,
-  };
+    return TaskModel(
+      id: json['id'] as int,
+      title: json['title'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      status: TaskStatusExt.fromString(json['status'] as String?),
+      assignedTo: _extractId(assignedRaw),
+      assignedToUsername: assignedRaw is Map
+          ? assignedRaw['username'] as String?
+          : null,
+      project: _extractId(projectRaw),
+      tagIds: (tagsRaw as List)
+          .map((e) => _extractId(e))
+          .whereType<int>()
+          .toList(),
+      dueDate: json['due_date'] as String?,
+    );
+  }
+
+  static int? _extractId(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is String && value.isNotEmpty) {
+      final segments = value.split('/').where((s) => s.isNotEmpty).toList();
+      if (segments.isNotEmpty) return int.tryParse(segments.last);
+    }
+    if (value is Map) return value['id'] as int?;
+    return null;
+  }
 
   TaskModel copyWith({
     String? title,
     String? description,
     TaskStatus? status,
     int? assignedTo,
+    String? assignedToUsername,
     int? project,
     List<int>? tagIds,
     String? dueDate,
+    bool clearAssignee = false,
+    bool clearDueDate = false,
   }) => TaskModel(
     id: id,
     title: title ?? this.title,
     description: description ?? this.description,
     status: status ?? this.status,
-    assignedTo: assignedTo ?? this.assignedTo,
+    assignedTo: clearAssignee ? null : (assignedTo ?? this.assignedTo),
+    assignedToUsername: clearAssignee
+        ? null
+        : (assignedToUsername ?? this.assignedToUsername),
     project: project ?? this.project,
     tagIds: tagIds ?? this.tagIds,
-    dueDate: dueDate ?? this.dueDate,
+    dueDate: clearDueDate ? null : (dueDate ?? this.dueDate),
   );
 }

@@ -9,6 +9,8 @@ import 'screens/auth/login_screen.dart';
 import 'screens/auth/otp_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/auth/welcome_screen.dart';
+import 'screens/invitations/invitations_screen.dart';
+import 'screens/notifications/notifications_screen.dart';
 import 'screens/profile/profile_screen.dart';
 import 'screens/projects/project_detail_screen.dart';
 import 'screens/projects/projects_list_screen.dart';
@@ -126,6 +128,14 @@ final _router = GoRouter(
     GoRoute(
       path: '/change-password',
       builder: (_, __) => const ChangePasswordScreen(),
+    ),
+    GoRoute(
+      path: '/invitations',
+      builder: (_, __) => const InvitationsScreen(),
+    ),
+    GoRoute(
+      path: '/notifications',
+      builder: (_, __) => const NotificationsScreen(),
     ),
   ],
   redirect: (context, state) {

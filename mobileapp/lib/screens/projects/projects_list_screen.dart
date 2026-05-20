@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/project_model.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/invitation_provider.dart';
+import '../../providers/notification_provider.dart';
 import '../../providers/project_provider.dart';
 
 class ProjectsListScreen extends StatefulWidget {
@@ -19,6 +21,8 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProjectProvider>().loadProjects();
+      context.read<NotificationProvider>().load();
+      context.read<InvitationProvider>().load();
     });
   }
 
@@ -36,11 +40,14 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
             TextField(
               controller: nameCtrl,
               decoration: const InputDecoration(labelText: 'Nazwa projektu'),
+              textInputAction: TextInputAction.next,
             ),
             const SizedBox(height: 12),
             TextField(
               controller: descCtrl,
-              decoration: const InputDecoration(labelText: 'Opis'),
+              decoration: const InputDecoration(
+                labelText: 'Opis (opcjonalnie)',
+              ),
               maxLines: 2,
             ),
           ],
@@ -69,28 +76,32 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
   @override
   Widget build(BuildContext context) {
     final projects = context.watch<ProjectProvider>();
-    final auth = context.read<AuthProvider>();
+    final notifications = context.watch<NotificationProvider>();
+    final invitations = context.watch<InvitationProvider>();
 
     return Scaffold(
       appBar: AppBar(
         title: const Text(
           'Projekty',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: [
+          // Zaproszenia
+          _BadgeIcon(
+            icon: Icons.mail_outline_rounded,
+            count: invitations.pendingCount,
+            onTap: () => context.push('/invitations'),
+          ),
+          // Powiadomienia
+          _BadgeIcon(
+            icon: Icons.notifications_outlined,
+            count: notifications.unreadCount,
+            onTap: () => context.push('/notifications'),
+          ),
+          // Profil
           IconButton(
             icon: const Icon(Icons.person_outline),
             onPressed: () => context.push('/profile'),
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await auth.logout();
-              if (context.mounted) context.go('/login');
-            },
           ),
         ],
       ),
@@ -108,7 +119,11 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
           : projects.projects.isEmpty
           ? _emptyState()
           : RefreshIndicator(
-              onRefresh: () => projects.loadProjects(),
+              onRefresh: () async {
+                await projects.loadProjects();
+                await notifications.load();
+                await invitations.load();
+              },
               child: ListView.builder(
                 padding: const EdgeInsets.all(16),
                 itemCount: projects.projects.length,
@@ -135,12 +150,57 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
         ),
         const SizedBox(height: 8),
         const Text(
-          'Utwórz pierwszy projekt',
+          'Utwórz swój pierwszy projekt',
           style: TextStyle(color: AppColors.textSecondary),
         ),
       ],
     ),
   );
+}
+
+class _BadgeIcon extends StatelessWidget {
+  final IconData icon;
+  final int count;
+  final VoidCallback onTap;
+
+  const _BadgeIcon({
+    required this.icon,
+    required this.count,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        IconButton(icon: Icon(icon), onPressed: onTap),
+        if (count > 0)
+          Positioned(
+            right: 6,
+            top: 6,
+            child: Container(
+              width: 16,
+              height: 16,
+              decoration: const BoxDecoration(
+                color: AppColors.orange,
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Text(
+                  count > 9 ? '9+' : '$count',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
 }
 
 class _ProjectCard extends StatelessWidget {

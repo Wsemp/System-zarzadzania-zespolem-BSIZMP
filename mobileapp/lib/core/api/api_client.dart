@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../auth/token_storage.dart';
 import '../errors/app_exception.dart';
@@ -36,8 +37,16 @@ class ApiClient {
     return false;
   }
 
-  static Future<dynamic> get(String path, {bool auth = true}) =>
-      _request('GET', path, auth: auth);
+  static Future<dynamic> get(
+    String path, {
+    bool auth = true,
+    Map<String, String>? queryParams,
+  }) {
+    final fullPath = queryParams != null && queryParams.isNotEmpty
+        ? '$path?${queryParams.entries.map((e) => '${e.key}=${Uri.encodeComponent(e.value)}').join('&')}'
+        : path;
+    return _request('GET', fullPath, auth: auth);
+  }
 
   static Future<dynamic> post(
     String path,
@@ -82,6 +91,8 @@ class ApiClient {
           throw AppException('Nieznana metoda HTTP');
       }
 
+      debugPrint('[API] $method $path → ${response.statusCode}');
+
       if (response.statusCode == 401 && auth) {
         final refreshed = await _refreshToken();
         if (refreshed) return _request(method, path, body: body, auth: auth);
@@ -107,9 +118,14 @@ class ApiClient {
       String msg = 'Błąd walidacji';
       try {
         final data = jsonDecode(response.body);
+        debugPrint('[API] 400 body: $data');
         if (data is Map && data.isNotEmpty) {
-          final first = data.values.first;
-          msg = first is List ? first.first.toString() : first.toString();
+          final sb = StringBuffer();
+          data.forEach((key, value) {
+            final v = value is List ? value.join(', ') : value.toString();
+            sb.write('$key: $v  ');
+          });
+          msg = sb.toString().trim();
         }
       } catch (_) {}
       throw ValidationException(msg);

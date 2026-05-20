@@ -1,14 +1,27 @@
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import '../core/api/api_client.dart';
 import '../core/api/api_endpoints.dart';
 import '../models/task_model.dart';
 
 class TaskService {
   static Future<List<TaskModel>> getTasks({int? projectId}) async {
-    // TODO: dodaj ?project=id gdy backend obsłuży filtrowanie po projekcie
-    final data = await ApiClient.get(ApiEndpoints.tasks);
+    final path = projectId != null
+        ? '${ApiEndpoints.tasks}?project=$projectId'
+        : ApiEndpoints.tasks;
+
+    final data = await ApiClient.get(path);
     final all = (data as List).map((j) => TaskModel.fromJson(j)).toList();
+
+    debugPrint(
+      '[TASK] getTasks – pobranych: ${all.length}, projectId: $projectId',
+    );
+    all.forEach((t) => debugPrint('  task#${t.id} project=${t.project}'));
+
     if (projectId != null) {
-      return all.where((t) => t.project == projectId).toList();
+      final filtered = all.where((t) => t.project == projectId).toList();
+      debugPrint('[TASK] po filtrze projekt=$projectId: ${filtered.length}');
+      return filtered;
     }
     return all;
   }
@@ -27,15 +40,22 @@ class TaskService {
     List<int>? tagIds,
     String? dueDate,
   }) async {
-    final data = await ApiClient.post(ApiEndpoints.tasks, {
+    final body = <String, dynamic>{
       'title': title,
       'description': description,
       'status': status.value,
-      'assigned_to': assignedTo,
-      'project': projectId,
+      if (assignedTo != null) 'assigned_to': assignedTo,
+      // Backend używa HyperlinkedRelatedField – wymaga pełnego URL
+      if (projectId != null) 'project': ApiEndpoints.projectUrl(projectId),
+      // Backend wymaga tag_ids zawsze (nawet pusta lista)
       'tag_ids': tagIds ?? [],
-      'due_date': dueDate,
-    });
+      if (dueDate != null) 'due_date': dueDate,
+    };
+
+    debugPrint('[TASK] POST ${ApiEndpoints.tasks}');
+    debugPrint('[TASK] body: ${jsonEncode(body)}');
+
+    final data = await ApiClient.post(ApiEndpoints.tasks, body);
     return TaskModel.fromJson(data);
   }
 
@@ -43,7 +63,13 @@ class TaskService {
     int id,
     Map<String, dynamic> fields,
   ) async {
-    final data = await ApiClient.patch(ApiEndpoints.task(id), fields);
+    final body = Map<String, dynamic>.from(fields)
+      ..removeWhere((_, v) => v == null);
+
+    debugPrint('[TASK] PATCH ${ApiEndpoints.task(id)}');
+    debugPrint('[TASK] body: ${jsonEncode(body)}');
+
+    final data = await ApiClient.patch(ApiEndpoints.task(id), body);
     return TaskModel.fromJson(data);
   }
 

@@ -27,13 +27,14 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
   String? _dueDate;
   List<UserModel> _users = [];
   bool _loading = false;
+  bool _usersLoading = true;
 
-  bool get isEdit => widget.task != null;
+  bool get _isEdit => widget.task != null;
 
   @override
   void initState() {
     super.initState();
-    if (isEdit) {
+    if (_isEdit) {
       final t = widget.task!;
       _titleCtrl.text = t.title;
       _descCtrl.text = t.description;
@@ -47,8 +48,15 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
   Future<void> _loadUsers() async {
     try {
       final users = await UserService.getUsers();
-      setState(() => _users = users);
-    } catch (_) {}
+      if (mounted) {
+        setState(() {
+          _users = users;
+          _usersLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _usersLoading = false);
+    }
   }
 
   @override
@@ -64,14 +72,17 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
     final taskProvider = context.read<TaskProvider>();
     bool ok;
 
-    if (isEdit) {
-      ok = await taskProvider.updateTask(widget.task!.id, {
-        'title': _titleCtrl.text.trim(),
-        'description': _descCtrl.text.trim(),
-        'status': _status.value,
-        'assigned_to': _assignedTo,
-        'due_date': _dueDate,
-      });
+    if (_isEdit) {
+      ok = await taskProvider.updateTask(
+        widget.task!.id,
+        title: _titleCtrl.text.trim(),
+        description: _descCtrl.text.trim(),
+        status: _status,
+        assignedTo: _assignedTo,
+        dueDate: _dueDate,
+        clearAssignee: _assignedTo == null,
+        clearDueDate: _dueDate == null,
+      );
     } else {
       ok = await taskProvider.createTask(
         title: _titleCtrl.text.trim(),
@@ -79,11 +90,14 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
         status: _status,
         assignedTo: _assignedTo,
         dueDate: _dueDate,
+        // Jawnie przekazujemy projectId z widgetu – nie polegamy na stanie providera
+        projectId: widget.projectId,
       );
     }
 
-    setState(() => _loading = false);
     if (!mounted) return;
+    setState(() => _loading = false);
+
     if (ok) {
       context.pop();
     } else {
@@ -91,8 +105,35 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
         SnackBar(
           content: Text(taskProvider.error ?? 'Błąd zapisu'),
           backgroundColor: Colors.red,
+          duration: const Duration(seconds: 5),
+          action: SnackBarAction(
+            label: 'OK',
+            textColor: Colors.white,
+            onPressed: () {},
+          ),
         ),
       );
+    }
+  }
+
+  Future<void> _pickDate() async {
+    final initial = _dueDate != null
+        ? DateTime.tryParse(_dueDate!) ?? DateTime.now()
+        : DateTime.now();
+    final date = await showDatePicker(
+      context: context,
+      initialDate: initial.isBefore(DateTime.now()) ? DateTime.now() : initial,
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
+      builder: (ctx, child) => Theme(
+        data: Theme.of(ctx).copyWith(
+          colorScheme: const ColorScheme.light(primary: AppColors.purple),
+        ),
+        child: child!,
+      ),
+    );
+    if (date != null) {
+      setState(() => _dueDate = date.toIso8601String().substring(0, 10));
     }
   }
 
@@ -100,7 +141,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEdit ? 'Edytuj zadanie' : 'Nowe zadanie'),
+        title: Text(_isEdit ? 'Edytuj zadanie' : 'Nowe zadanie'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
@@ -115,14 +156,16 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
             children: [
               TextFormField(
                 controller: _titleCtrl,
+                textInputAction: TextInputAction.next,
                 decoration: const InputDecoration(
                   labelText: 'Tytuł zadania *',
                   prefixIcon: Icon(Icons.title),
                 ),
                 validator: (v) =>
-                    v == null || v.isEmpty ? 'Pole wymagane' : null,
+                    v == null || v.trim().isEmpty ? 'Pole wymagane' : null,
               ),
               const SizedBox(height: 16),
+
               TextFormField(
                 controller: _descCtrl,
                 decoration: const InputDecoration(
@@ -131,13 +174,16 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                   alignLabelWithHint: true,
                 ),
                 maxLines: 3,
+                textInputAction: TextInputAction.newline,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
+
               const Text(
                 'Status',
                 style: TextStyle(
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
                   color: AppColors.textSecondary,
+                  fontSize: 13,
                 ),
               ),
               const SizedBox(height: 8),
@@ -148,7 +194,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                         value: s,
                         label: Text(
                           s.label,
-                          style: const TextStyle(fontSize: 12),
+                          style: const TextStyle(fontSize: 11),
                         ),
                       ),
                     )
@@ -161,12 +207,30 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                         ? AppColors.purple
                         : null,
                   ),
+                  foregroundColor: WidgetStateProperty.resolveWith(
+                    (states) => states.contains(WidgetState.selected)
+                        ? Colors.white
+                        : AppColors.textSecondary,
+                  ),
                 ),
               ),
-              const SizedBox(height: 16),
-              if (_users.isNotEmpty) ...[
+              const SizedBox(height: 20),
+
+              if (_usersLoading)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+                )
+              else if (_users.isNotEmpty)
                 DropdownButtonFormField<int?>(
                   value: _assignedTo,
+                  isExpanded: true,
                   decoration: const InputDecoration(
                     labelText: 'Przypisz do',
                     prefixIcon: Icon(Icons.person_outline),
@@ -178,22 +242,28 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                     ),
                     ..._users.map(
                       (u) => DropdownMenuItem(
-                        value: u.id,
+                        value: u.id, // int – poprawne
                         child: Text(u.username),
                       ),
                     ),
                   ],
                   onChanged: (v) => setState(() => _assignedTo = v),
                 ),
-                const SizedBox(height: 16),
-              ],
+              const SizedBox(height: 16),
+
               InkWell(
                 onTap: _pickDate,
                 borderRadius: BorderRadius.circular(12),
                 child: InputDecorator(
-                  decoration: const InputDecoration(
-                    labelText: 'Termin',
-                    prefixIcon: Icon(Icons.calendar_today_outlined),
+                  decoration: InputDecoration(
+                    labelText: 'Termin (opcjonalnie)',
+                    prefixIcon: const Icon(Icons.calendar_today_outlined),
+                    suffixIcon: _dueDate != null
+                        ? IconButton(
+                            icon: const Icon(Icons.clear, size: 18),
+                            onPressed: () => setState(() => _dueDate = null),
+                          )
+                        : null,
                   ),
                   child: Text(
                     _dueDate ?? 'Wybierz datę',
@@ -206,8 +276,9 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                 ),
               ),
               const SizedBox(height: 32),
+
               GradientButton(
-                label: isEdit ? 'Zapisz zmiany' : 'Utwórz zadanie',
+                label: _isEdit ? 'Zapisz zmiany' : 'Utwórz zadanie',
                 onPressed: _loading ? null : _submit,
                 isLoading: _loading,
               ),
@@ -216,23 +287,5 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
         ),
       ),
     );
-  }
-
-  Future<void> _pickDate() async {
-    final date = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
-      builder: (ctx, child) => Theme(
-        data: Theme.of(ctx).copyWith(
-          colorScheme: const ColorScheme.light(primary: AppColors.purple),
-        ),
-        child: child!,
-      ),
-    );
-    if (date != null) {
-      setState(() => _dueDate = date.toIso8601String().substring(0, 10));
-    }
   }
 }
