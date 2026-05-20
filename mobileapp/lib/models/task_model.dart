@@ -1,62 +1,121 @@
-class Task {
-  final int? id;
+enum TaskStatus { todo, inProgress, done }
+
+extension TaskStatusExt on TaskStatus {
+  String get value {
+    switch (this) {
+      case TaskStatus.todo:
+        return 'todo';
+      case TaskStatus.inProgress:
+        return 'In progress';
+      case TaskStatus.done:
+        return 'done';
+    }
+  }
+
+  String get label {
+    switch (this) {
+      case TaskStatus.todo:
+        return 'Do wykonania';
+      case TaskStatus.inProgress:
+        return 'W trakcie';
+      case TaskStatus.done:
+        return 'Zakończone';
+    }
+  }
+
+  static TaskStatus fromString(String? value) {
+    switch (value) {
+      case 'In progress':
+      case 'in-progress':
+      case 'in_progress':
+        return TaskStatus.inProgress;
+      case 'done':
+        return TaskStatus.done;
+      default:
+        return TaskStatus.todo;
+    }
+  }
+}
+
+class TaskModel {
+  final int id;
   final String title;
   final String description;
-  final String cleanDescription;
-  final String priority;
-  final String? assignedTo;
-  final DateTime? dueDate;
+  final TaskStatus status;
+  final int? assignedTo;
+  final String? assignedToUsername;
+  final int? project;
+  final List<int> tagIds;
+  final String? dueDate;
 
-  Task({
-    this.id,
+  const TaskModel({
+    required this.id,
     required this.title,
     required this.description,
-    required this.cleanDescription,
-    required this.priority,
+    required this.status,
     this.assignedTo,
+    this.assignedToUsername,
+    this.project,
+    required this.tagIds,
     this.dueDate,
   });
 
-  factory Task.fromJson(Map<String, dynamic> json) {
-    try {
-      String rawDesc = json['description']?.toString() ?? '';
+  factory TaskModel.fromJson(Map<String, dynamic> json) {
+    final assignedRaw = json['assigned_to'];
+    final projectRaw = json['project'];
+    final tagsRaw = json['tag_ids'] ?? json['tags'] ?? const [];
 
-      String parsedPriority = 'Normalny';
-      if (rawDesc.contains('[Priorytet: Wysoki]'))
-        parsedPriority = 'Wysoki';
-      else if (rawDesc.contains('[Priorytet: Niski]'))
-        parsedPriority = 'Niski';
-
-      String? parsedUser;
-      final userMatch = RegExp(r'\[Dla: (.*?)\]').firstMatch(rawDesc);
-      if (userMatch != null) parsedUser = userMatch.group(1);
-
-      String cleaned = rawDesc
-          .replaceAll(RegExp(r'\n?\[Priorytet: .*?\]'), '')
-          .replaceAll(RegExp(r'\n?\[Dla: .*?\]'), '')
-          .trim();
-
-      return Task(
-        id: json['id'] is int
-            ? json['id']
-            : int.tryParse(json['id']?.toString() ?? ''),
-        title: json['title']?.toString() ?? 'Zadanie bez tytulu',
-        description: rawDesc,
-        cleanDescription: cleaned.isEmpty ? 'Brak opisu' : cleaned,
-        priority: parsedPriority,
-        assignedTo: parsedUser,
-        dueDate: json['due_date'] != null
-            ? DateTime.tryParse(json['due_date'].toString())
-            : null,
-      );
-    } catch (e) {
-      return Task(
-        id: null,
-        title: 'Blad formatu zadania',
-        description: '',
-        cleanDescription: 'Dane tego zadania sa niepelne w bazie.',
-        priority: 'Normalny',
-      );
-    }
+    return TaskModel(
+      id: json['id'] as int,
+      title: json['title'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      status: TaskStatusExt.fromString(json['status'] as String?),
+      assignedTo: _extractId(assignedRaw),
+      assignedToUsername: assignedRaw is Map
+          ? assignedRaw['username'] as String?
+          : null,
+      project: _extractId(projectRaw),
+      tagIds: (tagsRaw as List)
+          .map((e) => _extractId(e))
+          .whereType<int>()
+          .toList(),
+      dueDate: json['due_date'] as String?,
+    );
   }
+
+  static int? _extractId(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is String && value.isNotEmpty) {
+      final segments = value.split('/').where((s) => s.isNotEmpty).toList();
+      if (segments.isNotEmpty) return int.tryParse(segments.last);
+    }
+    if (value is Map) return value['id'] as int?;
+    return null;
+  }
+
+  TaskModel copyWith({
+    String? title,
+    String? description,
+    TaskStatus? status,
+    int? assignedTo,
+    String? assignedToUsername,
+    int? project,
+    List<int>? tagIds,
+    String? dueDate,
+    bool clearAssignee = false,
+    bool clearDueDate = false,
+  }) => TaskModel(
+    id: id,
+    title: title ?? this.title,
+    description: description ?? this.description,
+    status: status ?? this.status,
+    assignedTo: clearAssignee ? null : (assignedTo ?? this.assignedTo),
+    assignedToUsername: clearAssignee
+        ? null
+        : (assignedToUsername ?? this.assignedToUsername),
+    project: project ?? this.project,
+    tagIds: tagIds ?? this.tagIds,
+    dueDate: clearDueDate ? null : (dueDate ?? this.dueDate),
+  );
 }

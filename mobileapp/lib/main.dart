@@ -1,25 +1,23 @@
 import 'package:flutter/material.dart';
-import 'screens/login_screen.dart';
+import 'package:provider/provider.dart';
+import 'app.dart';
+import 'providers/auth_provider.dart';
+import 'providers/invitation_provider.dart';
+import 'providers/notification_provider.dart';
+import 'providers/project_provider.dart';
+import 'providers/task_provider.dart';
 
 void main() {
-  runApp(const TaskManagerApp());
-}
-
-class TaskManagerApp extends StatelessWidget {
-  const TaskManagerApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Task Manager',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        scaffoldBackgroundColor: const Color(0xFFF4F6FB),
-        fontFamily: 'Roboto',
-      ),
-      // Aplikacja od razu kieruje na zewnetrzny ekran logowania
-      home: const LoginScreen(),
-    );
-  }
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => ProjectProvider()),
+        ChangeNotifierProvider(create: (_) => TaskProvider()),
+        ChangeNotifierProvider(create: (_) => InvitationProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
+      ],
+      child: const TaskomatApp(),
+    ),
+  );
 }

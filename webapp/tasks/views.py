@@ -1,6 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .models import Task
 from .selectors import get_tasks, get_task_byid
 from .forms import TaskForm
 from django.http import HttpResponseNotAllowed, HttpResponseForbidden, HttpResponseNotFound
@@ -11,9 +10,7 @@ from .services.task_services import create_task, delete_task, update_task
 @login_required
 def show_tasks(request):
     tasks = get_tasks()
-    return render(request, "tasks/tasks.html", {
-        "tasks": tasks
-    })
+    return render(request, "tasks/tasks.html", {"tasks": tasks})
 
 # create task
 
@@ -72,18 +69,22 @@ def update_task_view(request, task_id):
 
     return render(request, "tasks/update_task.html", {"form": form, "task": task})
 
+"""
+@login_required
+def update_user_view(request, user_id):
+    if not request.user.is_staff:
+        return HttpResponseForbidden("Tylko administrator może edytować użytkowników.")
 
-def tasks_sort_by_due_date(request):
-    order = request.GET.get("order", "asc")
-    print(order)
-    if order == "asc":
-        tasks = Task.objects.all().order_by("due_date")
-        next_order = "desc"
+    user = get_object_or_404(User, id=user_id)
+
+    if request.method == "POST":
+        form = UserUpdateForm(request.POST, instance=user)
+        if form.is_valid():
+
+            data = form.cleaned_data
+            update_user(user_id=user.id, **data)
+            return redirect("users_view")
     else:
-        tasks = Task.objects.all().order_by("-due_date")
-        next_order = "asc"
-
-    return render(request, "tasks/_tasks_table.html", {
-        "tasks": tasks,
-        "next_order": next_order
-    })
+        form = UserUpdateForm(instance=user)
+    return render(request, "users/update_user.html", {"form": form, "user": user})
+"""
