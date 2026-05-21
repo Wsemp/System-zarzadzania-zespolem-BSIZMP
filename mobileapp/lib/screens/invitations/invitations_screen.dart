@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/invitation_model.dart';
 import '../../providers/invitation_provider.dart';
+import '../../providers/project_provider.dart';
 
 class InvitationsScreen extends StatefulWidget {
   const InvitationsScreen({super.key});
@@ -25,11 +27,22 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
     final provider = context.watch<InvitationProvider>();
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Zaproszenia'),
+        backgroundColor: AppColors.background,
+        elevation: 0,
+        title: Text(
+          'Zaproszenia',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w700,
+            fontSize: 20,
+            color: AppColors.textPrimary,
+          ),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh_rounded),
+            color: AppColors.textSecondary,
             onPressed: () => context.read<InvitationProvider>().load(),
           ),
         ],
@@ -41,9 +54,9 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
           : RefreshIndicator(
               onRefresh: () => context.read<InvitationProvider>().load(),
               child: ListView.separated(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                 itemCount: provider.invitations.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                separatorBuilder: (_, __) => const SizedBox(height: 10),
                 itemBuilder: (_, i) =>
                     _InvitationCard(invitation: provider.invitations[i]),
               ),
@@ -61,14 +74,21 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
           color: AppColors.purple.withOpacity(0.3),
         ),
         const SizedBox(height: 16),
-        const Text(
+        Text(
           'Brak zaproszeń',
-          style: TextStyle(fontSize: 18, color: AppColors.textSecondary),
+          style: GoogleFonts.poppins(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
         ),
         const SizedBox(height: 8),
-        const Text(
+        Text(
           'Tutaj pojawią się zaproszenia do projektów',
-          style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+          style: GoogleFonts.poppins(
+            color: AppColors.textSecondary,
+            fontSize: 13,
+          ),
         ),
       ],
     ),
@@ -95,20 +115,37 @@ class _InvitationCardState extends State<_InvitationCard> {
 
     if (!mounted) return;
     setState(() => _acting = false);
+
     if (!ok) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(provider.error ?? 'Błąd operacji'),
-          backgroundColor: Colors.red,
+          content: Text(
+            provider.error ?? 'Wystąpił błąd. Spróbuj ponownie.',
+            style: GoogleFonts.poppins(fontSize: 13),
+          ),
+          backgroundColor: Colors.red.shade700,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.md),
+          ),
         ),
       );
     } else {
+      if (accept && mounted) {
+        context.read<ProjectProvider>().loadProjects();
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            accept ? 'Zaproszenie zaakceptowane' : 'Zaproszenie odrzucone',
+            accept ? 'Zaproszenie zaakceptowane!' : 'Zaproszenie odrzucone',
+            style: GoogleFonts.poppins(fontSize: 13),
           ),
-          backgroundColor: accept ? Colors.green : Colors.orange,
+          backgroundColor:
+              accept ? Colors.green.shade700 : Colors.orange.shade700,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.md),
+          ),
         ),
       );
     }
@@ -117,13 +154,19 @@ class _InvitationCardState extends State<_InvitationCard> {
   @override
   Widget build(BuildContext context) {
     final inv = widget.invitation;
-    final statusColor = inv.status == 'accepted'
-        ? Colors.green
-        : inv.status == 'rejected'
-        ? Colors.red
-        : AppColors.orange;
 
-    return Card(
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.cardShadow,
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -132,16 +175,16 @@ class _InvitationCardState extends State<_InvitationCard> {
             Row(
               children: [
                 Container(
-                  width: 44,
-                  height: 44,
+                  width: 48,
+                  height: 48,
                   decoration: BoxDecoration(
                     gradient: AppColors.gradientPurple,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: const Icon(
-                    Icons.folder,
+                    Icons.folder_rounded,
                     color: Colors.white,
-                    size: 22,
+                    size: 24,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -151,50 +194,37 @@ class _InvitationCardState extends State<_InvitationCard> {
                     children: [
                       Text(
                         inv.projectName,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
                           color: AppColors.textPrimary,
                         ),
                       ),
                       if (inv.invitedByUsername.isNotEmpty)
                         Text(
                           'Od: ${inv.invitedByUsername}',
-                          style: const TextStyle(
+                          style: GoogleFonts.poppins(
                             color: AppColors.textSecondary,
-                            fontSize: 13,
+                            fontSize: 12,
+                          ),
+                        )
+                      else if (inv.inviteeEmail.isNotEmpty)
+                        Text(
+                          inv.inviteeEmail,
+                          style: GoogleFonts.poppins(
+                            color: AppColors.textSecondary,
+                            fontSize: 12,
                           ),
                         ),
                     ],
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    inv.status == 'accepted'
-                        ? 'Zaakceptowane'
-                        : inv.status == 'rejected'
-                        ? 'Odrzucone'
-                        : 'Oczekujące',
-                    style: TextStyle(
-                      color: statusColor,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
+                _StatusChip(status: inv.status),
               ],
             ),
             if (inv.isPending) ...[
               const SizedBox(height: 14),
-              const Divider(height: 1),
+              Divider(height: 1, color: AppColors.divider),
               const SizedBox(height: 12),
               Row(
                 children: [
@@ -202,38 +232,88 @@ class _InvitationCardState extends State<_InvitationCard> {
                     child: OutlinedButton(
                       onPressed: _acting ? null : () => _act(false),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.red,
-                        side: const BorderSide(color: Colors.red),
+                        foregroundColor: Colors.red.shade600,
+                        side: BorderSide(color: Colors.red.shade300),
                         padding: const EdgeInsets.symmetric(vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                        ),
                       ),
-                      child: const Text('Odrzuć'),
+                      child: Text(
+                        'Odrzuć',
+                        style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: ElevatedButton(
-                      onPressed: _acting ? null : () => _act(true),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.purple,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: _acting ? null : AppColors.gradientPurple,
+                        color: _acting ? AppColors.divider : null,
+                        borderRadius: BorderRadius.circular(AppRadius.md),
                       ),
-                      child: _acting
-                          ? const SizedBox(
-                              height: 16,
-                              width: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
+                      child: ElevatedButton(
+                        onPressed: _acting ? null : () => _act(true),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AppRadius.md),
+                          ),
+                        ),
+                        child: _acting
+                            ? const SizedBox(
+                                height: 16,
+                                width: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : Text(
+                                'Akceptuj',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
-                            )
-                          : const Text('Akceptuj'),
+                      ),
                     ),
                   ),
                 ],
               ),
             ],
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StatusChip extends StatelessWidget {
+  final String status;
+  const _StatusChip({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    final isAccepted = status == 'accepted';
+    final color = isAccepted ? Colors.green : AppColors.orange;
+    final label = isAccepted ? 'Zaakceptowane' : 'Oczekujące';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(AppRadius.full),
+      ),
+      child: Text(
+        label,
+        style: GoogleFonts.poppins(
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );

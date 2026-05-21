@@ -11,6 +11,17 @@ class TaskCard extends StatelessWidget {
 
   const TaskCard({super.key, required this.task, this.onTap});
 
+  Color _priorityColor(TaskPriority p) {
+    switch (p) {
+      case TaskPriority.low:
+        return const Color(0xFF4CAF50);
+      case TaskPriority.medium:
+        return AppColors.orange;
+      case TaskPriority.high:
+        return const Color(0xFFE53935);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -76,7 +87,23 @@ class TaskCard extends StatelessWidget {
                       const SizedBox(height: 10),
                       Row(
                         children: [
+                          // Priority dot
+                          _PriorityDot(priority: task.priority),
+                          const SizedBox(width: 6),
+                          Text(
+                            task.priority.label,
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              color: _priorityColor(task.priority),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          if (task.area != null) ...[
+                            const SizedBox(width: 8),
+                            _AreaChip(area: task.area!),
+                          ],
                           if (task.dueDate != null) ...[
+                            const SizedBox(width: 8),
                             const Icon(
                               Icons.calendar_today_outlined,
                               size: 12,
@@ -106,6 +133,55 @@ class TaskCard extends StatelessWidget {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PriorityDot extends StatelessWidget {
+  final TaskPriority priority;
+  const _PriorityDot({required this.priority});
+
+  Color get _color {
+    switch (priority) {
+      case TaskPriority.low:
+        return const Color(0xFF4CAF50);
+      case TaskPriority.medium:
+        return AppColors.orange;
+      case TaskPriority.high:
+        return const Color(0xFFE53935);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 8,
+      height: 8,
+      decoration: BoxDecoration(color: _color, shape: BoxShape.circle),
+    );
+  }
+}
+
+class _AreaChip extends StatelessWidget {
+  final TaskArea area;
+  const _AreaChip({required this.area});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: AppColors.purple.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(AppRadius.full),
+      ),
+      child: Text(
+        area.label,
+        style: GoogleFonts.poppins(
+          fontSize: 10,
+          color: AppColors.purple,
+          fontWeight: FontWeight.w500,
         ),
       ),
     );

@@ -30,7 +30,6 @@ class NotificationProvider extends ChangeNotifier {
     _polling = false;
   }
 
-  // Cichy reload — nie ustawia _loading, żeby badge nie migał
   Future<void> _silentLoad() async {
     try {
       final fresh = await NotificationService.getNotifications();
@@ -71,10 +70,8 @@ class NotificationProvider extends ChangeNotifier {
   }
 
   Future<void> markAllAsRead() async {
-    final unreadIds = unread.map((n) => n.id).toList();
-    if (unreadIds.isEmpty) return;
     try {
-      await NotificationService.markAllAsRead(unreadIds);
+      await NotificationService.markAllAsRead();
       _notifications = _notifications
           .map((n) => n.copyWith(isRead: true))
           .toList();
