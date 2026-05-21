@@ -63,7 +63,6 @@ Projekt zakłada wdrożenie mechanizmów zabezpieczających dostęp do systemu:
 ### Zadania
 - [ ] implementacja systemu logowania i rejestracji  
 - [ ] wdrożenie OAuth 2.0 (Google)  
-- [ ] implementacja 2FA  
 - [ ] zabezpieczenie komunikacji klient–API  
 - [ ] testowanie mechanizmów bezpieczeństwa  
 
