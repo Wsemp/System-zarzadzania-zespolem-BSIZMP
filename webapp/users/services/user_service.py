@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from ..selectors import get_user_by_id
 
 User = get_user_model()
 
@@ -16,8 +17,8 @@ def create_user(*, username: str, email: str, is_staff:str, password: str) -> Us
 
 
 @transaction.atomic
-def update_user(*, user_id: int, **data) -> User | None:
-    user = User.objects.filter(id=user_id).first()
+def update_user(*, user: User, **data) -> User | None:
+
     if not user:
         return None
 

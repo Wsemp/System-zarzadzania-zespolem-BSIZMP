@@ -30,7 +30,6 @@ class NotificationProvider extends ChangeNotifier {
     _polling = false;
   }
 
-  // Cichy reload — nie ustawia _loading, żeby badge nie migał
   Future<void> _silentLoad() async {
     try {
       final fresh = await NotificationService.getNotifications();

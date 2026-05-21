@@ -6,6 +6,7 @@ import '../../core/theme/app_theme.dart';
 import '../../models/task_model.dart';
 import '../../models/user_model.dart';
 import '../../providers/task_provider.dart';
+import '../../services/project_service.dart';
 import '../../services/user_service.dart';
 import '../../widgets/gradient_button.dart';
 
@@ -24,6 +25,9 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
   final _titleCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
   TaskStatus _status = TaskStatus.todo;
+  TaskPriority _priority = TaskPriority.medium;
+  TaskArea? _area;
+  bool _anonymousReporter = false;
   int? _assignedTo;
   String? _dueDate;
   List<UserModel> _users = [];
@@ -40,6 +44,9 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
       _titleCtrl.text = t.title;
       _descCtrl.text = t.description;
       _status = t.status;
+      _priority = t.priority;
+      _area = t.area;
+      _anonymousReporter = t.anonymousReporter;
       _assignedTo = t.assignedTo;
       _dueDate = t.dueDate;
     }
@@ -48,7 +55,14 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
 
   Future<void> _loadUsers() async {
     try {
-      final users = await UserService.getUsers();
+      final List<UserModel> users;
+      final pid = widget.projectId ?? widget.task?.project;
+      if (pid != null) {
+        final project = await ProjectService.getProject(pid);
+        users = project.members;
+      } else {
+        users = await UserService.getUsers();
+      }
       if (mounted) {
         setState(() {
           _users = users;
@@ -79,6 +93,10 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
         title: _titleCtrl.text.trim(),
         description: _descCtrl.text.trim(),
         status: _status,
+        priority: _priority,
+        area: _area,
+        clearArea: _area == null,
+        anonymousReporter: _anonymousReporter,
         assignedTo: _assignedTo,
         dueDate: _dueDate,
         clearAssignee: _assignedTo == null,
@@ -89,6 +107,9 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
         title: _titleCtrl.text.trim(),
         description: _descCtrl.text.trim(),
         status: _status,
+        priority: _priority,
+        area: _area,
+        anonymousReporter: _anonymousReporter,
         assignedTo: _assignedTo,
         dueDate: _dueDate,
         projectId: widget.projectId,
@@ -151,9 +172,15 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                       const SizedBox(height: 16),
                       _buildStatusCard(),
                       const SizedBox(height: 16),
+                      _buildPriorityCard(),
+                      const SizedBox(height: 16),
+                      _buildAreaCard(),
+                      const SizedBox(height: 16),
                       _buildAssigneeCard(),
                       const SizedBox(height: 16),
                       _buildDateCard(),
+                      const SizedBox(height: 16),
+                      _buildReporterCard(),
                       const SizedBox(height: 32),
                       GradientButton(
                         label: _isEdit ? 'Zapisz zmiany' : 'Utwórz zadanie',
@@ -302,12 +329,120 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
     );
   }
 
+  Widget _buildPriorityCard() {
+    const priorityColors = {
+      TaskPriority.low: Color(0xFF4CAF50),
+      TaskPriority.medium: AppColors.orange,
+      TaskPriority.high: Color(0xFFE53935),
+    };
+
+    return _buildCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _sectionLabel('Priorytet'),
+          const SizedBox(height: 12),
+          Row(
+            children: TaskPriority.values.map((p) {
+              final selected = _priority == p;
+              final color = priorityColors[p]!;
+              return Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 3),
+                  child: GestureDetector(
+                    onTap: () => setState(() => _priority = p),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: BoxDecoration(
+                        color: selected
+                            ? color.withOpacity(0.12)
+                            : Colors.grey.shade50,
+                        border: Border.all(
+                          color: selected ? color : Colors.grey.shade200,
+                          width: selected ? 1.5 : 1,
+                        ),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
+                      ),
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 10,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color: color,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            p.label,
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              fontWeight: selected
+                                  ? FontWeight.w700
+                                  : FontWeight.w400,
+                              color: selected ? color : AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAreaCard() {
+    return _buildCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _sectionLabel('Obszar'),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<TaskArea?>(
+            value: _area,
+            isExpanded: true,
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              color: AppColors.textPrimary,
+            ),
+            decoration: const InputDecoration(
+              prefixIcon: Icon(Icons.category_outlined),
+            ),
+            items: [
+              DropdownMenuItem(
+                value: null,
+                child: Text(
+                  'Nieokreślony',
+                  style: GoogleFonts.poppins(color: AppColors.textSecondary),
+                ),
+              ),
+              ...TaskArea.values.map(
+                (a) => DropdownMenuItem(
+                  value: a,
+                  child: Text(a.label, style: GoogleFonts.poppins()),
+                ),
+              ),
+            ],
+            onChanged: (v) => setState(() => _area = v),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildAssigneeCard() {
     return _buildCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionLabel('Przypisanie'),
+          _sectionLabel('Osoba przypisana'),
           const SizedBox(height: 12),
           if (_usersLoading)
             const Center(
@@ -386,6 +521,93 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildReporterCard() {
+    return _buildCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _sectionLabel('Zgłaszający'),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _ReporterChip(
+                  label: 'Moje imię',
+                  icon: Icons.person_rounded,
+                  selected: !_anonymousReporter,
+                  onTap: () => setState(() => _anonymousReporter = false),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _ReporterChip(
+                  label: 'Anonimowo',
+                  icon: Icons.visibility_off_rounded,
+                  selected: _anonymousReporter,
+                  onTap: () => setState(() => _anonymousReporter = true),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ReporterChip extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _ReporterChip({
+    required this.label,
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+        decoration: BoxDecoration(
+          color: selected
+              ? AppColors.purple.withOpacity(0.1)
+              : Colors.grey.shade50,
+          border: Border.all(
+            color: selected ? AppColors.purple : Colors.grey.shade200,
+            width: selected ? 1.5 : 1,
+          ),
+          borderRadius: BorderRadius.circular(AppRadius.md),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 16,
+              color: selected ? AppColors.purple : AppColors.textSecondary,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                color: selected ? AppColors.purple : AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

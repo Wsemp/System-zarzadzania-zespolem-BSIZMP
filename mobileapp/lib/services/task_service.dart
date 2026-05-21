@@ -46,11 +46,16 @@ class TaskService {
     required String title,
     required String description,
     required TaskStatus status,
+    TaskPriority priority = TaskPriority.medium,
+    TaskArea? area,
+    bool anonymousReporter = false,
     int? assignedTo,
     int? projectId,
     List<int>? tagIds,
     String? dueDate,
   }) async {
+    // priority/area/anonymous_reporter są zarządzane lokalnie —
+    // backend ich jeszcze nie obsługuje (brak migracji)
     final body = <String, dynamic>{
       'title': title,
       'description': description,

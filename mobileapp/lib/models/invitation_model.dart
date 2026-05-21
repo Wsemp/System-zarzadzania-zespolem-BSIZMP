@@ -2,19 +2,17 @@ class InvitationModel {
   final int id;
   final int? projectId;
   final String projectName;
-  final int? inviteeId;
-  final String inviteeUsername;
+  final String inviteeEmail;
   final int? invitedById;
   final String invitedByUsername;
-  final String status; // pending, accepted, rejected
+  final String status; // 'pending' | 'accepted'
   final String createdAt;
 
   const InvitationModel({
     required this.id,
     this.projectId,
     required this.projectName,
-    this.inviteeId,
-    required this.inviteeUsername,
+    required this.inviteeEmail,
     this.invitedById,
     required this.invitedByUsername,
     required this.status,
@@ -24,23 +22,22 @@ class InvitationModel {
   bool get isPending => status == 'pending';
 
   factory InvitationModel.fromJson(Map<String, dynamic> json) {
+    // Backend zwraca 'accepted' (bool), nie 'status' (string)
+    final accepted = json['accepted'] as bool? ?? false;
+
+    // Backend to HyperlinkedModelSerializer — project/inviter to URLe
     final projectRaw = json['project'];
-    final inviteeRaw = json['invitee'];
-    final inviterRaw = json['invited_by'] ?? json['inviter'];
+    final inviterRaw = json['inviter'];
 
     return InvitationModel(
       id: json['id'] as int,
       projectId: _extractId(projectRaw),
-      projectName: _extractName(projectRaw, json['project_name']) ?? 'Projekt',
-      inviteeId: _extractId(inviteeRaw),
-      inviteeUsername:
-          _extractUsername(inviteeRaw, json['invitee_username']) ?? '',
+      // project_name dostępne po naprawie backendu; fallback na parsowanie URL
+      projectName: json['project_name'] as String? ?? 'Projekt',
+      inviteeEmail: json['email'] as String? ?? '',
       invitedById: _extractId(inviterRaw),
-      invitedByUsername:
-          _extractUsername(inviterRaw, json['invited_by_username']) ??
-          _extractUsername(inviterRaw, json['inviter_username']) ??
-          '',
-      status: json['status'] as String? ?? 'pending',
+      invitedByUsername: json['inviter_username'] as String? ?? '',
+      status: accepted ? 'accepted' : 'pending',
       createdAt: json['created_at'] as String? ?? '',
     );
   }
@@ -53,18 +50,6 @@ class InvitationModel {
       final parts = value.split('/').where((s) => s.isNotEmpty).toList();
       return parts.isNotEmpty ? int.tryParse(parts.last) : null;
     }
-    return null;
-  }
-
-  static String? _extractName(dynamic value, dynamic fallback) {
-    if (value is Map) return value['name'] as String?;
-    if (fallback is String) return fallback;
-    return null;
-  }
-
-  static String? _extractUsername(dynamic value, dynamic fallback) {
-    if (value is Map) return value['username'] as String?;
-    if (fallback is String) return fallback;
     return null;
   }
 }

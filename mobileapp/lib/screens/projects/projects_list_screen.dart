@@ -9,7 +9,7 @@ import '../../models/user_model.dart';
 import '../../providers/invitation_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../providers/project_provider.dart';
-import '../../services/invitation_service.dart';
+import '../../services/project_service.dart';
 import '../../services/user_service.dart';
 
 class ProjectsListScreen extends StatefulWidget {
@@ -173,9 +173,9 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                       final createdProject = projectProv.projects.last;
                       for (final userId in selectedIds) {
                         try {
-                          await InvitationService.sendInvitation(
-                            projectId: createdProject.id,
-                            inviteeId: userId,
+                          await ProjectService.addMember(
+                            createdProject.id,
+                            userId,
                           );
                         } catch (_) {}
                       }

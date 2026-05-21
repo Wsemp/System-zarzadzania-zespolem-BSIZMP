@@ -110,8 +110,18 @@ class NotificationModel {
   }
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
+    // Support both flat fields (new backend) and nested objects (old backend)
     final taskRaw = json['task'];
     final projectRaw = json['project'];
+
+    final taskId = json['task_id'] as int? ?? _extractId(taskRaw);
+    final taskTitle =
+        json['task_title'] as String? ??
+        (taskRaw is Map ? taskRaw['title'] as String? : null);
+    final projectId = json['project_id'] as int? ?? _extractId(projectRaw);
+    final projectName =
+        json['project_name'] as String? ??
+        (projectRaw is Map ? projectRaw['name'] as String? : null);
 
     return NotificationModel(
       id: json['id'] as int,
@@ -124,10 +134,10 @@ class NotificationModel {
           json['type'] as String? ??
           json['event_type'] as String?,
       isRead: json['is_read'] as bool? ?? json['read'] as bool? ?? false,
-      taskId: _extractId(taskRaw),
-      taskTitle: taskRaw is Map ? taskRaw['title'] as String? : null,
-      projectId: _extractId(projectRaw),
-      projectName: projectRaw is Map ? projectRaw['name'] as String? : null,
+      taskId: taskId,
+      taskTitle: taskTitle,
+      projectId: projectId,
+      projectName: projectName,
       createdAt: json['created_at'] as String? ?? '',
     );
   }

@@ -38,4 +38,10 @@ class ProjectService {
 
   static Future<void> deleteProject(int id) =>
       ApiClient.delete(ApiEndpoints.project(id));
+
+  static Future<void> addMember(int projectId, int userId) async {
+    await ApiClient.post('${ApiEndpoints.project(projectId)}add-member/', {
+      'user_id': userId,
+    });
+  }
 }
