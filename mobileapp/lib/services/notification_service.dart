@@ -9,15 +9,10 @@ class NotificationService {
   }
 
   static Future<void> markAsRead(int id) async {
-    // Próbuj PATCH; niektóre backendy używają POST /mark-read/
-    try {
-      await ApiClient.patch(ApiEndpoints.notification(id), {'is_read': true});
-    } catch (_) {
-      await ApiClient.post('${ApiEndpoints.notification(id)}mark-read/', {});
-    }
+    await ApiClient.patch(ApiEndpoints.notification(id), {'is_read': true});
   }
 
-  static Future<void> markAllAsRead(List<int> ids) async {
-    await Future.wait(ids.map(markAsRead));
+  static Future<void> markAllAsRead() async {
+    await ApiClient.post('${ApiEndpoints.notifications}mark-all-read/', {});
   }
 }

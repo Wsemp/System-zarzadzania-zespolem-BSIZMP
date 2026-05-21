@@ -21,7 +21,7 @@ class InvitationProvider extends ChangeNotifier {
     try {
       _invitations = await InvitationService.getInvitations();
     } catch (e) {
-      _error = e.toString();
+      _error = _friendlyError(e.toString());
     } finally {
       _loading = false;
       notifyListeners();
@@ -31,14 +31,11 @@ class InvitationProvider extends ChangeNotifier {
   Future<bool> accept(int id) async {
     try {
       await InvitationService.acceptInvitation(id);
-      final idx = _invitations.indexWhere((i) => i.id == id);
-      if (idx >= 0) {
-        _invitations = List.from(_invitations)..removeAt(idx);
-      }
+      _invitations = _invitations.where((i) => i.id != id).toList();
       notifyListeners();
       return true;
     } catch (e) {
-      _error = e.toString();
+      _error = _friendlyError(e.toString());
       notifyListeners();
       return false;
     }
@@ -47,16 +44,30 @@ class InvitationProvider extends ChangeNotifier {
   Future<bool> reject(int id) async {
     try {
       await InvitationService.rejectInvitation(id);
-      final idx = _invitations.indexWhere((i) => i.id == id);
-      if (idx >= 0) {
-        _invitations = List.from(_invitations)..removeAt(idx);
-      }
+      _invitations = _invitations.where((i) => i.id != id).toList();
       notifyListeners();
       return true;
     } catch (e) {
-      _error = e.toString();
+      _error = _friendlyError(e.toString());
       notifyListeners();
       return false;
     }
+  }
+
+  static String _friendlyError(String raw) {
+    if (raw.contains('401') || raw.contains('Unauthorized')) {
+      return 'Sesja wygasła. Zaloguj się ponownie.';
+    }
+    if (raw.contains('400')) {
+      return 'Nieprawidłowe dane. Spróbuj ponownie.';
+    }
+    if (raw.contains('500')) {
+      return 'Błąd serwera. Skontaktuj się z administratorem.';
+    }
+    if (raw.contains('SocketException') || raw.contains('NetworkException')) {
+      return 'Brak połączenia z internetem.';
+    }
+    final msg = raw.replaceFirst('Exception: ', '');
+    return msg.isNotEmpty ? msg : 'Wystąpił błąd. Spróbuj ponownie.';
   }
 }

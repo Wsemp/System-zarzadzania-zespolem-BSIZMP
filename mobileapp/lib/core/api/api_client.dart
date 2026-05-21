@@ -8,7 +8,7 @@ import 'api_endpoints.dart';
 
 class ApiClient {
   static Future<Map<String, String>> _headers({bool auth = true}) async {
-    final headers = {'Content-Type': 'application/json'};
+    final headers = {'Content-Type': 'application/json; charset=utf-8'};
     if (auth) {
       final token = await TokenStorage.getAccess();
       if (token != null) headers['Authorization'] = 'Bearer $token';
@@ -25,11 +25,11 @@ class ApiClient {
       );
       final res = await http.post(
         uri,
-        headers: {'Content-Type': 'application/json'},
+        headers: {'Content-Type': 'application/json; charset=utf-8'},
         body: jsonEncode({'refresh': refresh}),
       );
       if (res.statusCode == 200) {
-        final data = jsonDecode(res.body);
+        final data = jsonDecode(utf8.decode(res.bodyBytes));
         await TokenStorage.saveTokens(access: data['access'], refresh: refresh);
         return true;
       }
@@ -99,6 +99,11 @@ class ApiClient {
         throw const UnauthorizedException();
       }
 
+      if (response.statusCode == 403) {
+        debugPrint('[API] 403 Forbidden: $path');
+        throw const ForbiddenException();
+      }
+
       return _handleResponse(response);
     } on SocketException {
       throw const NetworkException();
@@ -112,12 +117,12 @@ class ApiClient {
   static dynamic _handleResponse(http.Response response) {
     if (response.statusCode >= 200 && response.statusCode < 300) {
       if (response.body.isEmpty) return null;
-      return jsonDecode(response.body);
+      return jsonDecode(utf8.decode(response.bodyBytes));
     }
     if (response.statusCode == 400) {
       String msg = 'Błąd walidacji';
       try {
-        final data = jsonDecode(response.body);
+        final data = jsonDecode(utf8.decode(response.bodyBytes));
         debugPrint('[API] 400 body: $data');
         if (data is Map && data.isNotEmpty) {
           final sb = StringBuffer();
@@ -133,6 +138,7 @@ class ApiClient {
     if (response.statusCode == 404) {
       throw const NotFoundException('Nie znaleziono zasobu');
     }
+    debugPrint('[API] Error ${response.statusCode}: ${response.body}');
     throw AppException(
       'Błąd serwera: ${response.statusCode}',
       statusCode: response.statusCode,

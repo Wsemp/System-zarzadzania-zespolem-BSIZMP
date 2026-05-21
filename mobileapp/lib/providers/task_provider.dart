@@ -38,6 +38,9 @@ class TaskProvider extends ChangeNotifier {
     required String title,
     required String description,
     required TaskStatus status,
+    TaskPriority priority = TaskPriority.medium,
+    TaskArea? area,
+    bool anonymousReporter = false,
     int? assignedTo,
     int? projectId,
     String? dueDate,
@@ -50,12 +53,16 @@ class TaskProvider extends ChangeNotifier {
         title: title,
         description: description,
         status: status,
+        priority: priority,
+        area: area,
+        anonymousReporter: anonymousReporter,
         assignedTo: assignedTo,
         projectId: effectiveProjectId,
         dueDate: dueDate,
         tagIds: tagIds,
       );
-      _tasks.add(task);
+      // Preserve local fields that backend doesn't store yet
+      _tasks.add(task.copyWith(priority: priority, area: area));
       notifyListeners();
       return true;
     } catch (e) {
@@ -70,7 +77,13 @@ class TaskProvider extends ChangeNotifier {
     try {
       final updated = await TaskService.updateStatus(id, status);
       final idx = _tasks.indexWhere((t) => t.id == id);
-      if (idx >= 0) _tasks[idx] = updated;
+      if (idx >= 0) {
+        // Preserve local fields on status-only update
+        _tasks[idx] = updated.copyWith(
+          priority: _tasks[idx].priority,
+          area: _tasks[idx].area,
+        );
+      }
       notifyListeners();
       return true;
     } catch (e) {
@@ -85,13 +98,19 @@ class TaskProvider extends ChangeNotifier {
     String? title,
     String? description,
     TaskStatus? status,
+    TaskPriority? priority,
+    TaskArea? area,
+    bool? anonymousReporter,
     int? assignedTo,
     String? dueDate,
     bool clearAssignee = false,
     bool clearDueDate = false,
+    bool clearArea = false,
   }) async {
     _error = null;
     try {
+      // priority/area/anonymous_reporter zarządzane lokalnie —
+      // backend ich nie obsługuje (brak migracji)
       final fields = <String, dynamic>{
         if (title != null) 'title': title,
         if (description != null) 'description': description,
@@ -107,7 +126,13 @@ class TaskProvider extends ChangeNotifier {
       };
       final updated = await TaskService.updateTask(id, fields);
       final idx = _tasks.indexWhere((t) => t.id == id);
-      if (idx >= 0) _tasks[idx] = updated;
+      if (idx >= 0) {
+        // Preserve local fields that backend doesn't return yet
+        _tasks[idx] = updated.copyWith(
+          priority: priority ?? _tasks[idx].priority,
+          area: clearArea ? null : (area ?? _tasks[idx].area),
+        );
+      }
       notifyListeners();
       return true;
     } catch (e) {

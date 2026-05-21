@@ -21,6 +21,11 @@ class ValidationException extends AppException {
   const ValidationException(super.message) : super(statusCode: 400);
 }
 
+class ForbiddenException extends AppException {
+  const ForbiddenException()
+    : super('Brak uprawnień do tej operacji.', statusCode: 403);
+}
+
 class NetworkException extends AppException {
   const NetworkException() : super('Brak połączenia z internetem.');
 }

@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import '../core/api/api_client.dart';
 import '../core/api/api_endpoints.dart';
+import '../core/auth/token_storage.dart';
 import '../models/invitation_model.dart';
 
 class InvitationService {
@@ -12,29 +14,29 @@ class InvitationService {
     required int projectId,
     required int inviteeId,
   }) async {
-    await ApiClient.post(ApiEndpoints.invitations, {
+    final userData = await ApiClient.get(ApiEndpoints.user(inviteeId));
+    final email = userData['email'] as String? ?? '';
+    final currentUserId = await TokenStorage.getUserId();
+
+    final body = <String, dynamic>{
       'project': ApiEndpoints.projectUrl(projectId),
-      'invitee': ApiEndpoints.userUrl(inviteeId),
-    });
+      'email': email,
+    };
+    if (currentUserId != null) {
+      body['inviter'] = ApiEndpoints.userUrl(currentUserId);
+    }
+
+    debugPrint('[INV] sendInvitation project=$projectId email=$email');
+    await ApiClient.post(ApiEndpoints.invitations, body);
   }
 
   static Future<void> acceptInvitation(int id) async {
-    try {
-      await ApiClient.post(ApiEndpoints.invitationAccept(id), {});
-    } catch (_) {
-      await ApiClient.patch(ApiEndpoints.invitation(id), {
-        'status': 'accepted',
-      });
-    }
+    debugPrint('[INV] acceptInvitation id=$id');
+    await ApiClient.post(ApiEndpoints.invitationAccept(id), {});
   }
 
   static Future<void> rejectInvitation(int id) async {
-    try {
-      await ApiClient.post(ApiEndpoints.invitationReject(id), {});
-    } catch (_) {
-      await ApiClient.patch(ApiEndpoints.invitation(id), {
-        'status': 'rejected',
-      });
-    }
+    debugPrint('[INV] rejectInvitation id=$id');
+    await ApiClient.post(ApiEndpoints.invitationReject(id), {});
   }
 }
