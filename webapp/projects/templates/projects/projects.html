@@ -7,7 +7,8 @@
               <div class="card-body">
                 <h5 class="card-title">{{ project.name }}</h5>
                 <h6 class="card-subtitle mb-2 text-muted">{{ project.created_at }}</h6>
-                <p class="card-text"><p>{{ project.description }}</p></p>
+                <p class="card-text"><p>{{ project.description }}</p>
+                <p class="card-text"><p>{{ project.owner }}</p>
                 <a href="#" class="card-link">Details</a>
                 <a href="{% url 'projects_members_view' project.id %}" class="card-link">Members</a>
                 <a href="{% url 'update_project' project.id %}" class="card-link">Update project</a>
