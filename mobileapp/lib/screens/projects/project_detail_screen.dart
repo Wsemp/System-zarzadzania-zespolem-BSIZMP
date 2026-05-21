@@ -8,6 +8,7 @@ import '../../models/project_model.dart';
 import '../../models/task_model.dart';
 import '../../models/user_model.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/project_provider.dart';
 import '../../providers/task_provider.dart';
 import '../../services/project_service.dart';
 import '../../widgets/kanban_column.dart';
@@ -106,10 +107,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                       projectId: widget.projectId,
                     ),
                   ),
-                  _TeamView(
-                    project: _project,
-                    onRefresh: _loadProject,
-                  ),
+                  _TeamView(project: _project, onRefresh: _loadProject),
                 ],
               ),
             ),
@@ -167,6 +165,40 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
             ),
             icon: const Icon(Icons.refresh_rounded),
             color: AppColors.textSecondary,
+          ),
+          PopupMenuButton<String>(
+            icon: const Icon(
+              Icons.more_vert_rounded,
+              color: AppColors.textSecondary,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+            ),
+            onSelected: (value) {
+              if (value == 'delete') _confirmDeleteProject();
+            },
+            itemBuilder: (_) => [
+              PopupMenuItem(
+                value: 'delete',
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.delete_outline,
+                      color: Colors.red,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Usuń projekt',
+                      style: GoogleFonts.poppins(
+                        color: Colors.red,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -249,6 +281,57 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
         ),
       ),
     );
+  }
+
+  Future<void> _confirmDeleteProject() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Usuń projekt',
+          style: GoogleFonts.poppins(fontWeight: FontWeight.w700),
+        ),
+        content: Text(
+          'Czy na pewno chcesz usunąć projekt "${widget.projectName}"? Tej operacji nie można cofnąć.',
+          style: GoogleFonts.poppins(fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+              'Anuluj',
+              style: GoogleFonts.poppins(color: AppColors.textSecondary),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              'Usuń',
+              style: GoogleFonts.poppins(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirm == true && mounted) {
+      final ok = await context.read<ProjectProvider>().deleteProject(
+        widget.projectId,
+      );
+      if (ok && mounted) {
+        context.pop();
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              context.read<ProjectProvider>().error ?? 'Błąd usuwania projektu',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildFAB(BuildContext context) {
