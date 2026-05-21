@@ -40,7 +40,6 @@ Projekt zakłada wdrożenie mechanizmów zabezpieczających dostęp do systemu:
 - [x] bezpieczne przechowywanie haseł (hashowanie)  
 - [x] reset hasła z użyciem tokenów jednorazowych  
 - [x] logowanie przez Google (OAuth 2.0)  
-- [x] weryfikacja dwuetapowa (2FA)  
 - [x] kontrola dostępu na podstawie ról  
 - [x] zabezpieczenie komunikacji (HTTPS)  
 
