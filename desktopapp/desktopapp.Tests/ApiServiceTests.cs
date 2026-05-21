@@ -3,11 +3,16 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using desktopapp.Data;
+using desktopapp.Models;
 using desktopapp.Services;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Moq.Protected;
+using Newtonsoft.Json;
 using Xunit;
+using System.Collections.Generic;
+using System.Linq;
+using System;
 
 namespace desktopapp.Tests
 {
@@ -22,14 +27,13 @@ namespace desktopapp.Tests
                 .Options;
         }
 
-        [Fact]
-        public async Task LoginAsync_Zwraca_True_Gdy_Serwer_Odpowiada_200()
+        private Mock<HttpMessageHandler> CreateHttpMock(HttpStatusCode statusCode, object? content = null)
         {
             var handlerMock = new Mock<HttpMessageHandler>();
             var response = new HttpResponseMessage
             {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent("{\"access\": \"fake_token\"}")
+                StatusCode = statusCode,
+                Content = content != null ? new StringContent(JsonConvert.SerializeObject(content)) : null
             };
 
             handlerMock
@@ -41,6 +45,13 @@ namespace desktopapp.Tests
                 )
                 .ReturnsAsync(response);
 
+            return handlerMock;
+        }
+
+        [Fact]
+        public async Task LoginAsync_Zwraca_True_Gdy_Serwer_Odpowiada_200()
+        {
+            var handlerMock = CreateHttpMock(HttpStatusCode.OK, new { access = "fake_token" });
             var httpClient = new HttpClient(handlerMock.Object);
             
             using (var context = new AppDbContext(_dbOptions))
@@ -58,21 +69,7 @@ namespace desktopapp.Tests
         [Fact]
         public async Task LoginAsync_Zwraca_False_Gdy_Serwer_Zwraca_Blad()
         {
-            var handlerMock = new Mock<HttpMessageHandler>();
-            var response = new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.Unauthorized,
-            };
-
-            handlerMock
-                .Protected()
-                .Setup<Task<HttpResponseMessage>>(
-                    "SendAsync",
-                    ItExpr.IsAny<HttpRequestMessage>(),
-                    ItExpr.IsAny<CancellationToken>()
-                )
-                .ReturnsAsync(response);
-
+            var handlerMock = CreateHttpMock(HttpStatusCode.Unauthorized);
             var httpClient = new HttpClient(handlerMock.Object);
             
             using (var context = new AppDbContext(_dbOptions))
@@ -84,6 +81,96 @@ namespace desktopapp.Tests
                 Assert.False(result);
                 Assert.Null(apiService.AccessToken);
             }
+        }
+
+        [Fact]
+        public async Task GetPendingInvitationsAsync_ShouldReturnListOfInvitations_WhenApiReturns200()
+        {
+            // Arrange
+            var invitations = new List<InvitationModel>
+            {
+                new InvitationModel { Id = 1, ProjectUrl = "http://test.com/api/projects/1/", InviterUrl = "http://test.com/api/users/1/", Message = "Zaproszenie A" },
+                new InvitationModel { Id = 2, ProjectUrl = "http://test.com/api/projects/2/", InviterUrl = "http://test.com/api/users/2/", Message = "Zaproszenie B" }
+            };
+            var handlerMock = CreateHttpMock(HttpStatusCode.OK, invitations);
+            var httpClient = new HttpClient(handlerMock.Object);
+            var apiService = new ApiService(httpClient);
+
+            // Act
+            var result = await apiService.GetPendingInvitationsAsync();
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(2, result.Count);
+            Assert.Equal("Zaproszenie A", result.First().Message);
+            Assert.Equal("1", result.First().DisplayProject); // Sprawdzamy DisplayProject
+            Assert.Equal("1", result.First().DisplayInviter); // Sprawdzamy DisplayInviter
+        }
+
+        [Theory]
+        [InlineData(HttpStatusCode.OK, true)]
+        [InlineData(HttpStatusCode.NotFound, false)]
+        [InlineData(HttpStatusCode.InternalServerError, false)]
+        public async Task AcceptInvitationAsync_ShouldReturnCorrectStatus(HttpStatusCode statusCode, bool expectedResult)
+        {
+            // Arrange
+            var handlerMock = CreateHttpMock(statusCode);
+            var httpClient = new HttpClient(handlerMock.Object);
+            var apiService = new ApiService(httpClient);
+
+            // Act
+            var result = await apiService.AcceptInvitationAsync(1);
+
+            // Assert
+            Assert.Equal(expectedResult, result);
+        }
+
+        [Theory]
+        [InlineData(HttpStatusCode.OK, true)]
+        [InlineData(HttpStatusCode.NotFound, false)]
+        public async Task RejectInvitationAsync_ShouldReturnCorrectStatus(HttpStatusCode statusCode, bool expectedResult)
+        {
+            // Arrange
+            var handlerMock = CreateHttpMock(statusCode);
+            var httpClient = new HttpClient(handlerMock.Object);
+            var apiService = new ApiService(httpClient);
+
+            // Act
+            var result = await apiService.RejectInvitationAsync(1);
+
+            // Assert
+            Assert.Equal(expectedResult, result);
+        }
+
+        [Fact]
+        public async Task GetNotificationsAsync_ShouldReturnListOfNotifications_WhenApiReturns200()
+        {
+            // Arrange
+            var notifications = new List<NotificationModel>
+            {
+                new NotificationModel { Id = 1, Message = "Notification 1", CreatedAt = DateTime.Now, IsRead = false },
+                new NotificationModel { Id = 2, Message = "Notification 2", CreatedAt = DateTime.Now, IsRead = true }
+            };
+            var handlerMock = CreateHttpMock(HttpStatusCode.OK, notifications);
+            var httpClient = new HttpClient(handlerMock.Object);
+            var apiService = new ApiService(httpClient);
+
+            // Act
+            var result = await apiService.GetNotificationsAsync();
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(2, result.Count);
+            Assert.Equal("Notification 1", result.First().Message);
+            handlerMock.Protected().Verify(
+                "SendAsync",
+                Times.Once(),
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Method == HttpMethod.Get
+                    && req.RequestUri != null
+                    && req.RequestUri.ToString().Contains("/api/notifications/")),
+                ItExpr.IsAny<CancellationToken>()
+            );
         }
     }
 }
