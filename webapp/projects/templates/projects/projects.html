@@ -9,10 +9,16 @@
                 <h6 class="card-subtitle mb-2 text-muted">{{ project.created_at }}</h6>
                 <p class="card-text"><p>{{ project.description }}</p></p>
                 <a href="#" class="card-link">Details</a>
-                <a href="#" class="card-link">Members</a>
+                <a href="{% url 'projects_members_view' project.id %}" class="card-link">Members</a>
+                <a href="{% url 'update_project' project.id %}" class="card-link">Update project</a>
               </div>
             </div>
 
             <hr>
         {% endfor %}
+
+        <button type="button" class="btn btn-link">
+        <a href="{% url 'create_project' %}">Utwórz projekt</a>
+    </button>
+
 {% endblock %}

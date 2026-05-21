@@ -5,6 +5,6 @@ from django.shortcuts import get_object_or_404
 def get_projects():
     return Project.objects.all()
 
-def get_project(project_id: int) -> Project | None:
+def get_project(project_id: int) -> Project:
     project = get_object_or_404(Project, id=project_id)
     return project
