@@ -115,10 +115,12 @@ class NotificationModel {
     final projectRaw = json['project'];
 
     final taskId = json['task_id'] as int? ?? _extractId(taskRaw);
-    final taskTitle = json['task_title'] as String? ??
+    final taskTitle =
+        json['task_title'] as String? ??
         (taskRaw is Map ? taskRaw['title'] as String? : null);
     final projectId = json['project_id'] as int? ?? _extractId(projectRaw);
-    final projectName = json['project_name'] as String? ??
+    final projectName =
+        json['project_name'] as String? ??
         (projectRaw is Map ? projectRaw['name'] as String? : null);
 
     return NotificationModel(

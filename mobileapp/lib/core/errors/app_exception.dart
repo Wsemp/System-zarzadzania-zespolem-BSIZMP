@@ -13,17 +13,17 @@ class UnauthorizedException extends AppException {
     : super('Sesja wygasła. Zaloguj się ponownie.', statusCode: 401);
 }
 
+class ForbiddenException extends AppException {
+  const ForbiddenException()
+    : super('Brak uprawnień do tej operacji.', statusCode: 403);
+}
+
 class NotFoundException extends AppException {
   const NotFoundException(super.message) : super(statusCode: 404);
 }
 
 class ValidationException extends AppException {
   const ValidationException(super.message) : super(statusCode: 400);
-}
-
-class ForbiddenException extends AppException {
-  const ForbiddenException()
-    : super('Brak uprawnień do tej operacji.', statusCode: 403);
 }
 
 class NetworkException extends AppException {

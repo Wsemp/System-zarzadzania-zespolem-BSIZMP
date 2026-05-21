@@ -12,9 +12,6 @@ class Notification(models.Model):
         TASK_COMPLETED = "task_completed", "Task completed"
         TASK_OVERDUE = "task_overdue", "Task overdue"
         COMMENT_ADDED = "comment_added", "Comment added"
-        STATUS_CHANGED = "status_changed", "Status changed"
-        INVITATION_SENT = "invitation_sent", "Invitation sent"
-        PROJECT_JOINED = "project_joined", "Project joined"
 
     recipient = models.ForeignKey(
         User,
@@ -24,18 +21,8 @@ class Notification(models.Model):
 
     task = models.ForeignKey(
         "tasks.Task",
-        on_delete=models.SET_NULL,
-        related_name="notifications",
-        null=True,
-        blank=True,
-    )
-
-    project = models.ForeignKey(
-        "projects.Project",
-        on_delete=models.SET_NULL,
-        related_name="notifications",
-        null=True,
-        blank=True,
+        on_delete=models.CASCADE,
+        related_name="notifications"
     )
 
     type = models.CharField(
@@ -55,5 +42,4 @@ class Notification(models.Model):
         ordering = ["-created_at"]
 
     def __str__(self):
-        task_info = self.task.title if self.task else "no task"
-        return f"{self.recipient} - {self.type} - ({task_info})"
+        return f"{self.recipient} - {self.type} - ({self.task.title})"

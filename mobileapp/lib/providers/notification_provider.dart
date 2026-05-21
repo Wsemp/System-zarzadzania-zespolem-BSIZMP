@@ -70,8 +70,10 @@ class NotificationProvider extends ChangeNotifier {
   }
 
   Future<void> markAllAsRead() async {
+    final unreadIds = unread.map((n) => n.id).toList();
+    if (unreadIds.isEmpty) return;
     try {
-      await NotificationService.markAllAsRead();
+      await NotificationService.markAllAsRead(unreadIds);
       _notifications = _notifications
           .map((n) => n.copyWith(isRead: true))
           .toList();

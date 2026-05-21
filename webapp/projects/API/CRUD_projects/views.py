@@ -1,4 +1,3 @@
-from django.db.models import Q
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -10,16 +9,10 @@ from .serializers import ProjectSerializer, ProjectMemberActionSerializer
 
 User = get_user_model()
 
-
 class ProjectViewSet(viewsets.ModelViewSet):
+    queryset = Project.objects.all()
     serializer_class = ProjectSerializer
     permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        user = self.request.user
-        return Project.objects.filter(
-            Q(owner=user) | Q(members=user)
-        ).distinct()
 
     def _can_manage_members(self, request, project: Project) -> bool:
         return request.user == project.owner or request.user.is_staff
