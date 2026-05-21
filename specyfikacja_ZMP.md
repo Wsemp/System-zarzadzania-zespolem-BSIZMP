@@ -30,4 +30,4 @@
 | **SYS-18** | Administrator otrzymuje powiadomienia, gdy użytkownik doda lub zmieni status zadania. | * | ✓ | | ✓ |
 | **SYS-19** | Administrator może blokować konta po wykryciu podejrzanych działań. | * | ✓ | | |
 | **SYS-20** | Administrator może filtrować zadania według przypisanego użytkownika. | * | ✓ | | ✓ |
-| **SYS-21** | Administrator może usuwać projekty z systemu. | * | ✓ | | |
+| **SYS-21** | Administrator może usuwać projekty z systemu. | * | ✓ | | ✓ |

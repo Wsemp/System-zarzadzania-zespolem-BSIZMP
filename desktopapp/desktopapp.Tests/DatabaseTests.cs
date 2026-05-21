@@ -23,6 +23,7 @@ namespace desktopapp.Tests
             // Arrange
             using (var context = new AppDbContext(_options))
             {
+                await context.Database.EnsureCreatedAsync();
                 var task = new TaskModel { Id = 1, Title = "Test Task", Description = "", Status = "todo" };
                 context.Tasks.Add(task);
                 await context.SaveChangesAsync();
@@ -45,6 +46,7 @@ namespace desktopapp.Tests
             // Arrange
             using (var context = new AppDbContext(_options))
             {
+                await context.Database.EnsureCreatedAsync();
                 var project = new ProjectModel { Id = 1, Name = "Test Project", Description = "" };
                 context.Projects.Add(project);
                 await context.SaveChangesAsync();
@@ -67,6 +69,7 @@ namespace desktopapp.Tests
             // Arrange
             using (var context = new AppDbContext(_options))
             {
+                await context.Database.EnsureCreatedAsync();
                 var user = new UserModel { Id = 1, Username = "TestUser", Email = "test@test.com" };
                 context.Users.Add(user);
                 await context.SaveChangesAsync();
