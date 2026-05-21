@@ -11,6 +11,7 @@ from notifications.models import Notification
 
 
 class InvitationViewSet(viewsets.ModelViewSet):
+    queryset = Invitation.objects.all()
     serializer_class = InvitationSerializer
     permission_classes = [IsAuthenticated]
 
