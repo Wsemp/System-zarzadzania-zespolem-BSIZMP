@@ -294,9 +294,14 @@
                     </ItemsControl>
                 </StackPanel>
 
-                <StackPanel Grid.Row="1">
-                    <TextBlock Text="Historia Powiadomień" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,15"/>
-                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <Grid Grid.Row="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/> </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Text="Historia Powiadomień" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,15"/>
+                    
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="0,0,15,0">
                         <ItemsControl ItemsSource="{Binding Notifications}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
@@ -306,7 +311,16 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="{Binding Message}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+
+                                            <StackPanel VerticalAlignment="Center">
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
+                                                    <TextBlock Text="{Binding Type, TargetNullValue='system', FallbackValue='system'}" FontWeight="Bold" Foreground="Gray" FontSize="11"/>
+                                                    <TextBlock Text=" • " Foreground="Gray" FontSize="11" Margin="3,0"/>
+                                                    <TextBlock Text="{Binding TaskTitle}" Foreground="{StaticResource PrimaryBlue}" FontWeight="SemiBold" FontSize="11"/>
+                                                </StackPanel>
+                                                
+                                                <TextBlock Text="{Binding Message}" TextWrapping="Wrap" FontSize="14"/>
+                                            </StackPanel>
                                             <TextBlock Grid.Column="1" Text="{Binding CreatedAt, StringFormat=\{0:dd.MM.yyyy HH:mm\}}" Foreground="Gray" VerticalAlignment="Center" Margin="10,0,0,0"/>
                                         </Grid>
                                     </Border>
@@ -314,7 +328,7 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </ScrollViewer>
-                </StackPanel>
+                </Grid>
             </Grid>
 
             <Border Background="White" BorderBrush="{StaticResource BorderGray}" BorderThickness="1" CornerRadius="4" Padding="30" HorizontalAlignment="Left" VerticalAlignment="Top">

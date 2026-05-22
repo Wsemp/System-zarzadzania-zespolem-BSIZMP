@@ -18,5 +18,15 @@ namespace desktopapp.Models
 
         [JsonProperty("is_read")]
         public bool IsRead { get; set; }
+        
+        [JsonProperty("type")]
+        public string? Type { get; set; }
+        
+        [JsonIgnore]
+        public string? TaskTitle { get; set; }
+        
+        [JsonProperty("task")]
+        public string? TaskUrl { get; set; }
+        
     }
 }
