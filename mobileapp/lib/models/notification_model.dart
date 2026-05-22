@@ -8,6 +8,7 @@ class NotificationModel {
   final int? projectId;
   final String? projectName;
   final String createdAt;
+  final int? recipientId;
 
   const NotificationModel({
     required this.id,
@@ -19,6 +20,7 @@ class NotificationModel {
     this.projectId,
     this.projectName,
     required this.createdAt,
+    this.recipientId,
   });
 
   String get displayMessage {
@@ -33,6 +35,21 @@ class NotificationModel {
       return taskTitle != null
           ? 'Zmieniono status zadania: $taskTitle'
           : 'Zmieniono status zadania';
+    }
+    if (t.contains('task_completed') || t.contains('completed')) {
+      return taskTitle != null
+          ? 'Zadanie zostało ukończone: $taskTitle'
+          : 'Zadanie zostało ukończone';
+    }
+    if (t.contains('task_updated') || t.contains('updated')) {
+      return taskTitle != null
+          ? 'Zaktualizowano zadanie: $taskTitle'
+          : 'Zaktualizowano zadanie';
+    }
+    if (t.contains('comment_added') || t.contains('comment')) {
+      return taskTitle != null
+          ? 'Nowy komentarz w zadaniu: $taskTitle'
+          : 'Nowy komentarz';
     }
     if (t.contains('project_closed') || t.contains('closed')) {
       return projectName != null
@@ -67,10 +84,19 @@ class NotificationModel {
     if (lower.contains('assigned') && lower.contains('task')) {
       return 'Przypisano Ci nowe zadanie';
     }
+    if (lower.contains('comment')) {
+      return 'Nowy komentarz';
+    }
+    if (lower.contains('updated') || lower.contains('update')) {
+      return 'Zaktualizowano zadanie';
+    }
     if (lower.contains('status') && lower.contains('changed')) {
       return 'Zmieniono status zadania';
     }
-    if (lower.contains('closed') || lower.contains('completed')) {
+    if (lower.contains('completed')) {
+      return 'Zadanie zostało ukończone';
+    }
+    if (lower.contains('closed')) {
       return 'Projekt został zamknięty';
     }
     if (lower.contains('started') || lower.contains('active')) {
@@ -89,28 +115,41 @@ class NotificationModel {
     final t = (type ?? '').toLowerCase();
     final lower = message.toLowerCase();
 
-    if (t.isNotEmpty) {
-      return t.contains('task') ||
-          t.contains('project') ||
-          t.contains('invitation') ||
-          t.contains('joined') ||
-          t.contains('assigned') ||
-          t.contains('status') ||
-          t.contains('member');
+    if (t.isEmpty) {
+      return lower.contains('task') ||
+          lower.contains('zadani') ||
+          lower.contains('project') ||
+          lower.contains('projekt') ||
+          lower.contains('invitation') ||
+          lower.contains('zaprosz') ||
+          lower.contains('assigned') ||
+          lower.contains('przypisano') ||
+          lower.contains('status') ||
+          lower.contains('closed') ||
+          lower.contains('started') ||
+          lower.contains('joined') ||
+          lower.contains('comment') ||
+          lower.contains('komentarz') ||
+          lower.contains('edit') ||
+          lower.contains('edytow');
     }
 
-    return lower.contains('task') ||
-        lower.contains('project') ||
-        lower.contains('invitation') ||
-        lower.contains('assigned') ||
-        lower.contains('status') ||
-        lower.contains('closed') ||
-        lower.contains('started') ||
-        lower.contains('joined');
+    return t.contains('task') ||
+        t.contains('project') ||
+        t.contains('invitation') ||
+        t.contains('joined') ||
+        t.contains('assigned') ||
+        t.contains('status') ||
+        t.contains('member') ||
+        t.contains('comment') ||
+        t.contains('created') ||
+        t.contains('updated') ||
+        t.contains('completed') ||
+        t.contains('closed') ||
+        t.contains('new');
   }
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
-    // Support both flat fields (new backend) and nested objects (old backend)
     final taskRaw = json['task'];
     final projectRaw = json['project'];
 
@@ -122,6 +161,12 @@ class NotificationModel {
     final projectName =
         json['project_name'] as String? ??
         (projectRaw is Map ? projectRaw['name'] as String? : null);
+
+    // Backend zwraca 'recipient' jako URL np. ".../api/users/28/"
+    // _extractId wyciąga z URL numer ID (ostatni segment).
+    final recipientRaw = json['recipient'] ?? json['recipient_id'];
+    final recipientId =
+        _extractId(recipientRaw) ?? (recipientRaw is int ? recipientRaw : null);
 
     return NotificationModel(
       id: json['id'] as int,
@@ -139,6 +184,7 @@ class NotificationModel {
       projectId: projectId,
       projectName: projectName,
       createdAt: json['created_at'] as String? ?? '',
+      recipientId: recipientId,
     );
   }
 
@@ -163,5 +209,6 @@ class NotificationModel {
     projectId: projectId,
     projectName: projectName,
     createdAt: createdAt,
+    recipientId: recipientId,
   );
 }

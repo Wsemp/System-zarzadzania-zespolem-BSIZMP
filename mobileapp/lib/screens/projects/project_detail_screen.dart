@@ -46,8 +46,18 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
   Future<void> _loadProject() async {
     try {
       final project = await ProjectService.getProject(widget.projectId);
-      if (mounted) setState(() => _project = project);
-    } catch (_) {}
+      if (mounted) {
+        final currentUserId = context.read<AuthProvider>().user?.id;
+        debugPrint(
+          '[PROJECT_DETAIL] projectId=${project.id} '
+          'ownerId=${project.ownerId} currentUserId=$currentUserId '
+          'isAdmin=${project.ownerId == currentUserId}',
+        );
+        setState(() => _project = project);
+      }
+    } catch (e) {
+      debugPrint('[PROJECT_DETAIL] _loadProject error: $e');
+    }
   }
 
   @override
@@ -176,29 +186,62 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
             ),
             onSelected: (value) {
               if (value == 'delete') _confirmDeleteProject();
+              if (value == 'leave') _confirmLeaveProject();
             },
-            itemBuilder: (_) => [
-              PopupMenuItem(
-                value: 'delete',
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.delete_outline,
-                      color: Colors.red,
-                      size: 18,
+            itemBuilder: (_) {
+              final currentUserId = context.read<AuthProvider>().user?.id;
+              final isAdmin = _project?.ownerId != null
+                  ? _project!.ownerId == currentUserId
+                  : false; // fallback: pokaż opuść jeśli nie znamy właściciela
+
+              if (isAdmin) {
+                return [
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.delete_outline,
+                          color: Colors.red,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          'Usuń projekt',
+                          style: GoogleFonts.poppins(
+                            color: Colors.red,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 10),
-                    Text(
-                      'Usuń projekt',
-                      style: GoogleFonts.poppins(
-                        color: Colors.red,
-                        fontSize: 14,
-                      ),
+                  ),
+                ];
+              } else {
+                return [
+                  PopupMenuItem(
+                    value: 'leave',
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.exit_to_app_rounded,
+                          color: AppColors.orange,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          'Opuść projekt',
+                          style: GoogleFonts.poppins(
+                            color: AppColors.orange,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-            ],
+                  ),
+                ];
+              }
+            },
           ),
         ],
       ),
@@ -326,6 +369,58 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
           SnackBar(
             content: Text(
               context.read<ProjectProvider>().error ?? 'Błąd usuwania projektu',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _confirmLeaveProject() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Opuść projekt',
+          style: GoogleFonts.poppins(fontWeight: FontWeight.w700),
+        ),
+        content: Text(
+          'Czy na pewno chcesz opuścić projekt "${widget.projectName}"?',
+          style: GoogleFonts.poppins(fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+              'Anuluj',
+              style: GoogleFonts.poppins(color: AppColors.textSecondary),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.orange),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              'Opuść',
+              style: GoogleFonts.poppins(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirm == true && mounted) {
+      final ok = await context.read<ProjectProvider>().leaveProject(
+        widget.projectId,
+      );
+      if (ok && mounted) {
+        context.pop();
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              context.read<ProjectProvider>().error ??
+                  'Błąd opuszczania projektu',
             ),
             backgroundColor: Colors.red,
           ),

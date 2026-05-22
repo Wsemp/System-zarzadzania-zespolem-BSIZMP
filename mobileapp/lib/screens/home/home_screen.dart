@@ -8,6 +8,8 @@ import '../../models/project_model.dart';
 import '../../models/task_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/invitation_provider.dart';
+import '../../core/localization/app_strings.dart';
+import '../../providers/language_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../providers/project_provider.dart';
 import '../../providers/task_provider.dart';
@@ -56,15 +58,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showProjectPicker(BuildContext context, List<ProjectModel> projects) {
+    final s = context.read<LanguageProvider>().strings;
     if (projects.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Najpierw utwórz projekt',
-            style: GoogleFonts.poppins(),
-          ),
+          content: Text(s.firstCreateProject, style: GoogleFonts.poppins()),
           action: SnackBarAction(
-            label: 'Projekty',
+            label: s.projects,
             onPressed: () => context.go('/projects'),
           ),
         ),
@@ -87,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Wybierz projekt',
+              s.selectProject,
               style: GoogleFonts.poppins(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -133,6 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final taskProv = context.watch<TaskProvider>();
     final notifications = context.watch<NotificationProvider>();
     final invitations = context.watch<InvitationProvider>();
+    final s = context.watch<LanguageProvider>().strings;
 
     final username = auth.user?.username ?? 'użytkowniku';
     final displayName = username.isNotEmpty
@@ -162,21 +163,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildHeader(context, displayName, badgeCount)
+                      _buildHeader(context, displayName, badgeCount, s)
                           .animate()
                           .fadeIn(duration: 400.ms)
                           .slideY(begin: -0.1, end: 0),
                       const SizedBox(height: 20),
-                      _buildSearchBar().animate().fadeIn(
-                        delay: 100.ms,
-                        duration: 400.ms,
-                      ),
+                      _buildSearchBar(
+                        s,
+                      ).animate().fadeIn(delay: 100.ms, duration: 400.ms),
                       const SizedBox(height: 28),
                       _buildSectionTitle(
-                        'Moje projekty',
-                        onSeeAll: () {
-                          context.go('/projects');
-                        },
+                        s.myProjects,
+                        seeAllLabel: s.seeAll,
+                        onSeeAll: () => context.go('/projects'),
                       ).animate().fadeIn(delay: 150.ms, duration: 400.ms),
                     ],
                   ),
@@ -191,7 +190,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
                   child: _buildSectionTitle(
-                    'Moje zadania',
+                    s.myTasks,
                   ).animate().fadeIn(delay: 250.ms, duration: 400.ms),
                 ),
               ),
@@ -204,10 +203,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 )
               else if (allTasks.isEmpty)
                 SliverToBoxAdapter(
-                  child: _buildEmptyTasks().animate().fadeIn(
-                    delay: 300.ms,
-                    duration: 400.ms,
-                  ),
+                  child: _buildEmptyTasks(
+                    s,
+                  ).animate().fadeIn(delay: 300.ms, duration: 400.ms),
                 )
               else
                 SliverPadding(
@@ -237,6 +235,7 @@ class _HomeScreenState extends State<HomeScreen> {
     BuildContext context,
     String displayName,
     int badgeCount,
+    AppStrings s,
   ) {
     return Row(
       children: [
@@ -245,7 +244,7 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Hej, $displayName',
+                '${s.hey} $displayName',
                 style: GoogleFonts.poppins(
                   fontSize: 24,
                   fontWeight: FontWeight.w700,
@@ -254,7 +253,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 2),
               Text(
-                'Sprawdź swoje zadania na dziś',
+                s.checkTasksToday,
                 style: GoogleFonts.poppins(
                   fontSize: 14,
                   color: AppColors.textSecondary,
@@ -319,7 +318,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(AppStrings s) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -337,7 +336,7 @@ class _HomeScreenState extends State<HomeScreen> {
         onChanged: (v) => setState(() => _searchQuery = v),
         style: GoogleFonts.poppins(fontSize: 14),
         decoration: InputDecoration(
-          hintText: 'Szukaj zadań…',
+          hintText: s.searchTasks,
           hintStyle: GoogleFonts.poppins(
             color: AppColors.textSecondary,
             fontSize: 14,
@@ -369,7 +368,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSectionTitle(String title, {VoidCallback? onSeeAll}) {
+  Widget _buildSectionTitle(
+    String title, {
+    VoidCallback? onSeeAll,
+    String seeAllLabel = '',
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -385,7 +388,7 @@ class _HomeScreenState extends State<HomeScreen> {
           GestureDetector(
             onTap: onSeeAll,
             child: Text(
-              'Zobacz wszystkie',
+              seeAllLabel,
               style: GoogleFonts.poppins(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
@@ -419,7 +422,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildEmptyTasks() {
+  Widget _buildEmptyTasks(AppStrings s) {
     return Padding(
       padding: const EdgeInsets.all(32),
       child: Column(
@@ -439,7 +442,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Brak przypisanych zadań',
+            s.noTasksAssigned,
             style: GoogleFonts.poppins(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -448,7 +451,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Zadania przypisane do Ciebie pojawią się tutaj',
+            s.noTasksAssignedDesc,
             style: GoogleFonts.poppins(
               fontSize: 13,
               color: AppColors.textSecondary,
@@ -487,6 +490,7 @@ class _HomeScreenState extends State<HomeScreen> {
 class _ProjectEmptyCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final s = context.watch<LanguageProvider>().strings;
     return GestureDetector(
       onTap: () => context.go('/projects'),
       child: Container(
@@ -525,7 +529,7 @@ class _ProjectEmptyCard extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               Text(
-                'Utwórz pierwszy projekt',
+                s.createFirstProject,
                 style: GoogleFonts.poppins(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -534,7 +538,7 @@ class _ProjectEmptyCard extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                'Dotknij, aby zacząć',
+                s.tapToStart,
                 style: GoogleFonts.poppins(
                   fontSize: 12,
                   color: AppColors.textSecondary,
@@ -551,7 +555,6 @@ class _ProjectEmptyCard extends StatelessWidget {
 class _ProjectCard extends StatelessWidget {
   final ProjectModel project;
   final LinearGradient gradient;
-
   const _ProjectCard({required this.project, required this.gradient});
 
   @override
