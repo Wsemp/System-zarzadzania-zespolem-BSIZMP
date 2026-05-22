@@ -272,9 +272,6 @@ namespace desktopapp.Services
                 {
                     var json = await response.Content.ReadAsStringAsync();
                     
-                    // 🔥 NASZ SZPIEG 🔥
-                    MessageBox.Show($"SUROWY JSON PROJEKTÓW:\n\n{json}", "DEBUG", MessageBoxButton.OK, MessageBoxImage.Information);
-
                     var projects = JsonConvert.DeserializeObject<List<ProjectModel>>(json);
                     if (projects != null)
                     {
@@ -332,7 +329,9 @@ namespace desktopapp.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var json = await response.Content.ReadAsStringAsync();
-                    return JsonConvert.DeserializeObject<List<InvitationModel>>(json) ?? new List<InvitationModel>();
+                    var allInvitations = JsonConvert.DeserializeObject<List<InvitationModel>>(json) ?? new List<InvitationModel>();
+                    
+                    return allInvitations.Where(i => !i.Accepted).ToList();
                 }
             }
             catch { }

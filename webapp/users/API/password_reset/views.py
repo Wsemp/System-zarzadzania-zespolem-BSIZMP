@@ -37,7 +37,7 @@ class PasswordResetRequestView(APIView):
             # frontend link — ustaw w settings.FRONTEND_URL lub zmodyfikuj tutaj
             frontend_url = getattr(settings, "FRONTEND_URL", "http://localhost:8000")
             reset_link = f"{frontend_url}/reset-password/?uid={uid}&token={token}"
-
+            ###########
             subject = "Password reset"
             message = f"Jeśli prosiłeś o reset hasła, użyj poniższego linku:\n\n{reset_link}\n\nJeśli nie, zignoruj."
             from_email = getattr(settings, "DEFAULT_FROM_EMAIL", None)

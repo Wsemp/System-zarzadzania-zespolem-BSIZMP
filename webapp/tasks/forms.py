@@ -8,7 +8,7 @@ from crispy_forms.layout import Layout, Row, Column, Field, Submit
 class TaskForm(forms.ModelForm):
     class Meta:
         model = Task
-        fields = ["title", "description", "status", "assigned_to", "tags", "due_date", "project"]
+        fields = ["title", "description", "status", "priority", "assigned_to", "tags", "due_date", "project"]
         widgets = {
             "due_date": forms.DateInput(attrs={"type": "date"}),
         }
@@ -40,6 +40,7 @@ class TaskForm(forms.ModelForm):
                 Column("status", css_class="col-md-4"),
                 Column("assigned_to", css_class="col-md-4"),
                 Column("due_date", css_class="col-md-4"),
+                Column("priority", css_class="col-md-4"),
             ),
 
             Field(

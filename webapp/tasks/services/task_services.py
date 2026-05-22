@@ -2,6 +2,8 @@ from ..models import Task
 from django.db import transaction
 from ..selectors import get_task_byid
 from django.contrib.auth.models import User
+from notifications.models import Notification
+from notifications.services.notifications_services import create_notification
 
 # from django.shortcuts import get_object_or_404
 
@@ -11,6 +13,7 @@ def create_task(
     created_by: User,
     title: str,
     description: str,
+    priority: str,
     status: str,
     assigned_to,
     tags=None,
@@ -25,6 +28,7 @@ def create_task(
         created_by=created_by,
         title=title,
         description=description,
+        priority=priority,
         status=status,
         assigned_to=assigned_to,
         due_date=due_date,
@@ -35,11 +39,19 @@ def create_task(
     if tags:
         task.tags.set(tags)
 
+    create_notification(
+        recipient=assigned_to,
+        task=task,
+        type=Notification.Type.TASK_ASSIGNED,
+        message=f"You were assigned to task '{task.title}'"
+    )
+
     return task
 
 @transaction.atomic
 def delete_task(*, task_id: int) -> bool:
     task = get_task_byid(task_id=task_id)
+
 
     task.delete()
     return True
@@ -49,12 +61,39 @@ def delete_task(*, task_id: int) -> bool:
 def update_task(*, task_id: int, **data):
     task = get_task_byid(task_id=task_id)
 
+    old_assigned_to = task.assigned_to
+
     tags = data.pop("tags", None)
 
     for field, value in data.items():
         setattr(task, field, value)
 
     task.save()
+
+    if old_assigned_to != task.assigned_to:
+
+        create_notification(
+            recipient=task.assigned_to,
+            task=task,
+            type=Notification.Type.TASK_ASSIGNED,
+            message=f"You were assigned to task '{task.title}'"
+        )
+
+    if task.done:
+
+        create_notification(
+            recipient=task.assigned_to,
+            task=task,
+            type=Notification.Type.TASK_COMPLETED,
+            message=f"Your task has been completed '{task.title}'"
+        )
+
+    create_notification(
+        recipient=task.assigned_to,
+        task=task,
+        type=Notification.Type.TASK_UPDATED,
+        message=f"Your task has been updated '{task.title}'"
+    )
 
     if tags is not None:
         task.tags.set(tags)

@@ -40,6 +40,7 @@ class TaskSerializer(serializers.HyperlinkedModelSerializer):
             'title',
             'description',
             'status',
+            'priority',
             'assigned_to',
             'created_by',
             'tags',

@@ -39,6 +39,7 @@ class TestTaskServices(TestCase):
             created_by=self.user,
             title="Test task",
             description="desc",
+            priority="Low",
             status="todo",
             assigned_to=self.assigned_user,
             tags=[self.tag1, self.tag2],
