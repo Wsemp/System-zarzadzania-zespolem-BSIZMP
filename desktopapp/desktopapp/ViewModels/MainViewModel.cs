@@ -135,7 +135,7 @@ namespace desktopapp.ViewModels
             await LoadApiUsersAsync();
             await LoadProjectsFromApiAsync(); 
             await LoadTasksAsync();
-            await LoadInboxAsync(); // Nowa metoda do ładowania obu typów danych
+            await LoadInboxAsync();
             LoadUserProfile();
         }
 
@@ -146,8 +146,29 @@ namespace desktopapp.ViewModels
 
             await Task.WhenAll(loadInvitationsTask, loadNotificationsTask);
 
-            PendingInvitations = new ObservableCollection<InvitationModel>(loadInvitationsTask.Result);
-            Notifications = new ObservableCollection<NotificationModel>(loadNotificationsTask.Result);
+            // Filtrujemy zaproszenia (tylko niezaakceptowane)
+            PendingInvitations = new ObservableCollection<InvitationModel>(loadInvitationsTask.Result.Where(i => !i.Accepted));
+            
+            var notificationsList = loadNotificationsTask.Result;
+            
+            // 🔥 DOPASOWANIE ZADAŃ DO POWIADOMIEŃ 🔥
+            foreach (var notif in notificationsList)
+            {
+                if (!string.IsNullOrEmpty(notif.TaskUrl))
+                {
+                    var parts = notif.TaskUrl.TrimEnd('/').Split('/');
+                    if (int.TryParse(parts.Last(), out int taskId))
+                    {
+                        // Szukamy zadania po ID na naszej liście
+                        var task = _allTasks?.FirstOrDefault(t => t.Id == taskId);
+                        
+                        // Jeśli znaleźliśmy, bierzemy Tytuł. Jak nie, dajemy sam numerek.
+                        notif.TaskTitle = task != null ? $"Zadanie: {task.Title}" : $"Zadanie #{taskId}";
+                    }
+                }
+            }
+
+            Notifications = new ObservableCollection<NotificationModel>(notificationsList);
         }
 
         private async Task LoadInvitationsAsync()
@@ -624,24 +645,26 @@ namespace desktopapp.ViewModels
                 }
             }
         }
-
+        
         [RelayCommand]
         public async Task AcceptInvitation(int invitationId)
         {
+            var invitation = PendingInvitations.FirstOrDefault(i => i.Id == invitationId);
+            if (invitation != null)
+            {
+                PendingInvitations.Remove(invitation);
+            }
+
             bool success = await ApiService.Instance.AcceptInvitationAsync(invitationId);
+            
             if (success)
             {
-                var invitation = PendingInvitations.FirstOrDefault(i => i.Id == invitationId);
-                if (invitation != null)
-                {
-                    PendingInvitations.Remove(invitation);
-                }
                 NotificationService.Instance.Show("Zaakceptowano zaproszenie!");
                 await LoadProjectsFromApiAsync();
             }
             else
             {
-                NotificationService.Instance.Show("Błąd: Nie udało się zaakceptować zaproszenia.");
+                await LoadProjectsFromApiAsync();
             }
         }
 

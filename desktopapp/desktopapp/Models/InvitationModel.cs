@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 
 namespace desktopapp.Models
 {
@@ -12,41 +11,33 @@ namespace desktopapp.Models
 
         [JsonProperty("email")]
         public string? Email { get; set; }
-
+        
         [JsonProperty("inviter")]
-        public string? InviterUrl { get; set; }
-
+        public int InviterId { get; set; }
+        
         [JsonProperty("project")]
-        public string? ProjectUrl { get; set; }
+        public int ProjectId { get; set; }
+        
+        [JsonProperty("project_name")]
+        public string? ProjectName { get; set; }
+
+        [JsonProperty("inviter_username")]
+        public string? InviterUsername { get; set; }
 
         [JsonProperty("message")]
         public string? Message { get; set; }
 
         [JsonProperty("created_at")]
         public System.DateTime CreatedAt { get; set; }
+        
+        [JsonProperty("expires_at")]
+        public System.DateTime? ExpiresAt { get; set; }
 
         [JsonProperty("accepted")]
         public bool Accepted { get; set; }
-
-        // Właściwości pomocnicze do wyświetlania
-        public string DisplayProject
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(ProjectUrl)) return "Nieznany Projekt";
-                var parts = ProjectUrl.TrimEnd('/').Split('/');
-                return parts.LastOrDefault(p => !string.IsNullOrEmpty(p)) ?? "Nieznany Projekt";
-            }
-        }
-
-        public string DisplayInviter
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(InviterUrl)) return "Nieznany Zapraszający";
-                var parts = InviterUrl.TrimEnd('/').Split('/');
-                return parts.LastOrDefault(p => !string.IsNullOrEmpty(p)) ?? "Nieznany Zapraszający";
-            }
-        }
+        
+        public string DisplayProject => !string.IsNullOrEmpty(ProjectName) ? ProjectName : "Nieznany Projekt";
+        
+        public string DisplayInviter => !string.IsNullOrEmpty(InviterUsername) ? InviterUsername : "Nieznany Zapraszający";
     }
 }
