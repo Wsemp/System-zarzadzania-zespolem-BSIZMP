@@ -4,7 +4,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.core.mail import send_mail, EmailMessage
 from django.conf import settings
-
+from django.core.mail import EmailMultiAlternatives
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -15,10 +15,7 @@ User = get_user_model()
 token_generator = PasswordResetTokenGenerator()
 
 class PasswordResetRequestView(APIView):
-    """
-    Przyjmuje email. Jeżeli użytkownik istnieje — wysyła maila z tokenem.
-    Zwraca 200 zawsze (nie ujawniamy istnienia konta).
-    """
+
     def post(self, request):
         serializer = PasswordResetRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -29,26 +26,42 @@ class PasswordResetRequestView(APIView):
         except User.DoesNotExist:
             user = None
 
-        # generuj token i wyślij mail tylko jeśli user istnieje
         if user:
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             token = token_generator.make_token(user)
 
-            # frontend link — ustaw w settings.FRONTEND_URL lub zmodyfikuj tutaj
+
             frontend_url = getattr(settings, "FRONTEND_URL", "http://localhost:8000")
-            reset_link = f"{frontend_url}/reset-password/?uid={uid}&token={token}"
-            ###########
+            reset_link = f"{frontend_url}/api/password-reset-confirm/{uid}/{token}/"
+
+            html_message = f"""
+            <p>Click the link below to reset your password:</p>
+            <p>
+              <a href="{reset_link}">Reset Password</a>
+            </p>
+            """
+
             subject = "Password reset"
-            message = f"Jeśli prosiłeś o reset hasła, użyj poniższego linku:\n\n{reset_link}\n\nJeśli nie, zignoruj."
+            # message = f"Jeśli prosiłeś o reset hasła, użyj poniższego linku:\n\n{reset_link}\n\nJeśli nie, zignoruj."
             from_email = getattr(settings, "DEFAULT_FROM_EMAIL", None)
 
-            # spróbuj wysłać e-mail, jeśli nie skonfigurowano — opcjonalnie loguj
             try:
                 if from_email:
-                    send_mail(subject, message, from_email, [user.email], fail_silently=False)
+
+                    email = EmailMultiAlternatives(
+                        subject="Password reset",
+                        body="Use the link to reset your password",
+                        from_email=from_email,
+                        to=[user.email],
+                    )
+
+                    email.attach_alternative(html_message, "text/html")
+                    email.send()
+
                 else:
+                    pass
                     # gdy brak DEFAULT_FROM_EMAIL — użyj EmailMessage bez from_email albo loguj
-                    EmailMessage(subject, message, to=[user.email]).send(fail_silently=True)
+                    # EmailMessage(subject, message, to=[user.email]).send(fail_silently=True)
             except Exception:
                 # nie ujawniamy błędów klientowi — logowanie po stronie serwera jest ok
                 pass

@@ -52,24 +52,11 @@ class TaskSerializer(serializers.HyperlinkedModelSerializer):
         ]
 
     def create(self, validated_data):
-        # tags = validated_data.pop('tags', [])
-        user = self.context['request'].user
 
+        user = self.context['request'].user
         task = create_task(created_by=user, **validated_data)
-        # task.tags.set(tags)
 
         return task
 
     def update(self, instance, validated_data):
-        # tags = validated_data.pop('tags', None)
         return update_task(task_id=instance.id, **validated_data)
-        """
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-    
-        if tags is not None:
-            instance.tags.set(tags)
-
-        instance.save()
-        return instance
-        """
