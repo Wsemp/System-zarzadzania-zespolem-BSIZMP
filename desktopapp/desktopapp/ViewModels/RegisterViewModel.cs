@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using desktopapp.Services;
 using System.Windows;
+using System.Text.RegularExpressions;
 
 namespace desktopapp.ViewModels
 {
@@ -14,12 +15,33 @@ namespace desktopapp.ViewModels
 
         public Action? CloseAction { get; set; }
 
+        private (bool IsValid, string ErrorMessage) ValidatePassword(string password)
+        {
+            if (string.IsNullOrWhiteSpace(password)) return (false, "Hasło nie może być puste.");
+            if (password.Length < 8) return (false, "Hasło musi mieć co najmniej 8 znaków.");
+
+
+            if (!Regex.IsMatch(password, @"[a-z]")) return (false, "Hasło musi zawierać małą literę.");
+            if (!Regex.IsMatch(password, @"[A-Z]")) return (false, "Hasło musi zawierać wielką literę.");
+            if (!Regex.IsMatch(password, @"\d")) return (false, "Hasło musi zawierać cyfrę.");
+            if (!Regex.IsMatch(password, @"[!@#$%^&*(),.?/|{}]")) return (false, "Hasło musi zawierać znak specjalny.");
+
+            return (true, string.Empty);
+        }
+
         [RelayCommand]
         public async Task RegisterAsync()
         {
-            if (string.IsNullOrWhiteSpace(Username) || string.IsNullOrWhiteSpace(Password) || string.IsNullOrWhiteSpace(Email))
+            if (string.IsNullOrWhiteSpace(Username) || string.IsNullOrWhiteSpace(Email))
             {
                 MessageBox.Show("Wypełnij wszystkie pola!", "Błąd walidacji");
+                return;
+            }
+
+            var passwordCheck = ValidatePassword(Password ?? "");
+            if (!passwordCheck.IsValid)
+            {
+                MessageBox.Show(passwordCheck.ErrorMessage, "Błąd bezpieczeństwa hasła");
                 return;
             }
 
@@ -38,7 +60,8 @@ namespace desktopapp.ViewModels
             }
             else
             {
-                MessageBox.Show("Błąd podczas rejestracji! Użytkownik o takiej nazwie może już istnieć.", "Błąd serwera");
+                MessageBox.Show("Błąd podczas rejestracji! Użytkownik o takiej nazwie może już istnieć.",
+                    "Błąd serwera");
             }
         }
     }
