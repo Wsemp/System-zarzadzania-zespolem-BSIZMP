@@ -132,11 +132,11 @@ namespace desktopapp.ViewModels
 
         private async Task InitializeDataAsync()
         {
+            LoadUserProfile();
             await LoadApiUsersAsync();
             await LoadProjectsFromApiAsync(); 
             await LoadTasksAsync();
             await LoadInboxAsync();
-            LoadUserProfile();
         }
 
         private async Task LoadInboxAsync()
@@ -151,7 +151,7 @@ namespace desktopapp.ViewModels
             
             var notificationsList = loadNotificationsTask.Result;
             
-            // 🔥 DOPASOWANIE ZADAŃ DO POWIADOMIEŃ 🔥
+
             foreach (var notif in notificationsList)
             {
                 if (!string.IsNullOrEmpty(notif.TaskUrl))
@@ -159,10 +159,8 @@ namespace desktopapp.ViewModels
                     var parts = notif.TaskUrl.TrimEnd('/').Split('/');
                     if (int.TryParse(parts.Last(), out int taskId))
                     {
-                        // Szukamy zadania po ID na naszej liście
                         var task = _allTasks?.FirstOrDefault(t => t.Id == taskId);
                         
-                        // Jeśli znaleźliśmy, bierzemy Tytuł. Jak nie, dajemy sam numerek.
                         notif.TaskTitle = task != null ? $"Zadanie: {task.Title}" : $"Zadanie #{taskId}";
                     }
                 }
