@@ -222,7 +222,11 @@ namespace desktopapp.ViewModels
         {
             _refreshTimer = new System.Windows.Threading.DispatcherTimer();
             _refreshTimer.Interval = TimeSpan.FromSeconds(10); 
-            _refreshTimer.Tick += async (s, e) => await RefreshTasksSilentlyAsync();
+            _refreshTimer.Tick += async (s, e) => 
+            {
+                await RefreshTasksSilentlyAsync();
+                await LoadInboxAsync();
+            };
             _refreshTimer.Start();
         }
         
@@ -274,18 +278,24 @@ namespace desktopapp.ViewModels
         private async Task LoadProjectsFromApiAsync()
         {
             var apiProjects = await ApiService.Instance.GetProjectsAsync();
-            
+    
             var tempList = new ObservableCollection<ProjectModel>();
-            
+    
             tempList.Add(new ProjectModel { Id = 0, Name = "--- Wszystkie projekty ---", Description = "Pokazuje wszystko" });
-            
+    
             foreach (var p in apiProjects)
             {
-                tempList.Add(p);
+                bool isOwner = p.Owner != null && p.Owner.Username == CurrentUserName;
+                bool isMember = p.Members != null && p.Members.Any(m => m.Username == CurrentUserName);
+                
+                if (isOwner || isMember)
+                {
+                    tempList.Add(p);
+                }
             }
 
             Projects = tempList;
-            
+    
             if (SelectedProjectFilter == null)
             {
                 SelectedProjectFilter = Projects.First();
@@ -451,6 +461,12 @@ namespace desktopapp.ViewModels
                 NotificationService.Instance.Show("Wybierz projekt z tabeli (nie można edytować 'Wszystkich')!");
                 return;
             }
+            
+            if (SelectedProject.Owner != null && SelectedProject.Owner.Username != CurrentUserName)
+            {
+                NotificationService.Instance.Show("Odmowa dostępu! Tylko właściciel może edytować ten projekt.");
+                return;
+            }
 
             NewProjectName = SelectedProject.Name;
             NewProjectDescription = SelectedProject.Description;
@@ -529,6 +545,12 @@ namespace desktopapp.ViewModels
                 NotificationService.Instance.Show("Wybierz projekt do usunięcia!");
                 return;
             }
+            
+            if (SelectedProject.Owner != null && SelectedProject.Owner.Username != CurrentUserName)
+            {
+                NotificationService.Instance.Show("Odmowa dostępu! Tylko właściciel może usunąć ten projekt.");
+                return;
+            }
 
             bool isSuccess = await ApiService.Instance.DeleteProjectAsync(SelectedProject.Id);
             if (isSuccess)
@@ -541,7 +563,7 @@ namespace desktopapp.ViewModels
             }
             else
             {
-                NotificationService.Instance.Show("Błąd: Serwer odrzucił usunięcie (może projekt ma przypisane zadania i baza blokuje usunięcie?).");
+                NotificationService.Instance.Show("Błąd: Serwer odrzucił usunięcie.");
             }
         }
 

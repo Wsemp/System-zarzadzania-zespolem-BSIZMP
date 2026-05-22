@@ -18,6 +18,12 @@ namespace desktopapp.Models
 
         [NotMapped]
         [JsonProperty("members")]
+        
+        
         public ObservableCollection<UserModel> Members { get; set; } = new ObservableCollection<UserModel>();
+        
+        [NotMapped]
+        [JsonProperty("owner")]
+        public UserModel? Owner { get; set; }
     }
 }
