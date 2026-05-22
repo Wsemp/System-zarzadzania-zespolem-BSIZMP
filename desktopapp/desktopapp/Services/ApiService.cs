@@ -389,5 +389,31 @@ namespace desktopapp.Services
                 return false;
             }
         }
+        
+        public async Task<bool> SendInvitationAsync(int projectId, string email, string message)
+        {
+            try
+            {
+                var payload = new 
+                { 
+                    email = email, 
+                    project = projectId, 
+                    message = message 
+                };
+                
+                var json = Newtonsoft.Json.JsonConvert.SerializeObject(payload);
+                var content = new System.Net.Http.StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+
+                var response = await _client.PostAsync($"{_baseUrl}api/invitations/", content);
+                
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Błąd połączenia: {ex.Message}", "Błąd sieci", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                return false;
+            }
+        }
     }
 }
