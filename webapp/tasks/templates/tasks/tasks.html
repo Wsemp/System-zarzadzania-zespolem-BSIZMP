@@ -1,9 +1,11 @@
 {% extends "base.html" %}
 
 {% block content %}
-
-    {% include "tasks/_tasks_table.html" %}
-
+    <div style="box-shadow: 0 4px 10px rgba(0,0,0,0.2); padding: 35px;">
+        <div style="display: flex; justify-content: flex-start; flex-wrap: wrap; align-items: center; gap: 16px; max-height: 400px; overflow-y: auto;">
+            {% include "tasks/_tasks_table.html" %}
+        </div>
+    </div>
     <button type="button" class="btn btn-link">
         <a href="{% url 'create_task' %}">Utwórz zadanie</a>
     </button>

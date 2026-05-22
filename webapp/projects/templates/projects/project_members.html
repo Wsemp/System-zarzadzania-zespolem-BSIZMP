@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
 {% block content %}
-        {% for member in project.members.all %}
-
-            <p>{{ member.username }}</p>
-            <p>{{ member.email }}</p>
-
-            <hr>
-        {% endfor %}
+    {% for member in project.members.all %}
+        <p>{{ member.username }}</p>
+        <p>{{ member.email }}</p>
+        <hr>
+    {% empty %}
+        <p>Brak członków w tym projekcie.</p>
+    {% endfor %}
 {% endblock %}
