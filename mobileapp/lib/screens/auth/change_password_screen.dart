@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/errors/app_exception.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/password_validator.dart';
 import '../../services/auth_service.dart';
@@ -50,17 +51,44 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         ),
       );
       context.pop();
+    } on ValidationException catch (e) {
+      if (!mounted) return;
+      final raw = e.message.toLowerCase();
+      final msg =
+          raw.contains('old_password') ||
+              raw.contains('current') ||
+              raw.contains('wrong') ||
+              raw.contains('incorrect') ||
+              raw.contains('invalid')
+          ? 'Nieprawidłowe aktualne hasło'
+          : e.message;
+      _showError(msg);
+    } on ForbiddenException catch (_) {
+      if (!mounted) return;
+      _showError('Nieprawidłowe aktualne hasło');
+    } on UnauthorizedException catch (_) {
+      if (!mounted) return;
+      _showError('Sesja wygasła. Zaloguj się ponownie.');
+    } on NetworkException catch (_) {
+      if (!mounted) return;
+      _showError('Brak połączenia z internetem.');
     } catch (e) {
       if (!mounted) return;
-      final msg = e.toString().contains('400') || e.toString().contains('403')
-          ? 'Nieprawidłowe aktualne hasło'
-          : 'Błąd zmiany hasła. Spróbuj ponownie.';
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red));
+      _showError('Błąd zmiany hasła. Spróbuj ponownie.\n${e.toString()}');
     } finally {
       if (mounted) setState(() => _saving = false);
     }
+  }
+
+  void _showError(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg),
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
   }
 
   Widget _buildPasswordMatch() {
@@ -109,7 +137,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Info banner
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -122,8 +149,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       color: AppColors.purple.withOpacity(0.2),
                     ),
                   ),
-                  child: Row(
-                    children: const [
+                  child: const Row(
+                    children: [
                       Icon(
                         Icons.info_outline_rounded,
                         color: AppColors.purple,
@@ -144,8 +171,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   ),
                 ),
                 const SizedBox(height: 28),
-
-                // Aktualne hasło
                 TextFormField(
                   controller: _oldCtrl,
                   obscureText: _obscureOld,
@@ -168,8 +193,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       v == null || v.isEmpty ? 'Podaj aktualne hasło' : null,
                 ),
                 const SizedBox(height: 24),
-
-                // Nowe hasło
                 TextFormField(
                   controller: _newCtrl,
                   obscureText: _obscureNew,
@@ -199,12 +222,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   },
                 ),
                 const SizedBox(height: 8),
-
-                // Widget wymagań – live feedback
                 PasswordRequirements(password: _newPasswordValue),
                 const SizedBox(height: 16),
-
-                // Potwierdź nowe hasło
                 TextFormField(
                   controller: _confirmCtrl,
                   obscureText: _obscureConfirm,
@@ -231,11 +250,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     return null;
                   },
                 ),
-
-                // Wskaźnik zgodności haseł
                 _buildPasswordMatch(),
                 const SizedBox(height: 32),
-
                 GradientButton(
                   label: 'Zmień hasło',
                   onPressed: _saving ? null : _save,

@@ -49,6 +49,12 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
     }
   }
 
+  String _fmtDate(String raw) {
+    final d = DateTime.tryParse(raw);
+    if (d == null) return raw.length > 10 ? raw.substring(0, 10) : raw;
+    return '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
+  }
+
   Color _statusColor(TaskStatus s) {
     switch (s) {
       case TaskStatus.todo:
@@ -134,7 +140,6 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Status + priority row
             Row(
               children: [
                 _StatusBadge(
@@ -153,8 +158,6 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
               ],
             ),
             const SizedBox(height: 16),
-
-            // Title
             Text(
               task.title,
               style: GoogleFonts.poppins(
@@ -163,8 +166,6 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                 color: AppColors.textPrimary,
               ),
             ),
-
-            // Description
             if (task.description.isNotEmpty) ...[
               const SizedBox(height: 16),
               _sectionLabel('Opis'),
@@ -178,10 +179,8 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                 ),
               ),
             ],
-
             const SizedBox(height: 20),
             _infoCard(task),
-
             const SizedBox(height: 24),
             _divider(),
             const SizedBox(height: 16),
@@ -203,9 +202,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
           icon: Icons.calendar_today_rounded,
           iconColor: AppColors.orange,
           label: 'Termin',
-          value: task.dueDate!.length > 10
-              ? task.dueDate!.substring(0, 10)
-              : task.dueDate!,
+          value: _fmtDate(task.dueDate!),
         ),
       );
     }

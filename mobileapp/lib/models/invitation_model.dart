@@ -5,7 +5,9 @@ class InvitationModel {
   final String inviteeEmail;
   final int? invitedById;
   final String invitedByUsername;
-  final String status; // 'pending' | 'accepted'
+  final String message;
+  final String? expiresAt;
+  final bool accepted;
   final String createdAt;
 
   const InvitationModel({
@@ -15,29 +17,30 @@ class InvitationModel {
     required this.inviteeEmail,
     this.invitedById,
     required this.invitedByUsername,
-    required this.status,
+    required this.message,
+    this.expiresAt,
+    required this.accepted,
     required this.createdAt,
   });
 
-  bool get isPending => status == 'pending';
+  bool get isPending => !accepted;
+  String get status => accepted ? 'accepted' : 'pending';
 
   factory InvitationModel.fromJson(Map<String, dynamic> json) {
-    // Backend zwraca 'accepted' (bool), nie 'status' (string)
-    final accepted = json['accepted'] as bool? ?? false;
-
-    // Backend to HyperlinkedModelSerializer — project/inviter to URLe
+    final acceptedBool = json['accepted'] as bool? ?? false;
     final projectRaw = json['project'];
     final inviterRaw = json['inviter'];
 
     return InvitationModel(
       id: json['id'] as int,
       projectId: _extractId(projectRaw),
-      // project_name dostępne po naprawie backendu; fallback na parsowanie URL
       projectName: json['project_name'] as String? ?? 'Projekt',
       inviteeEmail: json['email'] as String? ?? '',
       invitedById: _extractId(inviterRaw),
       invitedByUsername: json['inviter_username'] as String? ?? '',
-      status: accepted ? 'accepted' : 'pending',
+      message: json['message'] as String? ?? '',
+      expiresAt: json['expires_at'] as String?,
+      accepted: acceptedBool,
       createdAt: json['created_at'] as String? ?? '',
     );
   }

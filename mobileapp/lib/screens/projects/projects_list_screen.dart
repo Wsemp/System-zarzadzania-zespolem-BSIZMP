@@ -3,10 +3,14 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import '../../core/api/api_endpoints.dart';
+import '../../core/auth/token_storage.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/project_model.dart';
 import '../../models/user_model.dart';
 import '../../providers/invitation_provider.dart';
+import '../../core/localization/app_strings.dart';
+import '../../providers/language_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../providers/project_provider.dart';
 import '../../services/project_service.dart';
@@ -31,6 +35,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
   }
 
   void _showCreateDialog() {
+    final s = context.read<LanguageProvider>().strings;
     final nameCtrl = TextEditingController();
     final descCtrl = TextEditingController();
     final Set<int> selectedIds = {};
@@ -61,7 +66,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
               borderRadius: BorderRadius.circular(AppRadius.xl),
             ),
             title: Text(
-              'Nowy projekt',
+              s.newProject,
               style: GoogleFonts.poppins(fontWeight: FontWeight.w700),
             ),
             content: SizedBox(
@@ -75,22 +80,20 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                       controller: nameCtrl,
                       textInputAction: TextInputAction.next,
                       style: GoogleFonts.poppins(fontSize: 14),
-                      decoration: const InputDecoration(
-                        labelText: 'Nazwa projektu',
-                      ),
+                      decoration: InputDecoration(labelText: s.projectName),
                     ),
                     const SizedBox(height: 12),
                     TextField(
                       controller: descCtrl,
                       style: GoogleFonts.poppins(fontSize: 14),
-                      decoration: const InputDecoration(
-                        labelText: 'Opis (opcjonalnie)',
+                      decoration: InputDecoration(
+                        labelText: s.descriptionOptional,
                       ),
                       maxLines: 2,
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      'Dodaj członków',
+                      s.addMembers,
                       style: GoogleFonts.poppins(
                         fontWeight: FontWeight.w600,
                         fontSize: 13,
@@ -113,7 +116,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         child: Text(
-                          'Brak dostępnych użytkowników',
+                          s.noUsersAvailable,
                           style: GoogleFonts.poppins(
                             fontSize: 13,
                             color: AppColors.textSecondary,
@@ -126,11 +129,10 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                           value: selectedIds.contains(u.id),
                           onChanged: (v) {
                             setDialogState(() {
-                              if (v == true) {
+                              if (v == true)
                                 selectedIds.add(u.id);
-                              } else {
+                              else
                                 selectedIds.remove(u.id);
-                              }
                             });
                           },
                           title: Text(
@@ -151,7 +153,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
                 child: Text(
-                  'Anuluj',
+                  s.cancel,
                   style: GoogleFonts.poppins(color: AppColors.textSecondary),
                 ),
               ),
@@ -165,24 +167,27 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                     if (nameCtrl.text.trim().isEmpty) return;
                     Navigator.pop(ctx);
                     final projectProv = context.read<ProjectProvider>();
-                    final ok = await projectProv.createProject(
+                    final project = await projectProv.createProject(
                       nameCtrl.text.trim(),
                       descCtrl.text.trim(),
                     );
-                    if (ok && selectedIds.isNotEmpty && mounted) {
-                      final createdProject = projectProv.projects.last;
-                      for (final userId in selectedIds) {
+                    if (project != null && mounted) {
+                      final creatorId = await TokenStorage.getUserId();
+                      if (creatorId != null) {
                         try {
-                          await ProjectService.addMember(
-                            createdProject.id,
-                            userId,
-                          );
+                          await ProjectService.addMember(project.id, creatorId);
                         } catch (_) {}
                       }
+                      for (final userId in selectedIds) {
+                        try {
+                          await ProjectService.addMember(project.id, userId);
+                        } catch (_) {}
+                      }
+                      if (mounted) await projectProv.loadProjects();
                     }
                   },
                   child: Text(
-                    'Utwórz',
+                    s.create,
                     style: GoogleFonts.poppins(
                       color: Colors.white,
                       fontWeight: FontWeight.w600,
@@ -202,6 +207,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
     final projects = context.watch<ProjectProvider>();
     final notifications = context.watch<NotificationProvider>();
     final invitations = context.watch<InvitationProvider>();
+    final s = context.watch<LanguageProvider>().strings;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -223,7 +229,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                     children: [
                       Expanded(
                         child: Text(
-                          'Projekty',
+                          s.projects,
                           style: GoogleFonts.poppins(
                             fontSize: 24,
                             fontWeight: FontWeight.w700,
@@ -264,7 +270,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                   child: Center(child: CircularProgressIndicator()),
                 )
               else if (projects.projects.isEmpty)
-                SliverFillRemaining(child: _emptyState())
+                SliverFillRemaining(child: _emptyState(s))
               else
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(24, 0, 24, 100),
@@ -304,7 +310,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
           elevation: 0,
           icon: const Icon(Icons.add, color: Colors.white),
           label: Text(
-            'Nowy projekt',
+            s.newProject,
             style: GoogleFonts.poppins(
               color: Colors.white,
               fontWeight: FontWeight.w600,
@@ -315,7 +321,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
     );
   }
 
-  Widget _emptyState() => Center(
+  Widget _emptyState(AppStrings s) => Center(
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -334,7 +340,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
         ),
         const SizedBox(height: 16),
         Text(
-          'Brak projektów',
+          s.noProjects,
           style: GoogleFonts.poppins(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -343,7 +349,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
         ),
         const SizedBox(height: 8),
         Text(
-          'Utwórz swój pierwszy projekt',
+          s.createFirstProjectDesc,
           style: GoogleFonts.poppins(
             color: AppColors.textSecondary,
             fontSize: 14,

@@ -10,9 +10,7 @@ namespace desktopapp.Data
         public DbSet<ProjectModel> Projects { get; set; }
         public DbSet<UserModel> Users { get; set; }
         public DbSet<UserCredential> UserCredentials { get; set; }
-
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
-        public AppDbContext() { }
+        
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -27,6 +25,14 @@ namespace desktopapp.Data
             modelBuilder.Entity<TaskModel>().Ignore(t => t.AssignedUser);
             modelBuilder.Entity<TaskModel>().Ignore(t => t.DisplayStatus);
             modelBuilder.Entity<TaskModel>().Ignore(t => t.TagIds);
+        }
+        
+        
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+        
+        public AppDbContext() 
+        {
+            Database.EnsureCreated();
         }
     }
 }

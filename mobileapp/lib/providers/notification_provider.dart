@@ -9,16 +9,31 @@ class NotificationProvider extends ChangeNotifier {
   String? _error;
   bool _polling = false;
   Timer? _timer;
+  int? _currentUserId;
 
-  List<NotificationModel> get notifications =>
-      _notifications.where((n) => n.isRelevant).toList();
+  List<NotificationModel> get notifications {
+    final all = _notifications.where((n) => n.isRelevant).toList();
+    if (_currentUserId == null) return all;
+    final filtered = all.where((n) => n.recipientId == _currentUserId).toList();
+    // Jeśli po filtrowaniu nic nie zostało (błąd parsowania recipientId)
+    // — zwróć wszystkie żeby nie zostawić pustej listy.
+    return filtered.isEmpty ? all : filtered;
+  }
+
   List<NotificationModel> get unread =>
       notifications.where((n) => !n.isRead).toList();
   bool get loading => _loading;
   String? get error => _error;
   int get unreadCount => unread.length;
 
-  void startPolling() {
+  void setUserId(int? userId) {
+    if (_currentUserId == userId) return;
+    _currentUserId = userId;
+    notifyListeners();
+  }
+
+  void startPolling({int? userId}) {
+    if (userId != null) _currentUserId = userId;
     if (_polling) return;
     _polling = true;
     _timer = Timer.periodic(const Duration(seconds: 15), (_) => _silentLoad());
@@ -28,6 +43,9 @@ class NotificationProvider extends ChangeNotifier {
     _timer?.cancel();
     _timer = null;
     _polling = false;
+    _currentUserId = null;
+    _notifications = [];
+    notifyListeners();
   }
 
   Future<void> _silentLoad() async {
