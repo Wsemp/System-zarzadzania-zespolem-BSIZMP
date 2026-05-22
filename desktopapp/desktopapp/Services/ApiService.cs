@@ -177,22 +177,10 @@ namespace desktopapp.Services
                 
                 string currentStatus = newTask.Status?.Trim().ToLower();
 
-                if (currentStatus == "do zrobienia" || currentStatus == "todo") 
-                {
-                    jObject["status"] = "todo";
-                }
-                else if (currentStatus == "w trakcie" || currentStatus == "in_progress" || currentStatus == "in progress") 
-                {
-                    jObject["status"] = "In progress";
-                }
-                else if (currentStatus == "zakończone" || currentStatus == "done") 
-                {
-                    jObject["status"] = "done";
-                }
-                else 
-                {
-                    jObject["status"] = "todo"; 
-                }
+                if (currentStatus == "do zrobienia" || currentStatus == "todo") jObject["status"] = "todo";
+                else if (currentStatus == "w trakcie" || currentStatus == "in_progress" || currentStatus == "in progress") jObject["status"] = "In progress";
+                else if (currentStatus == "zakończone" || currentStatus == "done") jObject["status"] = "done";
+                else jObject["status"] = "todo"; 
 
                 var content = new StringContent(jObject.ToString(), Encoding.UTF8, "application/json");
                 var response = await _client.PostAsync(_baseUrl + "api/tasks/", content);
@@ -209,7 +197,6 @@ namespace desktopapp.Services
             {
                 _dbContext.Tasks.Add(newTask);
                 await _dbContext.SaveChangesAsync();
-    
                 MessageBox.Show($"Brak sieci, zapisano zadanie lokalnie.", "Tryb Offline", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return false;
             }
@@ -283,7 +270,12 @@ namespace desktopapp.Services
                 var response = await _client.GetAsync(_baseUrl + "api/projects/");
                 if (response.IsSuccessStatusCode)
                 {
-                    var projects = JsonConvert.DeserializeObject<List<ProjectModel>>(await response.Content.ReadAsStringAsync());
+                    var json = await response.Content.ReadAsStringAsync();
+                    
+                    // 🔥 NASZ SZPIEG 🔥
+                    MessageBox.Show($"SUROWY JSON PROJEKTÓW:\n\n{json}", "DEBUG", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                    var projects = JsonConvert.DeserializeObject<List<ProjectModel>>(json);
                     if (projects != null)
                     {
                         _dbContext.Projects.RemoveRange(_dbContext.Projects);
@@ -315,6 +307,22 @@ namespace desktopapp.Services
         }
 
         public async Task<bool> DeleteProjectAsync(int projectId) => (await _client.DeleteAsync(_baseUrl + $"api/projects/{projectId}/")).IsSuccessStatusCode;
+
+        // 🔥 OTO BRAKUJĄCA METODA OD POWIADOMIEŃ 🔥
+        public async Task<List<NotificationModel>> GetNotificationsAsync()
+        {
+            try
+            {
+                var response = await _client.GetAsync(_baseUrl + "api/notifications/");
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    return JsonConvert.DeserializeObject<List<NotificationModel>>(json) ?? new List<NotificationModel>();
+                }
+            }
+            catch { }
+            return new List<NotificationModel>();
+        }
 
         public async Task<List<InvitationModel>> GetPendingInvitationsAsync()
         {

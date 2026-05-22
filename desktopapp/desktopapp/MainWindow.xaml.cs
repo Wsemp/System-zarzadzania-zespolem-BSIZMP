@@ -22,8 +22,8 @@ namespace desktopapp
         private void InitializeIdleTimer()
         {
             _idleTimer = new DispatcherTimer();
-            // Ustaw czas na 5 minut. Do testów można zmienić na np. TimeSpan.FromSeconds(10)
-            _idleTimer.Interval = TimeSpan.FromSeconds(10);
+            
+            _idleTimer.Interval = TimeSpan.FromMinutes(5);
             _idleTimer.Tick += IdleTimer_Tick;
             _idleTimer.Start();
         }

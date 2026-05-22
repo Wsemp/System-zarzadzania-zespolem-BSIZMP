@@ -5,11 +5,11 @@ namespace desktopapp.Services
 {
     public partial class NotificationService : ObservableObject
     {
-        private static NotificationService _instance;
+        private static NotificationService? _instance;
         public static NotificationService Instance => _instance ??= new NotificationService();
 
         [ObservableProperty]
-        private string _message;
+        private string? _message;
 
         [ObservableProperty]
         private bool _isVisible;

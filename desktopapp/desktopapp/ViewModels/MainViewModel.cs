@@ -98,6 +98,12 @@ namespace desktopapp.ViewModels
 
         [ObservableProperty]
         private ObservableCollection<InvitationModel> _pendingInvitations = new ObservableCollection<InvitationModel>();
+
+        [ObservableProperty]
+        private ObservableCollection<NotificationModel> _notifications = new ObservableCollection<NotificationModel>();
+
+        [ObservableProperty]
+        private bool _isNotificationsPanelOpen;
         
         [RelayCommand]
         public void SwitchView(string viewName)
@@ -105,6 +111,16 @@ namespace desktopapp.ViewModels
             if (!string.IsNullOrEmpty(viewName))
             {
                 SelectedView = viewName;
+            }
+        }
+
+        [RelayCommand]
+        public async Task ToggleNotificationsPanel()
+        {
+            IsNotificationsPanelOpen = !IsNotificationsPanelOpen;
+            if (IsNotificationsPanelOpen)
+            {
+                await LoadNotificationsAsync();
             }
         }
 
@@ -119,14 +135,31 @@ namespace desktopapp.ViewModels
             await LoadApiUsersAsync();
             await LoadProjectsFromApiAsync(); 
             await LoadTasksAsync();
-            await LoadInvitationsAsync();
+            await LoadInboxAsync(); // Nowa metoda do ładowania obu typów danych
             LoadUserProfile();
+        }
+
+        private async Task LoadInboxAsync()
+        {
+            var loadInvitationsTask = ApiService.Instance.GetPendingInvitationsAsync();
+            var loadNotificationsTask = ApiService.Instance.GetNotificationsAsync();
+
+            await Task.WhenAll(loadInvitationsTask, loadNotificationsTask);
+
+            PendingInvitations = new ObservableCollection<InvitationModel>(loadInvitationsTask.Result);
+            Notifications = new ObservableCollection<NotificationModel>(loadNotificationsTask.Result);
         }
 
         private async Task LoadInvitationsAsync()
         {
             var invitations = await ApiService.Instance.GetPendingInvitationsAsync();
             PendingInvitations = new ObservableCollection<InvitationModel>(invitations);
+        }
+
+        private async Task LoadNotificationsAsync()
+        {
+            var notifications = await ApiService.Instance.GetNotificationsAsync();
+            Notifications = new ObservableCollection<NotificationModel>(notifications);
         }
 
         private void LoadUserProfile()
@@ -147,6 +180,8 @@ namespace desktopapp.ViewModels
             }
             ApplyFilters();
         }
+        
+        
 
         private async Task RefreshTasksSilentlyAsync()
         {
@@ -555,7 +590,7 @@ namespace desktopapp.ViewModels
         {
             ApiService.Instance.Logout();
 
-            var loginWindow = new LoginView();
+            var loginWindow = new Views.LoginView();
             loginWindow.Show();
 
             foreach (System.Windows.Window window in System.Windows.Application.Current.Windows)

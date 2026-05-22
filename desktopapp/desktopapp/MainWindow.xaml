@@ -13,6 +13,7 @@
     </Window.DataContext>
 
     <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <vm:StringToBoolConverter x:Key="ViewToCheckedConverter"/>
         
         <Style TargetType="TextBlock" x:Key="DataGridCellPadding">
@@ -43,7 +44,7 @@
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                     <RadioButton Content="Zadania" Style="{StaticResource MenuLinkButton}" IsChecked="{Binding SelectedView, Converter={StaticResource ViewToCheckedConverter}, ConverterParameter='Zadania'}" Command="{Binding SwitchViewCommand}" CommandParameter="Zadania"/>
                     <RadioButton Content="Projekty" Style="{StaticResource MenuLinkButton}" IsChecked="{Binding SelectedView, Converter={StaticResource ViewToCheckedConverter}, ConverterParameter='Projekty'}" Command="{Binding SwitchViewCommand}" CommandParameter="Projekty"/>
-                    <RadioButton Content="Zaproszenia" Style="{StaticResource MenuLinkButton}" IsChecked="{Binding SelectedView, Converter={StaticResource ViewToCheckedConverter}, ConverterParameter='Zaproszenia'}" Command="{Binding SwitchViewCommand}" CommandParameter="Zaproszenia"/>
+                    <RadioButton Content="🔔 Centrum Powiadomień" Style="{StaticResource MenuLinkButton}" IsChecked="{Binding SelectedView, Converter={StaticResource ViewToCheckedConverter}, ConverterParameter='Notifications'}" Command="{Binding SwitchViewCommand}" CommandParameter="Notifications"/>
                     <RadioButton Content="Ustawienia" Style="{StaticResource MenuLinkButton}" IsChecked="{Binding SelectedView, Converter={StaticResource ViewToCheckedConverter}, ConverterParameter='Ustawienia'}" Command="{Binding SwitchViewCommand}" CommandParameter="Ustawienia"/>
                 </StackPanel>
 
@@ -190,6 +191,7 @@
                         <DataGrid.ColumnHeaderStyle>
                             <Style TargetType="DataGridColumnHeader">
                                 <Setter Property="Background" Value="White"/>
+                                <Setter Property="Foreground" Value="{StaticResource TextDarkGray}"/>
                                 <Setter Property="FontWeight" Value="Bold"/>
                                 <Setter Property="Padding" Value="10"/>
                                 <Setter Property="BorderBrush" Value="{StaticResource BorderGray}"/>

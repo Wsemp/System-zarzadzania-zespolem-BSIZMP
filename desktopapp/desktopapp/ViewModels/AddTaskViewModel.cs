@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using desktopapp.Models;
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace desktopapp.ViewModels
 {
@@ -29,7 +30,7 @@ namespace desktopapp.ViewModels
         private string? _assignedUser;
 
         [ObservableProperty]
-        private ObservableCollection<string>? _availableUsernames;
+        private ObservableCollection<string?>? _availableUsernames;
 
         [ObservableProperty]
         private DateTime? _dueDate;
@@ -40,6 +41,30 @@ namespace desktopapp.ViewModels
 
         public System.Collections.Generic.List<UserModel>? ApiUsers { get; set; }
 
+        partial void OnSelectedProjectChanged(ProjectModel? value)
+        {
+            if (value != null)
+            {
+                System.Windows.MessageBox.Show($"Wybrano projekt: {value.Name}\nLiczba członków w pamięci: {value.Members?.Count ?? 0}");
+
+                if (value.Members != null && value.Members.Any())
+                {
+                    var names = value.Members.Where(m => m != null).Select(m => m.Username);
+                    AvailableUsernames = new ObservableCollection<string?>(names);
+                }
+                else
+                {
+                    AvailableUsernames = new ObservableCollection<string?>();
+                }
+            }
+            else
+            {
+                AvailableUsernames = new ObservableCollection<string?>();
+            }
+            
+            AssignedUser = null;
+        }
+
         private bool CanSave()
         {
             return !string.IsNullOrWhiteSpace(Title) && !string.IsNullOrWhiteSpace(AssignedUser);
@@ -48,7 +73,7 @@ namespace desktopapp.ViewModels
         [RelayCommand(CanExecute = nameof(CanSave))]
         public void Save()
         {
-            var selectedUser = ApiUsers?.Find(u => u.Username == this.AssignedUser);
+            var selectedUser = SelectedProject?.Members.FirstOrDefault(u => u.Username == AssignedUser);
 
             string statusKey = Status switch
             {

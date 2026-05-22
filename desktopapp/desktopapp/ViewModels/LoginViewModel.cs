@@ -9,10 +9,10 @@ namespace desktopapp.ViewModels
     public partial class LoginViewModel : ObservableObject
     {
         [ObservableProperty]
-        private string _username;
+        private string? _username;
 
         [ObservableProperty]
-        private string _password;
+        private string? _password;
 
 
         [RelayCommand]
