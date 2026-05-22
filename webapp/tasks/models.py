@@ -15,10 +15,17 @@ class Task(models.Model):
         IN_PROGRESS = 'In progress', 'In progress'
         DONE = 'done', 'Done'
 
+    class Priority(models.TextChoices):
+        LOW = 'low', 'Low'
+        MEDIUM = 'medium', 'Medium'
+        HIGH = 'high', 'High'
+
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
 
     status = models.CharField(max_length=20, choices=Status.choices)
+
+    priority = models.CharField(max_length=20, choices=Priority.choices, default=Priority.LOW)
 
     assigned_to = models.ForeignKey(
         "auth.User",
