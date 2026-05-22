@@ -32,6 +32,9 @@ namespace desktopapp.Models
         
         [JsonProperty("due_date")]
         public DateTime? DueDate { get; set; }
+        
+        [JsonProperty("priority")] 
+        public string? Priority { get; set; }
 
         [NotMapped]
         [JsonIgnore]

@@ -163,12 +163,17 @@ namespace desktopapp.Services
 
         public async Task<bool> CreateTaskAsync(TaskModel newTask)
         {
+            
             try
             {
                 if (string.IsNullOrEmpty(AccessToken)) return false;
 
                 var jObject = JObject.FromObject(newTask);
                 jObject.Remove("Id");
+                if (string.IsNullOrEmpty(newTask.Priority)) 
+                {
+                    jObject["priority"] = "low";
+                }
 
                 if (newTask.ProjectId > 0)
                 {
@@ -207,9 +212,13 @@ namespace desktopapp.Services
             try
             {
                 if (string.IsNullOrEmpty(AccessToken)) return false;
-
+                
                 var jObject = JObject.FromObject(updatedTask);
                 jObject.Remove("Id");
+                if (string.IsNullOrEmpty(updatedTask.Priority)) 
+                {
+                    jObject["priority"] = "low";
+                }
 
                 if (updatedTask.ProjectId > 0)
                 {
