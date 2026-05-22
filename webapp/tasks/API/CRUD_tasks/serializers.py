@@ -1,5 +1,5 @@
 from ...models import Task, Tag
-from ...services.task_services import create_task
+from ...services.task_services import create_task, update_task
 from rest_framework import serializers
 from django.contrib.auth.models import User
 
@@ -18,7 +18,7 @@ class TaskSerializer(serializers.HyperlinkedModelSerializer):
     tag_ids = serializers.PrimaryKeyRelatedField(
         queryset=Tag.objects.all(),
         many=True,
-        write_only=True,
+        write_only=False,
         source='tags'
     )
 
@@ -61,13 +61,15 @@ class TaskSerializer(serializers.HyperlinkedModelSerializer):
         return task
 
     def update(self, instance, validated_data):
-        tags = validated_data.pop('tags', None)
-
+        # tags = validated_data.pop('tags', None)
+        return update_task(task_id=instance.id, **validated_data)
+        """
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
-
+    
         if tags is not None:
             instance.tags.set(tags)
 
         instance.save()
         return instance
+        """
