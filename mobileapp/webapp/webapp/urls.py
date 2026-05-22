@@ -18,6 +18,7 @@ urlpatterns = [
     path("api/notifications", include("notifications.API.CRUD_notifications.urls")),
     path("api/invitations", include("invitations.API.CRUD_invitations.urls")),
     path("api/auth/", include("users.API.register_users.urls")),
+    path("api/auth/", include("users.API.google_auth.urls")),
     path('api/token', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/docs/', TemplateView.as_view(template_name='apidocs/index.html'), name='api-docs'),
