@@ -13,6 +13,14 @@ namespace desktopapp.ViewModels
 
         [ObservableProperty]
         private string? _password;
+        
+        [RelayCommand]
+        public void OpenForgotPasswordWindow()
+        {
+            var forgotPasswordWindow = new desktopapp.Views.ForgotPasswordWindow();
+            forgotPasswordWindow.ShowDialog();
+        }
+        
 
 
         [RelayCommand]

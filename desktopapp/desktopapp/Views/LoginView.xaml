@@ -37,6 +37,8 @@
                 <Border BorderBrush="{StaticResource BorderGray}" BorderThickness="0,1,0,0" Margin="0,20"/>
                 
                 <Button Content="Nie masz konta? Zarejestruj się" Command="{Binding OpenRegisterWindowCommand}" Style="{StaticResource SecondaryButton}" BorderThickness="0" Foreground="{StaticResource PrimaryBlue}"/>
+                <Button Content="Zapomniałeś hasła?" Command="{Binding OpenForgotPasswordWindowCommand}" 
+                        Background="Transparent" BorderThickness="0" Foreground="#0078D7" Cursor="Hand" Margin="0,10,0,0" HorizontalAlignment="Center"/>
             </StackPanel>
         </Border>
     </Grid>
