@@ -74,7 +74,7 @@ def update_user_view(request, user_id):
         if form.is_valid():
 
             data = form.cleaned_data
-            update_user(user_id=user.id, **data)
+            update_user(user=user, **data)
             return redirect("users_view")
     else:
         form = UserUpdateForm(instance=user)

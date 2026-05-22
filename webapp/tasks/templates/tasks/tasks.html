@@ -2,38 +2,7 @@
 
 {% block content %}
 
-    <table class="table table-hover">
-      <thead>
-        <tr>
-          <th scope="col">#</th>
-          <th scope="col">Title</th>
-          <th scope="col">Status</th>
-          <th scope="col">Assigned to</th>
-          <th scope="col">Created by</th>
-          <th scope="col">Created at</th>
-          <th scope="col">Updated at</th>
-          <th scope="col">Due date</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for task in tasks %}
-
-            <tr class="{% if task.overdue %}table-danger{% elif task.done %}table-success{% endif %}">
-
-              <th scope="row">{{ task.id }}</th>
-              <td>{{ task.title }}</td>
-              <td>{{ task.status }}</td>
-              <td>{{ task.assigned_to }}</td>
-              <td>{{ task.created_by }}</td>
-              <td>{{ task.created_at }}</td>
-              <td>{{ task.updated_at }}</td>
-              <td>{{ task.due_date }}</td>
-              <td><a href="{% url 'delete_task' task.id %}">Delete</a></td>
-              <td><a href="{% url 'update_task' task.id %}">Update</a></td>
-            </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    {% include "tasks/_tasks_table.html" %}
 
     <button type="button" class="btn btn-link">
         <a href="{% url 'create_task' %}">Utwórz zadanie</a>

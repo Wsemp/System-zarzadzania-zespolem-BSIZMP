@@ -69,6 +69,22 @@ def update_task_view(request, task_id):
 
     return render(request, "tasks/update_task.html", {"form": form, "task": task})
 
+
+def tasks_sort_by_due_date(request):
+    order = request.GET.get("order", "asc")
+    print(order)
+    if order == "asc":
+        tasks = get_tasks().order_by("due_date")
+        next_order = "desc"
+    else:
+        tasks = get_tasks().order_by("-due_date")
+        next_order = "asc"
+
+    return render(request, "tasks/_tasks_table.html", {
+        "tasks": tasks,
+        "next_order": next_order
+    })
+
 """
 @login_required
 def update_user_view(request, user_id):

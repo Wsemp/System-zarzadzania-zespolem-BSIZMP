@@ -13,9 +13,11 @@ class InvitationSerializer(serializers.ModelSerializer):
             'inviter_username', 'message', 'created_at', 'expires_at',
             'accepted', 'accepted_by', 'accepted_at',
         ]
+
         read_only_fields = [
             'inviter', 'accepted', 'accepted_by', 'accepted_at', 'created_at',
         ]
+
 
     def get_project_name(self, obj):
         return obj.project.name if obj.project else None
