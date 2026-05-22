@@ -314,7 +314,7 @@ namespace desktopapp.Services
 
         public async Task<bool> DeleteProjectAsync(int projectId) => (await _client.DeleteAsync(_baseUrl + $"api/projects/{projectId}/")).IsSuccessStatusCode;
 
-        // 🔥 OTO BRAKUJĄCA METODA OD POWIADOMIEŃ 🔥
+
         public async Task<List<NotificationModel>> GetNotificationsAsync()
         {
             try
@@ -367,6 +367,27 @@ namespace desktopapp.Services
                 return response.IsSuccessStatusCode;
             }
             catch { return false; }
+        }
+        
+        public async Task<bool> RequestPasswordResetAsync(string email)
+        {
+            try
+            {
+
+                var payload = new { email = email };
+                var json = Newtonsoft.Json.JsonConvert.SerializeObject(payload);
+                var content = new System.Net.Http.StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+
+                var response = await _client.PostAsync($"{_baseUrl}api/password-reset/", content);
+                
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Błąd połączenia: {ex.Message}", "Błąd", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                return false;
+            }
         }
     }
 }
