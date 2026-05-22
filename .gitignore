@@ -30,3 +30,4 @@ Thumbs.db
 .vs/
 bin/
 obj/
+webapp/invitations/API/CRUD_invitations/views.py

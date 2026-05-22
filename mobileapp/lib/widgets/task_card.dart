@@ -5,6 +5,12 @@ import '../core/theme/app_theme.dart';
 import '../models/task_model.dart';
 import 'status_badge.dart';
 
+String _fmtDate(String raw) {
+  final d = DateTime.tryParse(raw);
+  if (d == null) return raw.length > 10 ? raw.substring(0, 10) : raw;
+  return '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
+}
+
 class TaskCard extends StatelessWidget {
   final TaskModel task;
   final VoidCallback? onTap;
@@ -87,7 +93,6 @@ class TaskCard extends StatelessWidget {
                       const SizedBox(height: 10),
                       Row(
                         children: [
-                          // Priority dot
                           _PriorityDot(priority: task.priority),
                           const SizedBox(width: 6),
                           Text(
@@ -111,9 +116,7 @@ class TaskCard extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              task.dueDate!.length > 10
-                                  ? task.dueDate!.substring(0, 10)
-                                  : task.dueDate!,
+                              _fmtDate(task.dueDate!),
                               style: GoogleFonts.poppins(
                                 fontSize: 11,
                                 color: AppColors.textSecondary,

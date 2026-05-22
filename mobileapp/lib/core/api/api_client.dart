@@ -93,6 +93,15 @@ class ApiClient {
 
       debugPrint('[API] $method $path → ${response.statusCode}');
 
+      if (response.statusCode >= 500) {
+        debugPrint('[API] ❌ SERVER ERROR');
+        debugPrint('[API]   URL: ${ApiEndpoints.baseUrl}$path');
+        debugPrint('[API]   Method: $method');
+        if (body != null) debugPrint('[API]   Body: $body');
+        debugPrint('[API]   Status: ${response.statusCode}');
+        debugPrint('[API]   Response: ${response.body}');
+      }
+
       if (response.statusCode == 401 && auth) {
         final refreshed = await _refreshToken();
         if (refreshed) return _request(method, path, body: body, auth: auth);
@@ -137,6 +146,13 @@ class ApiClient {
     }
     if (response.statusCode == 404) {
       throw const NotFoundException('Nie znaleziono zasobu');
+    }
+    if (response.statusCode >= 500) {
+      debugPrint('[API] 5xx body: ${response.body}');
+      throw AppException(
+        'Nie udało się wykonać akcji. Spróbuj ponownie.',
+        statusCode: response.statusCode,
+      );
     }
     debugPrint('[API] Error ${response.statusCode}: ${response.body}');
     throw AppException(

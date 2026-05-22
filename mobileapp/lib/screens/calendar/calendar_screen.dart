@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/task_model.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/language_provider.dart';
 import '../../providers/task_provider.dart';
 import '../../widgets/task_card.dart';
 
@@ -56,6 +58,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final taskProv = context.watch<TaskProvider>();
     final tasks = taskProv.tasks;
     final selectedTasks = _tasksForDate(tasks, _selectedDate);
+    final s = context.watch<LanguageProvider>().strings;
+    final langCode = context.read<LanguageProvider>().locale.languageCode;
+    final dateLabel = DateFormat('dd.MM.yyyy', langCode).format(_selectedDate);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -66,7 +71,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
               child: Text(
-                'Kalendarz',
+                s.calendar,
                 style: GoogleFonts.poppins(
                   fontSize: 24,
                   fontWeight: FontWeight.w700,
@@ -84,13 +89,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 onDateSelected: (d) => setState(() => _selectedDate = d),
                 onPrevMonth: _prevMonth,
                 onNextMonth: _nextMonth,
+                langCode: langCode,
               ).animate().fadeIn(delay: 100.ms, duration: 400.ms),
             ),
             const SizedBox(height: 20),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text(
-                'Zadania na ${_selectedDate.day}.${_selectedDate.month}.${_selectedDate.year}',
+                '${s.tasksFor} $dateLabel',
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -112,7 +118,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            'Brak zadań na ten dzień',
+                            s.noTasksForDay,
                             style: GoogleFonts.poppins(
                               color: AppColors.textSecondary,
                               fontSize: 14,
@@ -145,6 +151,7 @@ class _CalendarWidget extends StatelessWidget {
   final ValueChanged<DateTime> onDateSelected;
   final VoidCallback onPrevMonth;
   final VoidCallback onNextMonth;
+  final String langCode;
 
   const _CalendarWidget({
     required this.focusedMonth,
@@ -153,6 +160,7 @@ class _CalendarWidget extends StatelessWidget {
     required this.onDateSelected,
     required this.onPrevMonth,
     required this.onNextMonth,
+    required this.langCode,
   });
 
   @override
@@ -165,20 +173,15 @@ class _CalendarWidget extends StatelessWidget {
     ).day;
     final startWeekday = firstDay.weekday;
 
-    final monthNames = [
-      'Styczeń',
-      'Luty',
-      'Marzec',
-      'Kwiecień',
-      'Maj',
-      'Czerwiec',
-      'Lipiec',
-      'Sierpień',
-      'Wrzesień',
-      'Październik',
-      'Listopad',
-      'Grudzień',
-    ];
+    final monthYearLabel = DateFormat(
+      'MMMM yyyy',
+      langCode,
+    ).format(DateTime(focusedMonth.year, focusedMonth.month, 1));
+
+    final dayLabels = List.generate(
+      7,
+      (i) => DateFormat('EEE', langCode).format(DateTime(2024, 1, 1 + i)),
+    );
 
     return Container(
       decoration: BoxDecoration(
@@ -204,7 +207,10 @@ class _CalendarWidget extends StatelessWidget {
                 color: AppColors.textPrimary,
               ),
               Text(
-                '${monthNames[focusedMonth.month - 1]} ${focusedMonth.year}',
+                monthYearLabel.isNotEmpty
+                    ? monthYearLabel[0].toUpperCase() +
+                          monthYearLabel.substring(1)
+                    : monthYearLabel,
                 style: GoogleFonts.poppins(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
@@ -220,7 +226,7 @@ class _CalendarWidget extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Row(
-            children: ['Pon', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob', 'Nd']
+            children: dayLabels
                 .map(
                   (d) => Expanded(
                     child: Center(

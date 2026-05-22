@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
 import 'models/task_model.dart';
 import 'providers/auth_provider.dart';
+import 'providers/language_provider.dart';
 import 'providers/notification_provider.dart';
 import 'screens/auth/change_password_screen.dart';
 import 'screens/auth/login_screen.dart';
@@ -28,8 +30,17 @@ class TaskomatApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.watch<LanguageProvider>().locale;
+
     return MaterialApp.router(
       title: 'Taskomat',
+      locale: locale,
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: LanguageProvider.supportedLocales,
       theme: AppTheme.theme,
       routerConfig: _router,
       debugShowCheckedModeBanner: false,
@@ -68,8 +79,9 @@ class _SessionWrapperState extends State<_SessionWrapper> {
   void _syncSession() {
     final notifProv = context.read<NotificationProvider>();
     if (_auth?.isAuthenticated == true) {
+      final userId = _auth?.user?.id;
       SessionService.start(_onTimeout);
-      notifProv.startPolling();
+      notifProv.startPolling(userId: userId);
     } else {
       SessionService.stop();
       notifProv.stopPolling();
@@ -197,7 +209,6 @@ class MainShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentIndex = _locationToIndex(context);
-
     return Scaffold(
       backgroundColor: AppColors.background,
       body: child,
@@ -217,6 +228,8 @@ class _FloatingBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = context.watch<LanguageProvider>().strings;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
       child: Container(
@@ -237,25 +250,25 @@ class _FloatingBottomNav extends StatelessWidget {
           children: [
             _NavItem(
               icon: Icons.home_rounded,
-              label: 'Home',
+              label: s.navHome,
               active: currentIndex == 0,
               onTap: () => onTap(0),
             ),
             _NavItem(
               icon: Icons.folder_rounded,
-              label: 'Projekty',
+              label: s.navProjects,
               active: currentIndex == 1,
               onTap: () => onTap(1),
             ),
             _NavItem(
               icon: Icons.calendar_month_rounded,
-              label: 'Kalendarz',
+              label: s.navCalendar,
               active: currentIndex == 2,
               onTap: () => onTap(2),
             ),
             _NavItem(
               icon: Icons.person_rounded,
-              label: 'Konto',
+              label: s.navAccount,
               active: currentIndex == 3,
               onTap: () => onTap(3),
             ),
