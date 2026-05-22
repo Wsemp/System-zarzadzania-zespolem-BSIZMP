@@ -42,12 +42,14 @@ class PasswordResetRequestView(APIView):
             """
 
             subject = "Password reset"
-            # message = f"Jeśli prosiłeś o reset hasła, użyj poniższego linku:\n\n{reset_link}\n\nJeśli nie, zignoruj."
+            message = f"Jeśli prosiłeś o reset hasła, użyj poniższego linku:\n\n{reset_link}\n\nJeśli nie, zignoruj."
             from_email = getattr(settings, "DEFAULT_FROM_EMAIL", None)
 
             try:
                 if from_email:
 
+                    send_mail(subject, message, from_email, [user.email], fail_silently=False)
+                    """
                     email = EmailMultiAlternatives(
                         subject="Password reset",
                         body="Use the link to reset your password",
@@ -57,11 +59,11 @@ class PasswordResetRequestView(APIView):
 
                     email.attach_alternative(html_message, "text/html")
                     email.send()
+                    """
 
                 else:
-                    pass
                     # gdy brak DEFAULT_FROM_EMAIL — użyj EmailMessage bez from_email albo loguj
-                    # EmailMessage(subject, message, to=[user.email]).send(fail_silently=True)
+                    EmailMessage(subject, message, to=[user.email]).send(fail_silently=True)
             except Exception:
                 # nie ujawniamy błędów klientowi — logowanie po stronie serwera jest ok
                 pass
