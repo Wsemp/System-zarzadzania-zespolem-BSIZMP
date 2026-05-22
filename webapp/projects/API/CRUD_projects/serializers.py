@@ -13,11 +13,14 @@ class UserShortSerializer(serializers.ModelSerializer):
 class ProjectSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='project-detail')
     members = UserShortSerializer(many=True, read_only=True)
+    
+    owner = UserShortSerializer(read_only=True) 
 
     class Meta:
         model = Project
-        fields = ['url', 'id', 'name', 'description', 'members']
-        read_only_fields = ['owner']
+        fields = ['url', 'id', 'name', 'description', 'owner', 'members'] 
+        
+        read_only_fields = ['owner'] 
 
     def create(self, validated_data):
         user = self.context['request'].user
