@@ -14,8 +14,11 @@ class InvitationViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # Pokazuj tylko zaproszenia skierowane do zalogowanego użytkownika
-        return Invitation.objects.filter(email=self.request.user.email)
+        # Pokazuj tylko zaproszenia skierowane do zalogowanego użytkownika (dla admina pokazuj wszystkie zaproszenia)
+        if self.request.user.is_staff:
+            return Invitation.objects.all()
+        else:
+            return Invitation.objects.filter(email=self.request.user.email)
 
     def perform_create(self, serializer):
         # Automatycznie ustaw zapraszającego jako aktualnego użytkownika
