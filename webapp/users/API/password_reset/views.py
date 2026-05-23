@@ -8,7 +8,7 @@ from django.core.mail import EmailMultiAlternatives
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-
+from django.shortcuts import render, redirect
 from .serializers import PasswordResetRequestSerializer, PasswordResetConfirmSerializer
 
 from rest_framework.throttling import AnonRateThrottle
@@ -92,6 +92,18 @@ class PasswordResetConfirmView(APIView):
     """
     Przyjmuje uid, token, new_password. Weryfikuje token i ustawia nowe hasło.
     """
+
+    template_name = "templates/password_reset_confirm.html"
+
+    def get(self, request, uidb64, token):
+
+        context = {
+            "uid": uidb64,
+            "token": token,
+        }
+
+        return render(request, self.template_name, context)
+
     def post(self, request):
         serializer = PasswordResetConfirmSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
