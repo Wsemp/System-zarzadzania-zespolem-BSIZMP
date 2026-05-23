@@ -2,6 +2,58 @@
   "version": 3,
   "targets": {
     "net10.0-windows7.0": {
+      "AvalonEdit/6.0.0": {
+        "type": "package",
+        "compile": {
+          "lib/netcoreapp3.0/ICSharpCode.AvalonEdit.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netcoreapp3.0/ICSharpCode.AvalonEdit.dll": {
+            "related": ".xml"
+          }
+        },
+        "frameworkReferences": [
+          "Microsoft.WindowsDesktop.App"
+        ]
+      },
+      "Caliburn.Micro/4.0.210": {
+        "type": "package",
+        "dependencies": {
+          "Caliburn.Micro.Core": "4.0.210",
+          "Microsoft.Xaml.Behaviors.Wpf": "1.1.37"
+        },
+        "compile": {
+          "lib/net6.0-windows7.0/Caliburn.Micro.Platform.Core.dll": {
+            "related": ".pdb;.xml"
+          },
+          "lib/net6.0-windows7.0/Caliburn.Micro.Platform.dll": {
+            "related": ".Core.pdb;.Core.xml;.pdb;.xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0-windows7.0/Caliburn.Micro.Platform.Core.dll": {
+            "related": ".pdb;.xml"
+          },
+          "lib/net6.0-windows7.0/Caliburn.Micro.Platform.dll": {
+            "related": ".Core.pdb;.Core.xml;.pdb;.xml"
+          }
+        }
+      },
+      "Caliburn.Micro.Core/4.0.210": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/Caliburn.Micro.Core.dll": {
+            "related": ".pdb;.xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/Caliburn.Micro.Core.dll": {
+            "related": ".pdb;.xml"
+          }
+        }
+      },
       "CommunityToolkit.Mvvm/8.4.0": {
         "type": "package",
         "compile": {
@@ -16,6 +68,210 @@
         },
         "build": {
           "buildTransitive/CommunityToolkit.Mvvm.targets": {}
+        }
+      },
+      "ControlzEx/4.4.0": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Xaml.Behaviors.Wpf": "1.1.19"
+        },
+        "compile": {
+          "lib/netcoreapp3.1/ControlzEx.dll": {
+            "related": ".pdb;.xml"
+          }
+        },
+        "runtime": {
+          "lib/netcoreapp3.1/ControlzEx.dll": {
+            "related": ".pdb;.xml"
+          }
+        },
+        "frameworkReferences": [
+          "Microsoft.WindowsDesktop.App.WPF"
+        ]
+      },
+      "Dirkster.AvalonDock/4.60.0": {
+        "type": "package",
+        "compile": {
+          "lib/net5.0-windows7.0/AvalonDock.dll": {}
+        },
+        "runtime": {
+          "lib/net5.0-windows7.0/AvalonDock.dll": {}
+        },
+        "frameworkReferences": [
+          "Microsoft.WindowsDesktop.App.WPF"
+        ],
+        "resource": {
+          "lib/net5.0-windows7.0/ca-ES/AvalonDock.resources.dll": {
+            "locale": "ca-ES"
+          },
+          "lib/net5.0-windows7.0/cs-CZ/AvalonDock.resources.dll": {
+            "locale": "cs-CZ"
+          },
+          "lib/net5.0-windows7.0/de/AvalonDock.resources.dll": {
+            "locale": "de"
+          },
+          "lib/net5.0-windows7.0/es/AvalonDock.resources.dll": {
+            "locale": "es"
+          },
+          "lib/net5.0-windows7.0/fr/AvalonDock.resources.dll": {
+            "locale": "fr"
+          },
+          "lib/net5.0-windows7.0/hu/AvalonDock.resources.dll": {
+            "locale": "hu"
+          },
+          "lib/net5.0-windows7.0/it/AvalonDock.resources.dll": {
+            "locale": "it"
+          },
+          "lib/net5.0-windows7.0/ja/AvalonDock.resources.dll": {
+            "locale": "ja"
+          },
+          "lib/net5.0-windows7.0/ko/AvalonDock.resources.dll": {
+            "locale": "ko"
+          },
+          "lib/net5.0-windows7.0/nl-BE/AvalonDock.resources.dll": {
+            "locale": "nl-BE"
+          },
+          "lib/net5.0-windows7.0/pl/AvalonDock.resources.dll": {
+            "locale": "pl"
+          },
+          "lib/net5.0-windows7.0/pt/AvalonDock.resources.dll": {
+            "locale": "pt"
+          },
+          "lib/net5.0-windows7.0/ro/AvalonDock.resources.dll": {
+            "locale": "ro"
+          },
+          "lib/net5.0-windows7.0/ru/AvalonDock.resources.dll": {
+            "locale": "ru"
+          },
+          "lib/net5.0-windows7.0/sv/AvalonDock.resources.dll": {
+            "locale": "sv"
+          },
+          "lib/net5.0-windows7.0/zh-Hans/AvalonDock.resources.dll": {
+            "locale": "zh-Hans"
+          },
+          "lib/net5.0-windows7.0/zh-Hant/AvalonDock.resources.dll": {
+            "locale": "zh-Hant"
+          }
+        }
+      },
+      "Dirkster.AvalonDock.Themes.VS2013/4.60.0": {
+        "type": "package",
+        "dependencies": {
+          "Dirkster.AvalonDock": "4.60.0"
+        },
+        "compile": {
+          "lib/net5.0-windows7.0/AvalonDock.Themes.VS2013.dll": {}
+        },
+        "runtime": {
+          "lib/net5.0-windows7.0/AvalonDock.Themes.VS2013.dll": {}
+        },
+        "frameworkReferences": [
+          "Microsoft.WindowsDesktop.App.WPF"
+        ]
+      },
+      "DotNetProjects.Extended.Wpf.Toolkit/4.6.78": {
+        "type": "package",
+        "compile": {
+          "lib/netcoreapp3.0/DotNetProjects.Wpf.Extended.Toolkit.dll": {}
+        },
+        "runtime": {
+          "lib/netcoreapp3.0/DotNetProjects.Wpf.Extended.Toolkit.dll": {}
+        },
+        "frameworkReferences": [
+          "Microsoft.WindowsDesktop.App.WPF"
+        ]
+      },
+      "Gemini.Modules.CodeEditor/1.0.76-beta": {
+        "type": "package",
+        "dependencies": {
+          "AvalonEdit": "6.0.0",
+          "GeminiWpf": "1.0.76-beta"
+        },
+        "compile": {
+          "lib/net7.0-windows7.0/Gemini.Modules.CodeEditor.dll": {}
+        },
+        "runtime": {
+          "lib/net7.0-windows7.0/Gemini.Modules.CodeEditor.dll": {}
+        },
+        "frameworkReferences": [
+          "Microsoft.WindowsDesktop.App.WPF"
+        ],
+        "resource": {
+          "lib/net7.0-windows7.0/de/Gemini.Modules.CodeEditor.resources.dll": {
+            "locale": "de"
+          },
+          "lib/net7.0-windows7.0/fr/Gemini.Modules.CodeEditor.resources.dll": {
+            "locale": "fr"
+          },
+          "lib/net7.0-windows7.0/ko/Gemini.Modules.CodeEditor.resources.dll": {
+            "locale": "ko"
+          },
+          "lib/net7.0-windows7.0/ru/Gemini.Modules.CodeEditor.resources.dll": {
+            "locale": "ru"
+          },
+          "lib/net7.0-windows7.0/zh-Hans/Gemini.Modules.CodeEditor.resources.dll": {
+            "locale": "zh-Hans"
+          }
+        }
+      },
+      "GeminiWpf/1.0.76-beta": {
+        "type": "package",
+        "dependencies": {
+          "Caliburn.Micro": "4.0.210",
+          "Dirkster.AvalonDock.Themes.VS2013": "4.60.0",
+          "DotNetProjects.Extended.Wpf.Toolkit": "4.6.78",
+          "MahApps.Metro": "2.4.9",
+          "System.ComponentModel.Composition": "6.0.0"
+        },
+        "compile": {
+          "lib/net7.0-windows7.0/Gemini.dll": {}
+        },
+        "runtime": {
+          "lib/net7.0-windows7.0/Gemini.dll": {}
+        },
+        "frameworkReferences": [
+          "Microsoft.WindowsDesktop.App.WPF"
+        ],
+        "resource": {
+          "lib/net7.0-windows7.0/de/Gemini.resources.dll": {
+            "locale": "de"
+          },
+          "lib/net7.0-windows7.0/fr/Gemini.resources.dll": {
+            "locale": "fr"
+          },
+          "lib/net7.0-windows7.0/ko/Gemini.resources.dll": {
+            "locale": "ko"
+          },
+          "lib/net7.0-windows7.0/ru/Gemini.resources.dll": {
+            "locale": "ru"
+          },
+          "lib/net7.0-windows7.0/zh-Hans/Gemini.resources.dll": {
+            "locale": "zh-Hans"
+          }
+        }
+      },
+      "MahApps.Metro/2.4.9": {
+        "type": "package",
+        "dependencies": {
+          "ControlzEx": "[4.4.0, 6.0.0)"
+        },
+        "compile": {
+          "lib/netcoreapp3.1/MahApps.Metro.dll": {
+            "related": ".pdb;.xml"
+          }
+        },
+        "runtime": {
+          "lib/netcoreapp3.1/MahApps.Metro.dll": {
+            "related": ".pdb;.xml"
+          }
+        },
+        "frameworkReferences": [
+          "Microsoft.WindowsDesktop.App.WPF"
+        ],
+        "resource": {
+          "lib/netcoreapp3.1/de/MahApps.Metro.resources.dll": {
+            "locale": "de"
+          }
         }
       },
       "Microsoft.Data.Sqlite.Core/10.0.0": {
@@ -319,6 +575,22 @@
           "buildTransitive/net8.0/_._": {}
         }
       },
+      "Microsoft.Xaml.Behaviors.Wpf/1.1.37": {
+        "type": "package",
+        "compile": {
+          "lib/net5.0-windows7.0/Microsoft.Xaml.Behaviors.dll": {
+            "related": ".pdb;.xml"
+          }
+        },
+        "runtime": {
+          "lib/net5.0-windows7.0/Microsoft.Xaml.Behaviors.dll": {
+            "related": ".pdb;.xml"
+          }
+        },
+        "frameworkReferences": [
+          "Microsoft.WindowsDesktop.App.WPF"
+        ]
+      },
       "Newtonsoft.Json/13.0.4": {
         "type": "package",
         "compile": {
@@ -471,10 +743,112 @@
         "runtime": {
           "lib/net6.0-windows7.0/SQLitePCLRaw.provider.e_sqlite3.dll": {}
         }
+      },
+      "System.ComponentModel.Composition/6.0.0": {
+        "type": "package",
+        "compile": {
+          "lib/net6.0/System.ComponentModel.Composition.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/System.ComponentModel.Composition.dll": {
+            "related": ".xml"
+          }
+        },
+        "build": {
+          "buildTransitive/netcoreapp3.1/_._": {}
+        }
       }
     }
   },
   "libraries": {
+    "AvalonEdit/6.0.0": {
+      "sha512": "QMbyJrlhOuWzLRPqvW724ly9XbSEkp8Xg2mQY7tvsh1se1pDEJnmDjS6c6OuqDe2Q37uCnXwKdV8tJUx2iLUnw==",
+      "type": "package",
+      "path": "avalonedit/6.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "avalonedit.6.0.0.nupkg.sha512",
+        "avalonedit.nuspec",
+        "lib/net40/ICSharpCode.AvalonEdit.dll",
+        "lib/net40/ICSharpCode.AvalonEdit.xml",
+        "lib/net45/ICSharpCode.AvalonEdit.dll",
+        "lib/net45/ICSharpCode.AvalonEdit.xml",
+        "lib/netcoreapp3.0/ICSharpCode.AvalonEdit.dll",
+        "lib/netcoreapp3.0/ICSharpCode.AvalonEdit.xml"
+      ]
+    },
+    "Caliburn.Micro/4.0.210": {
+      "sha512": "nZTIqZ+skWI3rBE24yS2NHFnmwWk7oh/dcSbVrtZRlGLYSNR/R+olyXDPL6iHxyqWSi/4gVN/HNowJ+5RuX6xA==",
+      "type": "package",
+      "path": "caliburn.micro/4.0.210",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "caliburn.micro.4.0.210.nupkg.sha512",
+        "caliburn.micro.nuspec",
+        "lib/monoandroid80/Caliburn.Micro.Platform.Core.dll",
+        "lib/monoandroid80/Caliburn.Micro.Platform.Core.pdb",
+        "lib/monoandroid80/Caliburn.Micro.Platform.Core.xml",
+        "lib/monoandroid80/Caliburn.Micro.Platform.dll",
+        "lib/monoandroid80/Caliburn.Micro.Platform.pdb",
+        "lib/monoandroid80/Caliburn.Micro.Platform.xml",
+        "lib/net462/Caliburn.Micro.Platform.Core.dll",
+        "lib/net462/Caliburn.Micro.Platform.Core.pdb",
+        "lib/net462/Caliburn.Micro.Platform.Core.xml",
+        "lib/net462/Caliburn.Micro.Platform.dll",
+        "lib/net462/Caliburn.Micro.Platform.pdb",
+        "lib/net462/Caliburn.Micro.Platform.xml",
+        "lib/net5.0-windows7.0/Caliburn.Micro.Platform.Core.dll",
+        "lib/net5.0-windows7.0/Caliburn.Micro.Platform.Core.pdb",
+        "lib/net5.0-windows7.0/Caliburn.Micro.Platform.Core.xml",
+        "lib/net5.0-windows7.0/Caliburn.Micro.Platform.dll",
+        "lib/net5.0-windows7.0/Caliburn.Micro.Platform.pdb",
+        "lib/net5.0-windows7.0/Caliburn.Micro.Platform.xml",
+        "lib/net6.0-windows7.0/Caliburn.Micro.Platform.Core.dll",
+        "lib/net6.0-windows7.0/Caliburn.Micro.Platform.Core.pdb",
+        "lib/net6.0-windows7.0/Caliburn.Micro.Platform.Core.xml",
+        "lib/net6.0-windows7.0/Caliburn.Micro.Platform.dll",
+        "lib/net6.0-windows7.0/Caliburn.Micro.Platform.pdb",
+        "lib/net6.0-windows7.0/Caliburn.Micro.Platform.xml",
+        "lib/netcoreapp3.1/Caliburn.Micro.Platform.Core.dll",
+        "lib/netcoreapp3.1/Caliburn.Micro.Platform.Core.pdb",
+        "lib/netcoreapp3.1/Caliburn.Micro.Platform.Core.xml",
+        "lib/netcoreapp3.1/Caliburn.Micro.Platform.dll",
+        "lib/netcoreapp3.1/Caliburn.Micro.Platform.pdb",
+        "lib/netcoreapp3.1/Caliburn.Micro.Platform.xml",
+        "lib/uap10.0.16299/Caliburn.Micro.Platform/Properties/Caliburn.Micro.Platform.rd.xml",
+        "lib/uap10.0.18362/Caliburn.Micro.Platform.Core.dll",
+        "lib/uap10.0.18362/Caliburn.Micro.Platform.Core.pdb",
+        "lib/uap10.0.18362/Caliburn.Micro.Platform.Core.xml",
+        "lib/uap10.0.18362/Caliburn.Micro.Platform.dll",
+        "lib/uap10.0.18362/Caliburn.Micro.Platform.pdb",
+        "lib/uap10.0.18362/Caliburn.Micro.Platform.pri",
+        "lib/uap10.0.18362/Caliburn.Micro.Platform.xml",
+        "lib/xamarinios10/Caliburn.Micro.Platform.Core.dll",
+        "lib/xamarinios10/Caliburn.Micro.Platform.Core.pdb",
+        "lib/xamarinios10/Caliburn.Micro.Platform.Core.xml",
+        "lib/xamarinios10/Caliburn.Micro.Platform.dll",
+        "lib/xamarinios10/Caliburn.Micro.Platform.pdb",
+        "lib/xamarinios10/Caliburn.Micro.Platform.xml"
+      ]
+    },
+    "Caliburn.Micro.Core/4.0.210": {
+      "sha512": "2rNpLvowRMDQEf7nR9w0fZd1fVlBVnYfQ5c3liCKycK6dFYw+Hk6KMBVXpOHyWjp+sT7+JpKdiT2PUo8cgYW+g==",
+      "type": "package",
+      "path": "caliburn.micro.core/4.0.210",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "caliburn.micro.core.4.0.210.nupkg.sha512",
+        "caliburn.micro.core.nuspec",
+        "lib/netstandard2.0/Caliburn.Micro.Core.dll",
+        "lib/netstandard2.0/Caliburn.Micro.Core.pdb",
+        "lib/netstandard2.0/Caliburn.Micro.Core.xml"
+      ]
+    },
     "CommunityToolkit.Mvvm/8.4.0": {
       "sha512": "tqVU8yc/ADO9oiTRyTnwhFN68hCwvkliMierptWOudIAvWY1mWCh5VFh+guwHJmpMwfg0J0rY+yyd5Oy7ty9Uw==",
       "type": "package",
@@ -515,6 +889,216 @@
         "lib/netstandard2.1/CommunityToolkit.Mvvm.dll",
         "lib/netstandard2.1/CommunityToolkit.Mvvm.pdb",
         "lib/netstandard2.1/CommunityToolkit.Mvvm.xml"
+      ]
+    },
+    "ControlzEx/4.4.0": {
+      "sha512": "pZ5z4hYWwE4R13UMCVs6vII//nL7hz+Nwn4oJlnsZJRGqJNy6Z9KnJiTZfly6lKFu0pMc1aWBZpx+VqFTQKP1Q==",
+      "type": "package",
+      "path": "controlzex/4.4.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "controlzex.4.4.0.nupkg.sha512",
+        "controlzex.nuspec",
+        "lib/net45/ControlzEx.dll",
+        "lib/net45/ControlzEx.pdb",
+        "lib/net45/ControlzEx.xml",
+        "lib/net462/ControlzEx.dll",
+        "lib/net462/ControlzEx.pdb",
+        "lib/net462/ControlzEx.xml",
+        "lib/netcoreapp3.0/ControlzEx.dll",
+        "lib/netcoreapp3.0/ControlzEx.pdb",
+        "lib/netcoreapp3.0/ControlzEx.xml",
+        "lib/netcoreapp3.1/ControlzEx.dll",
+        "lib/netcoreapp3.1/ControlzEx.pdb",
+        "lib/netcoreapp3.1/ControlzEx.xml",
+        "logo-mini.png"
+      ]
+    },
+    "Dirkster.AvalonDock/4.60.0": {
+      "sha512": "/Zsrqmiy1e+UNZdfCgh346+Ysgi8bQrCVCfyF/FxRj0o2nSCFvuit/670E5zrro9wr/KgQNGdTkfUD5x3bO6fw==",
+      "type": "package",
+      "path": "dirkster.avalondock/4.60.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "dirkster.avalondock.4.60.0.nupkg.sha512",
+        "dirkster.avalondock.nuspec",
+        "lib/net40/AvalonDock.dll",
+        "lib/net40/ca-ES/AvalonDock.resources.dll",
+        "lib/net40/cs-CZ/AvalonDock.resources.dll",
+        "lib/net40/de/AvalonDock.resources.dll",
+        "lib/net40/es/AvalonDock.resources.dll",
+        "lib/net40/fr/AvalonDock.resources.dll",
+        "lib/net40/hu/AvalonDock.resources.dll",
+        "lib/net40/it/AvalonDock.resources.dll",
+        "lib/net40/ja/AvalonDock.resources.dll",
+        "lib/net40/ko/AvalonDock.resources.dll",
+        "lib/net40/nl-BE/AvalonDock.resources.dll",
+        "lib/net40/pl/AvalonDock.resources.dll",
+        "lib/net40/pt/AvalonDock.resources.dll",
+        "lib/net40/ro/AvalonDock.resources.dll",
+        "lib/net40/ru/AvalonDock.resources.dll",
+        "lib/net40/sv/AvalonDock.resources.dll",
+        "lib/net40/zh-Hans/AvalonDock.resources.dll",
+        "lib/net40/zh-Hant/AvalonDock.resources.dll",
+        "lib/net5.0-windows7.0/AvalonDock.dll",
+        "lib/net5.0-windows7.0/ca-ES/AvalonDock.resources.dll",
+        "lib/net5.0-windows7.0/cs-CZ/AvalonDock.resources.dll",
+        "lib/net5.0-windows7.0/de/AvalonDock.resources.dll",
+        "lib/net5.0-windows7.0/es/AvalonDock.resources.dll",
+        "lib/net5.0-windows7.0/fr/AvalonDock.resources.dll",
+        "lib/net5.0-windows7.0/hu/AvalonDock.resources.dll",
+        "lib/net5.0-windows7.0/it/AvalonDock.resources.dll",
+        "lib/net5.0-windows7.0/ja/AvalonDock.resources.dll",
+        "lib/net5.0-windows7.0/ko/AvalonDock.resources.dll",
+        "lib/net5.0-windows7.0/nl-BE/AvalonDock.resources.dll",
+        "lib/net5.0-windows7.0/pl/AvalonDock.resources.dll",
+        "lib/net5.0-windows7.0/pt/AvalonDock.resources.dll",
+        "lib/net5.0-windows7.0/ro/AvalonDock.resources.dll",
+        "lib/net5.0-windows7.0/ru/AvalonDock.resources.dll",
+        "lib/net5.0-windows7.0/sv/AvalonDock.resources.dll",
+        "lib/net5.0-windows7.0/zh-Hans/AvalonDock.resources.dll",
+        "lib/net5.0-windows7.0/zh-Hant/AvalonDock.resources.dll",
+        "lib/netcoreapp3.0/AvalonDock.dll",
+        "lib/netcoreapp3.0/ca-ES/AvalonDock.resources.dll",
+        "lib/netcoreapp3.0/cs-CZ/AvalonDock.resources.dll",
+        "lib/netcoreapp3.0/de/AvalonDock.resources.dll",
+        "lib/netcoreapp3.0/es/AvalonDock.resources.dll",
+        "lib/netcoreapp3.0/fr/AvalonDock.resources.dll",
+        "lib/netcoreapp3.0/hu/AvalonDock.resources.dll",
+        "lib/netcoreapp3.0/it/AvalonDock.resources.dll",
+        "lib/netcoreapp3.0/ja/AvalonDock.resources.dll",
+        "lib/netcoreapp3.0/ko/AvalonDock.resources.dll",
+        "lib/netcoreapp3.0/nl-BE/AvalonDock.resources.dll",
+        "lib/netcoreapp3.0/pl/AvalonDock.resources.dll",
+        "lib/netcoreapp3.0/pt/AvalonDock.resources.dll",
+        "lib/netcoreapp3.0/ro/AvalonDock.resources.dll",
+        "lib/netcoreapp3.0/ru/AvalonDock.resources.dll",
+        "lib/netcoreapp3.0/sv/AvalonDock.resources.dll",
+        "lib/netcoreapp3.0/zh-Hans/AvalonDock.resources.dll",
+        "lib/netcoreapp3.0/zh-Hant/AvalonDock.resources.dll"
+      ]
+    },
+    "Dirkster.AvalonDock.Themes.VS2013/4.60.0": {
+      "sha512": "aPAI8fbkcM2U7kq/LWC6wNL2KMiWniwn4p4PLu6b17a6VoORj+CLXFHG/M2NrPM39aPeFOJRvrxlOs8GjwyQgg==",
+      "type": "package",
+      "path": "dirkster.avalondock.themes.vs2013/4.60.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "dirkster.avalondock.themes.vs2013.4.60.0.nupkg.sha512",
+        "dirkster.avalondock.themes.vs2013.nuspec",
+        "lib/net40/AvalonDock.Themes.VS2013.dll",
+        "lib/net5.0-windows7.0/AvalonDock.Themes.VS2013.dll",
+        "lib/netcoreapp3.0/AvalonDock.Themes.VS2013.dll"
+      ]
+    },
+    "DotNetProjects.Extended.Wpf.Toolkit/4.6.78": {
+      "sha512": "5gMefW3Byn8trdTheUCaOmS1/Ut1D7nW0pBJQciLol3UQ/68an4WAICSKtRS/YO9rGNeDLMM+jrDYEoHR/3LLA==",
+      "type": "package",
+      "path": "dotnetprojects.extended.wpf.toolkit/4.6.78",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "dotnetprojects.extended.wpf.toolkit.4.6.78.nupkg.sha512",
+        "dotnetprojects.extended.wpf.toolkit.nuspec",
+        "lib/net40/DotNetProjects.Wpf.Extended.Toolkit.dll",
+        "lib/netcoreapp3.0/DotNetProjects.Wpf.Extended.Toolkit.dll"
+      ]
+    },
+    "Gemini.Modules.CodeEditor/1.0.76-beta": {
+      "sha512": "wiB9RAFJT07jkVURmWxhPLEhQzZP+67DR/TolRNfDC0l02M8J31x8RSF2NaGT3azpVgOiOe7DJzdL8DbNX5/Xw==",
+      "type": "package",
+      "path": "gemini.modules.codeeditor/1.0.76-beta",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "gemini.modules.codeeditor.1.0.76-beta.nupkg.sha512",
+        "gemini.modules.codeeditor.nuspec",
+        "lib/net462/Gemini.Modules.CodeEditor.dll",
+        "lib/net462/de/Gemini.Modules.CodeEditor.resources.dll",
+        "lib/net462/fr/Gemini.Modules.CodeEditor.resources.dll",
+        "lib/net462/ko/Gemini.Modules.CodeEditor.resources.dll",
+        "lib/net462/ru/Gemini.Modules.CodeEditor.resources.dll",
+        "lib/net462/zh-Hans/Gemini.Modules.CodeEditor.resources.dll",
+        "lib/net6.0-windows7.0/Gemini.Modules.CodeEditor.dll",
+        "lib/net6.0-windows7.0/de/Gemini.Modules.CodeEditor.resources.dll",
+        "lib/net6.0-windows7.0/fr/Gemini.Modules.CodeEditor.resources.dll",
+        "lib/net6.0-windows7.0/ko/Gemini.Modules.CodeEditor.resources.dll",
+        "lib/net6.0-windows7.0/ru/Gemini.Modules.CodeEditor.resources.dll",
+        "lib/net6.0-windows7.0/zh-Hans/Gemini.Modules.CodeEditor.resources.dll",
+        "lib/net7.0-windows7.0/Gemini.Modules.CodeEditor.dll",
+        "lib/net7.0-windows7.0/de/Gemini.Modules.CodeEditor.resources.dll",
+        "lib/net7.0-windows7.0/fr/Gemini.Modules.CodeEditor.resources.dll",
+        "lib/net7.0-windows7.0/ko/Gemini.Modules.CodeEditor.resources.dll",
+        "lib/net7.0-windows7.0/ru/Gemini.Modules.CodeEditor.resources.dll",
+        "lib/net7.0-windows7.0/zh-Hans/Gemini.Modules.CodeEditor.resources.dll"
+      ]
+    },
+    "GeminiWpf/1.0.76-beta": {
+      "sha512": "nSDjDrWtIOpwKtCL5WNNaTg9c6u+bzSjeZQwyuerqZg2oZF2C8aFUldQ2h2s5wW5Q0BaVS3b9iKRUWoUeQggiA==",
+      "type": "package",
+      "path": "geminiwpf/1.0.76-beta",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "geminiwpf.1.0.76-beta.nupkg.sha512",
+        "geminiwpf.nuspec",
+        "lib/net462/Gemini.dll",
+        "lib/net462/de/Gemini.resources.dll",
+        "lib/net462/fr/Gemini.resources.dll",
+        "lib/net462/ko/Gemini.resources.dll",
+        "lib/net462/ru/Gemini.resources.dll",
+        "lib/net462/zh-Hans/Gemini.resources.dll",
+        "lib/net6.0-windows7.0/Gemini.dll",
+        "lib/net6.0-windows7.0/de/Gemini.resources.dll",
+        "lib/net6.0-windows7.0/fr/Gemini.resources.dll",
+        "lib/net6.0-windows7.0/ko/Gemini.resources.dll",
+        "lib/net6.0-windows7.0/ru/Gemini.resources.dll",
+        "lib/net6.0-windows7.0/zh-Hans/Gemini.resources.dll",
+        "lib/net7.0-windows7.0/Gemini.dll",
+        "lib/net7.0-windows7.0/de/Gemini.resources.dll",
+        "lib/net7.0-windows7.0/fr/Gemini.resources.dll",
+        "lib/net7.0-windows7.0/ko/Gemini.resources.dll",
+        "lib/net7.0-windows7.0/ru/Gemini.resources.dll",
+        "lib/net7.0-windows7.0/zh-Hans/Gemini.resources.dll"
+      ]
+    },
+    "MahApps.Metro/2.4.9": {
+      "sha512": "eMTkg6TBnCwHzszw7CP+pxsBeB4ZMsJFiTJJoifUVBysRyEenzzR+TKQJuMvvKK6KzvLxwHmJsFhi9o5p4vxhQ==",
+      "type": "package",
+      "path": "mahapps.metro/2.4.9",
+      "hasTools": true,
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net452/MahApps.Metro.dll",
+        "lib/net452/MahApps.Metro.pdb",
+        "lib/net452/MahApps.Metro.xml",
+        "lib/net452/de/MahApps.Metro.resources.dll",
+        "lib/net46/MahApps.Metro.dll",
+        "lib/net46/MahApps.Metro.pdb",
+        "lib/net46/MahApps.Metro.xml",
+        "lib/net46/de/MahApps.Metro.resources.dll",
+        "lib/net47/MahApps.Metro.dll",
+        "lib/net47/MahApps.Metro.pdb",
+        "lib/net47/MahApps.Metro.xml",
+        "lib/net47/de/MahApps.Metro.resources.dll",
+        "lib/netcoreapp3.0/MahApps.Metro.dll",
+        "lib/netcoreapp3.0/MahApps.Metro.pdb",
+        "lib/netcoreapp3.0/MahApps.Metro.xml",
+        "lib/netcoreapp3.0/de/MahApps.Metro.resources.dll",
+        "lib/netcoreapp3.1/MahApps.Metro.dll",
+        "lib/netcoreapp3.1/MahApps.Metro.pdb",
+        "lib/netcoreapp3.1/MahApps.Metro.xml",
+        "lib/netcoreapp3.1/de/MahApps.Metro.resources.dll",
+        "mahapps.metro.2.4.9.nupkg.sha512",
+        "mahapps.metro.logo.png",
+        "mahapps.metro.nuspec",
+        "tools/VisualStudioToolsManifest.xml"
       ]
     },
     "Microsoft.Data.Sqlite.Core/10.0.0": {
@@ -979,6 +1563,31 @@
         "useSharedDesignerContext.txt"
       ]
     },
+    "Microsoft.Xaml.Behaviors.Wpf/1.1.37": {
+      "sha512": "TxH7g5I/4UzOHfs0GqD1W4evdl7DIHOQCr/KWc4G4BkgtsAhaHHXAW5JbKrkB7cqClN0JYOX6j9/4v4emCjFIA==",
+      "type": "package",
+      "path": "microsoft.xaml.behaviors.wpf/1.1.37",
+      "hasTools": true,
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net45/Design/Microsoft.Xaml.Behaviors.Design.dll",
+        "lib/net45/Microsoft.Xaml.Behaviors.dll",
+        "lib/net45/Microsoft.Xaml.Behaviors.pdb",
+        "lib/net45/Microsoft.Xaml.Behaviors.xml",
+        "lib/net5.0-windows7.0/Design/Microsoft.Xaml.Behaviors.DesignTools.dll",
+        "lib/net5.0-windows7.0/Microsoft.Xaml.Behaviors.dll",
+        "lib/net5.0-windows7.0/Microsoft.Xaml.Behaviors.pdb",
+        "lib/net5.0-windows7.0/Microsoft.Xaml.Behaviors.xml",
+        "lib/netcoreapp3.1/Design/Microsoft.Xaml.Behaviors.DesignTools.dll",
+        "lib/netcoreapp3.1/Microsoft.Xaml.Behaviors.dll",
+        "lib/netcoreapp3.1/Microsoft.Xaml.Behaviors.pdb",
+        "lib/netcoreapp3.1/Microsoft.Xaml.Behaviors.xml",
+        "microsoft.xaml.behaviors.wpf.1.1.37.nupkg.sha512",
+        "microsoft.xaml.behaviors.wpf.nuspec",
+        "tools/Install.ps1"
+      ]
+    },
     "Newtonsoft.Json/13.0.4": {
       "sha512": "pdgNNMai3zv51W5aq268sujXUyx7SNdE2bj1wZcWjAQrKMFZV260lbqYop1d2GM67JI1huLRwxo9ZqnfF/lC6A==",
       "type": "package",
@@ -1102,36 +1711,59 @@
         "sqlitepclraw.provider.e_sqlite3.2.1.11.nupkg.sha512",
         "sqlitepclraw.provider.e_sqlite3.nuspec"
       ]
+    },
+    "System.ComponentModel.Composition/6.0.0": {
+      "sha512": "60Qv+F7oxomOjJeTDA5Z4iCyFbQ0B/2Mi5HT+13pxxq0lVnu2ipbWMzFB+RWKr3wWKA8BSncXr9PH/fECwMX5Q==",
+      "type": "package",
+      "path": "system.componentmodel.composition/6.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "LICENSE.TXT",
+        "THIRD-PARTY-NOTICES.TXT",
+        "buildTransitive/netcoreapp2.0/System.ComponentModel.Composition.targets",
+        "buildTransitive/netcoreapp3.1/_._",
+        "lib/net461/_._",
+        "lib/net6.0/System.ComponentModel.Composition.dll",
+        "lib/net6.0/System.ComponentModel.Composition.xml",
+        "lib/netcoreapp3.1/System.ComponentModel.Composition.dll",
+        "lib/netcoreapp3.1/System.ComponentModel.Composition.xml",
+        "lib/netstandard2.0/System.ComponentModel.Composition.dll",
+        "lib/netstandard2.0/System.ComponentModel.Composition.xml",
+        "system.componentmodel.composition.6.0.0.nupkg.sha512",
+        "system.componentmodel.composition.nuspec",
+        "useSharedDesignerContext.txt"
+      ]
     }
   },
   "projectFileDependencyGroups": {
     "net10.0-windows7.0": [
       "CommunityToolkit.Mvvm >= 8.4.0",
+      "Gemini.Modules.CodeEditor >= 1.0.76-beta",
       "Microsoft.EntityFrameworkCore.Sqlite >= 10.0.0",
       "Newtonsoft.Json >= 13.0.4"
     ]
   },
   "packageFolders": {
-    "C:\\Users\\i5 6Gen\\.nuget\\packages\\": {}
+    "C:\\Users\\Reni\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\i5 6Gen\\Desktop\\l\\System-zarzadzania-zespolem-BSIZMP\\desktopapp\\desktopapp\\desktopapp.csproj",
+      "projectUniqueName": "C:\\Users\\Reni\\Desktop\\es\\System-zarzadzania-zespolem-BSIZMP\\desktopapp\\desktopapp\\desktopapp.csproj",
       "projectName": "desktopapp",
-      "projectPath": "C:\\Users\\i5 6Gen\\Desktop\\l\\System-zarzadzania-zespolem-BSIZMP\\desktopapp\\desktopapp\\desktopapp.csproj",
-      "packagesPath": "C:\\Users\\i5 6Gen\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\i5 6Gen\\Desktop\\l\\System-zarzadzania-zespolem-BSIZMP\\desktopapp\\desktopapp\\obj\\",
+      "projectPath": "C:\\Users\\Reni\\Desktop\\es\\System-zarzadzania-zespolem-BSIZMP\\desktopapp\\desktopapp\\desktopapp.csproj",
+      "packagesPath": "C:\\Users\\Reni\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Reni\\Desktop\\es\\System-zarzadzania-zespolem-BSIZMP\\desktopapp\\desktopapp\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\i5 6Gen\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        "C:\\Users\\Reni\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net10.0-windows"
       ],
       "sources": {
-        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -1150,7 +1782,7 @@
         "auditLevel": "low",
         "auditMode": "all"
       },
-      "SdkAnalysisLevel": "10.0.200"
+      "SdkAnalysisLevel": "10.0.300"
     },
     "frameworks": {
       "net10.0-windows7.0": {
@@ -1159,6 +1791,10 @@
           "CommunityToolkit.Mvvm": {
             "target": "Package",
             "version": "[8.4.0, )"
+          },
+          "Gemini.Modules.CodeEditor": {
+            "target": "Package",
+            "version": "[1.0.76-beta, )"
           },
           "Microsoft.EntityFrameworkCore.Sqlite": {
             "target": "Package",
@@ -1188,7 +1824,7 @@
             "privateAssets": "none"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.201/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "C:\\Users\\Reni\\.dotnet\\sdk\\10.0.300/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.CSharp": "(,4.7.32767]",
           "Microsoft.VisualBasic": "(,10.4.32767]",
