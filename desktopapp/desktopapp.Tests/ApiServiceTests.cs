@@ -176,5 +176,33 @@ namespace desktopapp.Tests
                 ItExpr.IsAny<CancellationToken>()
             );
         }
+        
+        [Fact]
+        public async Task Logout_Powinno_Wyczyscic_Token_I_Dane_Uzytkownika()
+        {
+            // Arrange - przygotowujemy serwer, żeby "przepuścił" logowanie
+            var handlerMock = CreateHttpMock(HttpStatusCode.OK, new { access = "super_tajny_token_jwt_12345" });
+            var httpClient = new HttpClient(handlerMock.Object);
+
+            using (var context = new AppDbContext(_dbOptions))
+            {
+                await context.Database.EnsureCreatedAsync();
+                var apiService = new ApiService(httpClient, context);
+
+                // Symulujemy prawdziwe logowanie użytkownika (to wewnątrz ApiService ustawi token)
+                await apiService.LoginAsync("admin", "tajnehaslo123");
+
+                // Upewniamy się wstępnie, że po zalogowaniu token istnieje
+                Assert.NotNull(apiService.AccessToken);
+                Assert.Equal("admin", apiService.LoggedInUsername);
+
+                // Act - wywołujemy akcję wylogowania
+                apiService.Logout(); 
+
+                // Assert - sprawdzamy (wymuszamy), czy pamięć po sesji została wyczyszczona
+                Assert.Null(apiService.AccessToken);
+                Assert.Null(apiService.LoggedInUsername);
+            }
+        }
     }
 }

@@ -83,6 +83,7 @@ namespace desktopapp.Services
         public void Logout()
         {
             AccessToken = null;
+            LoggedInUsername = null;
             _client.DefaultRequestHeaders.Authorization = null;
             _dbContext.UserCredentials.RemoveRange(_dbContext.UserCredentials);
             _dbContext.SaveChanges();

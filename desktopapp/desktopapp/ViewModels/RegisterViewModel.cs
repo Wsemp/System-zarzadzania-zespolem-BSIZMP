@@ -19,6 +19,7 @@ namespace desktopapp.ViewModels
         {
             if (string.IsNullOrWhiteSpace(password)) return (false, "Hasło nie może być puste.");
             if (password.Length < 8) return (false, "Hasło musi mieć co najmniej 8 znaków.");
+            if (password.Length > 128) return (false, "Hasło jest zbyt długie (max 128 znaków).");
 
 
             if (!Regex.IsMatch(password, @"[a-z]")) return (false, "Hasło musi zawierać małą literę.");
@@ -28,6 +29,14 @@ namespace desktopapp.ViewModels
 
             return (true, string.Empty);
         }
+        
+        public bool ValidateEmail(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email)) return false;
+
+            string emailRegex = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
+            return Regex.IsMatch(email, emailRegex);
+        }
 
         [RelayCommand]
         public async Task RegisterAsync()
@@ -35,6 +44,12 @@ namespace desktopapp.ViewModels
             if (string.IsNullOrWhiteSpace(Username) || string.IsNullOrWhiteSpace(Email))
             {
                 MessageBox.Show("Wypełnij wszystkie pola!", "Błąd walidacji");
+                return;
+            }
+            
+            if (!ValidateEmail(Email))
+            {
+                MessageBox.Show("Podano nieprawidłowy format adresu e-mail (lub niedozwolone znaki).", "Błąd bezpieczeństwa");
                 return;
             }
 
