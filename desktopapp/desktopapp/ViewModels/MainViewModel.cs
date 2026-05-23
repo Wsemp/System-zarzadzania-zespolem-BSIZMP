@@ -54,6 +54,20 @@ namespace desktopapp.ViewModels
             ApplyFilters(); 
         }
         
+        [RelayCommand]
+        public void OpenInviteUserWindow(Models.ProjectModel project)
+        {
+            if (project == null) return;
+            if (project.Owner?.Username != CurrentUserName)
+            {
+                System.Windows.MessageBox.Show("Tylko administrator (właściciel) projektu może zarządzać zaproszeniami!", "Brak uprawnień", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+                return;
+            }
+
+            var inviteWindow = new desktopapp.Views.InviteUserWindow(project.Id, project.Name ?? "Nieznany projekt");
+            inviteWindow.ShowDialog();
+        }
+        
         [ObservableProperty]
         private bool _showOnlyMyTasks;
 
@@ -145,8 +159,7 @@ namespace desktopapp.ViewModels
             var loadNotificationsTask = ApiService.Instance.GetNotificationsAsync();
 
             await Task.WhenAll(loadInvitationsTask, loadNotificationsTask);
-
-            // Filtrujemy zaproszenia (tylko niezaakceptowane)
+            
             PendingInvitations = new ObservableCollection<InvitationModel>(loadInvitationsTask.Result.Where(i => !i.Accepted));
             
             var notificationsList = loadNotificationsTask.Result;
@@ -691,5 +704,7 @@ namespace desktopapp.ViewModels
         {
             _allTasks = tasks;
         }
+        
+        
     }
 }

@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../core/api/api_client.dart';
 import '../core/api/api_endpoints.dart';
 import '../core/auth/token_storage.dart';
+import '../core/errors/app_exception.dart';
 import '../models/user_model.dart';
 
 class AuthService {
@@ -90,10 +91,26 @@ class AuthService {
     required String oldPassword,
     required String newPassword,
   }) async {
-    await ApiClient.post(ApiEndpoints.changePassword, {
-      'old_password': oldPassword,
-      'new_password': newPassword,
-    });
+    // 1. Pobierz userId z pamięci
+    final userId = await TokenStorage.getUserId();
+    if (userId == null) throw const UnauthorizedException();
+
+    // 2. Pobierz username aktualnego użytkownika
+    final userData = await ApiClient.get(ApiEndpoints.user(userId));
+    final username = (userData as Map)['username'] as String;
+
+    // 3. Zweryfikuj stare hasło przez próbę logowania
+    try {
+      await ApiClient.post(ApiEndpoints.authLogin, {
+        'username': username,
+        'password': oldPassword,
+      }, auth: false);
+    } catch (_) {
+      throw const ValidationException('old_password: Nieprawidłowe hasło');
+    }
+
+    // 4. Zmień hasło przez PATCH /api/users/{id}/
+    await ApiClient.patch(ApiEndpoints.user(userId), {'password': newPassword});
   }
 
   static Future<void> forgotPassword(String email) async {

@@ -83,7 +83,9 @@
                         <Button Content="X" Command="{Binding ClearFilterDateCommand}" Background="Transparent" Foreground="{StaticResource DangerRed}" BorderThickness="0" Margin="0,0,10,0" ToolTip="Wyczyść datę"/>
                         <CheckBox Content="Tylko moje zadania" IsChecked="{Binding ShowOnlyMyTasks, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Foreground="{StaticResource PrimaryBlue}"/>
                     </StackPanel>
+                    
                 </StackPanel>
+                
 
                 <DataGrid Grid.Row="1" ItemsSource="{Binding Tasks}" SelectedItem="{Binding SelectedTask}" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column" Background="White" RowBackground="White" AlternatingRowBackground="White" BorderBrush="{StaticResource BorderGray}" BorderThickness="1" GridLinesVisibility="None" RowHeight="40">
                     <DataGrid.ColumnHeaderStyle>
@@ -133,6 +135,7 @@
                                                     </DataTrigger>
                                                     </Style.Triggers>
                                             </Style>
+                                            
                                         </Border.Style>
                                         <TextBlock Text="{Binding DisplayStatus}" FontWeight="SemiBold" Padding="10,4" HorizontalAlignment="Center">
                                             <TextBlock.Style>
@@ -215,6 +218,7 @@
                                         <StackPanel Orientation="Horizontal" Margin="10,0">
                                             <Button Content="Update" Foreground="{StaticResource PrimaryBlue}" Background="Transparent" BorderThickness="0" Command="{Binding DataContext.PrepareEditProjectCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" Cursor="Hand" Margin="0,0,10,0"/>
                                             <Button Content="Delete" Foreground="{StaticResource DangerRed}" Background="Transparent" BorderThickness="0" Command="{Binding DataContext.DeleteProjectCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" Cursor="Hand"/>
+                                            <Button Content="Zaproś" Foreground="{StaticResource PrimaryBlue}" Background="Transparent" BorderThickness="0" Command="{Binding DataContext.OpenInviteUserWindowCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" Cursor="Hand"/>
                                         </StackPanel>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
