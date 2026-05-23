@@ -38,6 +38,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _obscureConfirm = true;
   bool _loading = false;
   String? _error;
+  String? _usernameError; // błąd pola username (zajęty login)
 
   bool get _hasUpper => _passCtrl.text.contains(RegExp(r'[A-Z]'));
   bool get _hasDigit => _passCtrl.text.contains(RegExp(r'\d'));
@@ -54,7 +55,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
+  String _parseRegisterError(String raw) {
+    final lower = raw.toLowerCase();
+    if (lower.contains('username') &&
+        (lower.contains('exists') ||
+            lower.contains('already') ||
+            lower.contains('zajęt') ||
+            lower.contains('taken'))) {
+      return '__username_taken__';
+    }
+    if (lower.contains('email') &&
+        (lower.contains('exists') || lower.contains('already'))) {
+      return 'Adres e-mail jest już zajęty.';
+    }
+    if (lower.contains('password')) {
+      return 'Hasło nie spełnia wymagań bezpieczeństwa.';
+    }
+    return raw;
+  }
+
   Future<void> _register() async {
+    setState(() => _usernameError = null);
     if (!_formKey.currentState!.validate()) return;
     if (!_passwordsMatch) {
       setState(() => _error = 'Hasła nie są identyczne');
@@ -75,7 +96,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (ok) {
         context.go('/home');
       } else {
-        setState(() => _error = auth.error ?? 'Błąd rejestracji');
+        final raw = auth.error ?? 'Błąd rejestracji';
+        final parsed = _parseRegisterError(raw);
+        if (parsed == '__username_taken__') {
+          setState(
+            () => _usernameError = 'Ta nazwa użytkownika jest już zajęta',
+          );
+          _formKey.currentState!.validate();
+        } else {
+          setState(() => _error = parsed);
+        }
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -259,13 +289,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               controller: _userCtrl,
                               textInputAction: TextInputAction.next,
                               style: GoogleFonts.poppins(fontSize: 14),
+                              onChanged: (_) {
+                                if (_usernameError != null) {
+                                  setState(() => _usernameError = null);
+                                }
+                              },
                               decoration: _inputDeco(
                                 'Nazwa użytkownika',
                                 Icons.person_outline_rounded,
                               ),
-                              validator: (v) => (v?.trim().isEmpty ?? true)
-                                  ? 'Pole wymagane'
-                                  : null,
+                              validator: (v) {
+                                if (v?.trim().isEmpty ?? true) {
+                                  return 'Pole wymagane';
+                                }
+                                if (_usernameError != null) {
+                                  return _usernameError;
+                                }
+                                return null;
+                              },
                             ),
                           ),
                           const SizedBox(height: 14),
@@ -315,12 +356,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 ),
                               ),
                               validator: (v) {
-                                if (v?.isEmpty ?? true) {
-                                  return 'Pole wymagane';
-                                }
-                                if (!_hasMin) {
-                                  return 'Min. 8 znaków';
-                                }
+                                if (v?.isEmpty ?? true) return 'Pole wymagane';
+                                if (!_hasMin) return 'Min. 8 znaków';
                                 return null;
                               },
                             ),

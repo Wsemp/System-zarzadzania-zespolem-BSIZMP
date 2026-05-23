@@ -28,6 +28,7 @@ class KanbanColumn extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // ─── Nagłówek kolumny (stały) ───────────────────────────────────
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
@@ -76,23 +77,29 @@ class KanbanColumn extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          if (tasks.isEmpty)
-            Container(
-              height: 80,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: AppColors.divider),
-                borderRadius: BorderRadius.circular(AppRadius.xl),
-              ),
-              child: Center(
-                child: Text(
-                  'Brak zadań',
-                  style: GoogleFonts.poppins(color: AppColors.textSecondary),
-                ),
-              ),
-            )
-          else
-            ...tasks.map((task) => TaskCard(task: task)),
+          // ─── Lista zadań (scrollowalna pionowo) ─────────────────────────
+          Expanded(
+            child: tasks.isEmpty
+                ? Container(
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: AppColors.divider),
+                      borderRadius: BorderRadius.circular(AppRadius.xl),
+                    ),
+                    child: Center(
+                      child: Text(
+                        'Brak zadań',
+                        style: GoogleFonts.poppins(
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  )
+                : ListView(
+                    children: tasks.map((task) => TaskCard(task: task)).toList(),
+                  ),
+          ),
         ],
       ),
     );

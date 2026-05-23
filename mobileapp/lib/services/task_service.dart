@@ -54,12 +54,11 @@ class TaskService {
     List<int>? tagIds,
     String? dueDate,
   }) async {
-    // priority/area/anonymous_reporter są zarządzane lokalnie —
-    // backend ich jeszcze nie obsługuje (brak migracji)
     final body = <String, dynamic>{
       'title': title,
       'description': description,
       'status': status.value,
+      'priority': priority.value,
       if (assignedTo != null) 'assigned_to': assignedTo,
       if (projectId != null) 'project': ApiEndpoints.projectUrl(projectId),
       'tag_ids': tagIds ?? [],
