@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.shortcuts import render, redirect
 from .serializers import PasswordResetRequestSerializer, PasswordResetConfirmSerializer
-
+from django.contrib import messages
 from rest_framework.throttling import AnonRateThrottle
 
 class PasswordResetThrottle(AnonRateThrottle):
@@ -104,6 +104,28 @@ class PasswordResetConfirmView(APIView):
 
         return render(request, self.template_name, context)
 
+    def post(self, request, uidb64, token):
+
+        new_password = request.POST.get("new_password")
+
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+
+        except Exception:
+            messages.error(request, "Nieprawidłowy link")
+            return redirect("login")
+
+        if not token_generator.check_token(user, token):
+            messages.error(request, "Token wygasł")
+            return redirect("login")
+
+        user.set_password(new_password)
+        user.save()
+
+        messages.success(request, "Hasło zmienione")
+        return redirect("login")
+"""
     def post(self, request):
         serializer = PasswordResetConfirmSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -126,3 +148,4 @@ class PasswordResetConfirmView(APIView):
         user.save()
 
         return Response({"detail": "Hasło zostało zmienione."}, status=status.HTTP_200_OK)
+"""
