@@ -16,6 +16,13 @@ const _kNotifMentions = 'notif_mentions';
 const _kNotifNewTasks = 'notif_new_tasks';
 const _kNotifStatusChanges = 'notif_status_changes';
 
+const _kProfileHeaderGradient = LinearGradient(
+  begin: Alignment.bottomLeft,
+  end: Alignment.topRight,
+  colors: [Color(0xFFFF8A3D), Color(0xFFCB8BE8), Color(0xFF7C5CFC)],
+  stops: [0.0, 0.55, 1.0],
+);
+
 // ══════════════════════════════════════════════════════════════════════════════
 // GŁÓWNY EKRAN PROFILU
 // ══════════════════════════════════════════════════════════════════════════════
@@ -154,7 +161,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final s = context.read<LanguageProvider>().strings;
 
     return Container(
-      decoration: const BoxDecoration(gradient: AppColors.gradientPurple),
+      decoration: const BoxDecoration(gradient: _kProfileHeaderGradient),
       padding: const EdgeInsets.fromLTRB(24, 56, 24, 32),
       child: SafeArea(
         bottom: false,

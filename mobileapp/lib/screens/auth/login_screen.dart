@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -21,6 +22,9 @@ const _kButtonGradient = LinearGradient(
   colors: [Color(0xFFFF8A3D), Color(0xFF7C5CFC)],
 );
 
+const _kMaxAttempts = 3;
+const _kLockoutSeconds = 30;
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -37,10 +41,25 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _rememberMe = false;
   String? _error;
 
+  // Limit prób logowania
+  int _failedAttempts = 0;
+  int _secondsLeft = 0;
+  Timer? _countdownTimer;
+
+  bool get _isLockedOut => _secondsLeft > 0;
+
   @override
   void initState() {
     super.initState();
     _loadSavedCredentials();
+  }
+
+  @override
+  void dispose() {
+    _userCtrl.dispose();
+    _passCtrl.dispose();
+    _countdownTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadSavedCredentials() async {
@@ -54,14 +73,28 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  @override
-  void dispose() {
-    _userCtrl.dispose();
-    _passCtrl.dispose();
-    super.dispose();
+  void _startLockout() {
+    setState(() => _secondsLeft = _kLockoutSeconds);
+    _countdownTimer?.cancel();
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      setState(() {
+        _secondsLeft--;
+        if (_secondsLeft <= 0) {
+          _secondsLeft = 0;
+          _failedAttempts = 0;
+          _error = null;
+          timer.cancel();
+        }
+      });
+    });
   }
 
   Future<void> _login() async {
+    if (_isLockedOut) return;
     if (!_formKey.currentState!.validate()) return;
     setState(() {
       _loading = true;
@@ -76,6 +109,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       if (!mounted) return;
       if (ok) {
+        _failedAttempts = 0;
         if (_rememberMe) {
           await TokenStorage.saveCredentials(
             _userCtrl.text.trim(),
@@ -86,7 +120,20 @@ class _LoginScreenState extends State<LoginScreen> {
         }
         context.go('/home');
       } else {
-        setState(() => _error = auth.error ?? 'Nieprawidłowe dane logowania');
+        _failedAttempts++;
+        final remaining = _kMaxAttempts - _failedAttempts;
+        if (_failedAttempts >= _kMaxAttempts) {
+          _startLockout();
+          setState(
+            () => _error =
+                'Zbyt wiele nieudanych prób logowania. Spróbuj ponownie za $_kLockoutSeconds sekund.',
+          );
+        } else {
+          setState(
+            () => _error =
+                'Nieprawidłowe dane logowania. Pozostało prób: $remaining',
+          );
+        }
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -271,22 +318,49 @@ class _LoginScreenState extends State<LoginScreen> {
                                 vertical: 12,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.red.shade50,
+                                color: _isLockedOut
+                                    ? Colors.orange.shade50
+                                    : Colors.red.shade50,
                                 borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.red.shade200),
-                              ),
-                              child: Text(
-                                _error!,
-                                style: GoogleFonts.poppins(
-                                  color: Colors.red.shade700,
-                                  fontSize: 12,
+                                border: Border.all(
+                                  color: _isLockedOut
+                                      ? Colors.orange.shade300
+                                      : Colors.red.shade200,
                                 ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    _isLockedOut
+                                        ? Icons.lock_clock_outlined
+                                        : Icons.warning_amber_rounded,
+                                    size: 18,
+                                    color: _isLockedOut
+                                        ? Colors.orange.shade700
+                                        : Colors.red.shade700,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      _isLockedOut
+                                          ? 'Zbyt wiele nieudanych prób. Spróbuj ponownie za $_secondsLeft s.'
+                                          : _error!,
+                                      style: GoogleFonts.poppins(
+                                        color: _isLockedOut
+                                            ? Colors.orange.shade700
+                                            : Colors.red.shade700,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           _shadowField(
                             TextFormField(
                               controller: _userCtrl,
                               textInputAction: TextInputAction.next,
+                              enabled: !_isLockedOut,
                               style: GoogleFonts.poppins(fontSize: 14),
                               decoration: _inputDeco(
                                 'Nazwa użytkownika',
@@ -303,6 +377,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               controller: _passCtrl,
                               obscureText: _obscure,
                               textInputAction: TextInputAction.done,
+                              enabled: !_isLockedOut,
                               onFieldSubmitted: (_) => _login(),
                               style: GoogleFonts.poppins(fontSize: 14),
                               decoration: _inputDeco(
@@ -332,8 +407,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                 height: 20,
                                 child: Checkbox(
                                   value: _rememberMe,
-                                  onChanged: (v) =>
-                                      setState(() => _rememberMe = v ?? false),
+                                  onChanged: _isLockedOut
+                                      ? null
+                                      : (v) => setState(
+                                          () => _rememberMe = v ?? false,
+                                        ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(4),
                                   ),
@@ -368,49 +446,75 @@ class _LoginScreenState extends State<LoginScreen> {
                             ],
                           ),
                           const SizedBox(height: 28),
-                          Container(
-                            width: double.infinity,
-                            height: 54,
-                            decoration: BoxDecoration(
-                              gradient: _kButtonGradient,
-                              borderRadius: BorderRadius.circular(27),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(
-                                    0xFF7C5CFC,
-                                  ).withOpacity(0.35),
-                                  blurRadius: 16,
-                                  offset: const Offset(0, 6),
-                                ),
-                              ],
-                            ),
-                            child: ElevatedButton(
-                              onPressed: _loading ? null : _login,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.transparent,
-                                shadowColor: Colors.transparent,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(27),
-                                ),
+                          Opacity(
+                            opacity: _isLockedOut ? 0.5 : 1.0,
+                            child: Container(
+                              width: double.infinity,
+                              height: 54,
+                              decoration: BoxDecoration(
+                                gradient: _kButtonGradient,
+                                borderRadius: BorderRadius.circular(27),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(
+                                      0xFF7C5CFC,
+                                    ).withOpacity(0.35),
+                                    blurRadius: 16,
+                                    offset: const Offset(0, 6),
+                                  ),
+                                ],
                               ),
-                              child: _loading
-                                  ? const SizedBox(
-                                      width: 22,
-                                      height: 22,
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 2,
+                              child: ElevatedButton(
+                                onPressed: (_loading || _isLockedOut)
+                                    ? null
+                                    : _login,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.transparent,
+                                  shadowColor: Colors.transparent,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(27),
+                                  ),
+                                ),
+                                child: _loading
+                                    ? const SizedBox(
+                                        width: 22,
+                                        height: 22,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : _isLockedOut
+                                    ? Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          const Icon(
+                                            Icons.lock_outline_rounded,
+                                            color: Colors.white,
+                                            size: 18,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            'Zablokowano na $_secondsLeft s',
+                                            style: GoogleFonts.poppins(
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 14,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    : Text(
+                                        'Zaloguj się',
+                                        style: GoogleFonts.poppins(
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 16,
+                                          color: Colors.white,
+                                          letterSpacing: 0.3,
+                                        ),
                                       ),
-                                    )
-                                  : Text(
-                                      'Zaloguj się',
-                                      style: GoogleFonts.poppins(
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 16,
-                                        color: Colors.white,
-                                        letterSpacing: 0.3,
-                                      ),
-                                    ),
+                              ),
                             ),
                           ),
                           const SizedBox(height: 24),
