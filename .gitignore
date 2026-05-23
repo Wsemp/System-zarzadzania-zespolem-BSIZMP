@@ -31,3 +31,14 @@ Thumbs.db
 bin/
 obj/
 webapp/invitations/API/CRUD_invitations/views.py
+mobileapp/webapp/webapp/urls.py
+mobileapp/webapp/users/API/google_auth/views.py
+mobileapp/webapp/users/API/google_auth/urls.py
+mobileapp/webapp/webapp/urls.py
+mobileapp/webapp/users/API/google_auth/__init__.py
+mobileapp/webapp/requirements.txt
+mobileapp/webapp/webapp/urls.py
+mobileapp/webapp/webapp/urls.py
+mobileapp/webapp/requirements.txt
+mobileapp/webapp/webapp/urls.py
+mobileapp/webapp/requirements.txt

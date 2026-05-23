@@ -9,7 +9,7 @@ urlpatterns = [
     ),
 
     path(
-        "password-reset-confirm/<uid>/<token>/",
+        "password-reset-confirm/<uidb64>/<token>/",
         PasswordResetConfirmView.as_view(),
         name="password-reset-confirm",
     ),
