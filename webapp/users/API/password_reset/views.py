@@ -72,7 +72,13 @@ class PasswordResetRequestView(APIView):
                     # gdy brak DEFAULT_FROM_EMAIL — użyj EmailMessage bez from_email albo loguj
                     EmailMessage(subject, message, to=[user.email]).send(fail_silently=True)
             except Exception as e:
-                print("Email error:", str(e))
+                return Response(
+                    {
+                        "error_type": type(e).__name__,
+                        "error": str(e)
+                    },
+                    status=500
+                )
 
             # dla środowiska deweloperskiego możesz także logować link
             if settings.DEBUG:
