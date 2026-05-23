@@ -83,15 +83,17 @@ namespace desktopapp.Tests
             }
         }
 
+        
         [Fact]
         public async Task GetPendingInvitationsAsync_ShouldReturnListOfInvitations_WhenApiReturns200()
         {
-            // Arrange
+
             var invitations = new List<InvitationModel>
             {
-                new InvitationModel { Id = 1, ProjectUrl = "http://test.com/api/projects/1/", InviterUrl = "http://test.com/api/users/1/", Message = "Zaproszenie A" },
-                new InvitationModel { Id = 2, ProjectUrl = "http://test.com/api/projects/2/", InviterUrl = "http://test.com/api/users/2/", Message = "Zaproszenie B" }
+                new InvitationModel { Id = 1, ProjectName = "Projekt 1", InviterUsername = "Admin", Message = "Zaproszenie A" },
+                new InvitationModel { Id = 2, ProjectName = "Projekt 2", InviterUsername = "User2", Message = "Zaproszenie B" }
             };
+            
             var handlerMock = CreateHttpMock(HttpStatusCode.OK, invitations);
             var httpClient = new HttpClient(handlerMock.Object);
             var apiService = new ApiService(httpClient);
@@ -103,8 +105,10 @@ namespace desktopapp.Tests
             Assert.NotNull(result);
             Assert.Equal(2, result.Count);
             Assert.Equal("Zaproszenie A", result.First().Message);
-            Assert.Equal("1", result.First().DisplayProject); // Sprawdzamy DisplayProject
-            Assert.Equal("1", result.First().DisplayInviter); // Sprawdzamy DisplayInviter
+            
+            // Sprawdzamy, czy nasze nowe właściwości wyświetlają się poprawnie
+            Assert.Equal("Projekt 1", result.First().DisplayProject); 
+            Assert.Equal("Admin", result.First().DisplayInviter); 
         }
 
         [Theory]
