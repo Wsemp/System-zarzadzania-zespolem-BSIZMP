@@ -513,28 +513,35 @@ class _KanbanView extends StatelessWidget {
     if (loading) {
       return const Center(child: CircularProgressIndicator());
     }
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          KanbanColumn(
-            status: TaskStatus.todo,
-            tasks: _byStatus(TaskStatus.todo),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+          child: SizedBox(
+            height: constraints.maxHeight - 32,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                KanbanColumn(
+                  status: TaskStatus.todo,
+                  tasks: _byStatus(TaskStatus.todo),
+                ),
+                const SizedBox(width: 12),
+                KanbanColumn(
+                  status: TaskStatus.inProgress,
+                  tasks: _byStatus(TaskStatus.inProgress),
+                ),
+                const SizedBox(width: 12),
+                KanbanColumn(
+                  status: TaskStatus.done,
+                  tasks: _byStatus(TaskStatus.done),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(width: 12),
-          KanbanColumn(
-            status: TaskStatus.inProgress,
-            tasks: _byStatus(TaskStatus.inProgress),
-          ),
-          const SizedBox(width: 12),
-          KanbanColumn(
-            status: TaskStatus.done,
-            tasks: _byStatus(TaskStatus.done),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
