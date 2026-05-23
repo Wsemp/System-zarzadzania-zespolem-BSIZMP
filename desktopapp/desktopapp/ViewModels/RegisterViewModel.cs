@@ -15,7 +15,7 @@ namespace desktopapp.ViewModels
 
         public Action? CloseAction { get; set; }
 
-        private (bool IsValid, string ErrorMessage) ValidatePassword(string password)
+        public (bool IsValid, string ErrorMessage) ValidatePassword(string password)
         {
             if (string.IsNullOrWhiteSpace(password)) return (false, "Hasło nie może być puste.");
             if (password.Length < 8) return (false, "Hasło musi mieć co najmniej 8 znaków.");
