@@ -93,7 +93,7 @@ class PasswordResetConfirmView(APIView):
     Przyjmuje uid, token, new_password. Weryfikuje token i ustawia nowe hasło.
     """
 
-    template_name = "templates/password_reset_confirm.html"
+    template_name = "password_reset_confirm.html"
 
     def get(self, request, uidb64, token):
 
