@@ -11,10 +11,17 @@ from rest_framework.response import Response
 
 from .serializers import PasswordResetRequestSerializer, PasswordResetConfirmSerializer
 
+from rest_framework.throttling import AnonRateThrottle
+
+class PasswordResetThrottle(AnonRateThrottle):
+    rate = '5/hour'
+
 User = get_user_model()
 token_generator = PasswordResetTokenGenerator()
 
 class PasswordResetRequestView(APIView):
+
+    throttle_classes = [PasswordResetThrottle]
 
     def post(self, request):
         serializer = PasswordResetRequestSerializer(data=request.data)
@@ -64,9 +71,8 @@ class PasswordResetRequestView(APIView):
                 else:
                     # gdy brak DEFAULT_FROM_EMAIL — użyj EmailMessage bez from_email albo loguj
                     EmailMessage(subject, message, to=[user.email]).send(fail_silently=True)
-            except Exception:
-                # nie ujawniamy błędów klientowi — logowanie po stronie serwera jest ok
-                pass
+            except Exception as e:
+                print("Email error:", str(e))
 
             # dla środowiska deweloperskiego możesz także logować link
             if settings.DEBUG:
